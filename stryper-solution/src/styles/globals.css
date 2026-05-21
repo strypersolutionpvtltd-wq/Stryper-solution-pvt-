@@ -1,0 +1,270 @@
+/* ============================================================
+   Stryper Solution - Global Stylesheet
+   Design System: White dominant · Purple + Gold accents
+   ============================================================ */
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ------------------------------------------------------------
+   Base Layer - Reset & Typography Defaults
+   ------------------------------------------------------------ */
+@layer base {
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+  html {
+    scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+    font-feature-settings: 'kern' 1, 'liga' 1, 'calt' 1;
+  }
+
+  body {
+    @apply bg-white text-neutral-800 font-sans antialiased;
+    font-size: 16px;
+    line-height: 1.6;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Headings */
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-display font-semibold text-neutral-900 leading-tight;
+    letter-spacing: -0.01em;
+  }
+
+  h1 { @apply text-display-lg; }
+  h2 { @apply text-display-md; }
+  h3 { @apply text-display-sm; }
+  h4 { @apply text-display-xs; }
+  h5 { @apply text-xl; }
+  h6 { @apply text-lg; }
+
+  /* Body text */
+  p {
+    @apply text-neutral-600 leading-relaxed;
+  }
+
+  /* Links */
+  a {
+    @apply text-brand-purple-600 no-underline transition-colors duration-200;
+  }
+
+  a:hover {
+    @apply text-brand-purple-700;
+  }
+
+  /* Images */
+  img, video {
+    max-width: 100%;
+    height: auto;
+    display: block;
+  }
+
+  /* Focus ring - accessibility */
+  :focus-visible {
+    @apply outline-2 outline-offset-2 outline-brand-purple-500 rounded;
+  }
+
+  /* Selection */
+  ::selection {
+    @apply bg-brand-purple-100 text-brand-purple-900;
+  }
+
+  /* Scrollbar - subtle */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    @apply bg-neutral-100;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-neutral-300 rounded-full;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-brand-purple-400;
+  }
+}
+
+/* ------------------------------------------------------------
+   Component Layer - Reusable Design Tokens as Classes
+   ------------------------------------------------------------ */
+@layer components {
+
+  /* Container system */
+  .container-base {
+    @apply w-full mx-auto px-4 sm:px-6 lg:px-8;
+    max-width: 1280px;
+  }
+
+  .container-sm {
+    @apply w-full mx-auto px-4 sm:px-6 lg:px-8;
+    max-width: 960px;
+  }
+
+  .container-lg {
+    @apply w-full mx-auto px-4 sm:px-6 lg:px-8;
+    max-width: 1440px;
+  }
+
+  /* Section spacing */
+  .section-padding {
+    @apply py-20 lg:py-28;
+  }
+
+  .section-padding-sm {
+    @apply py-12 lg:py-16;
+  }
+
+  /* Typography utilities */
+  .text-gradient-purple {
+    @apply bg-gradient-to-r from-brand-purple-600 to-brand-purple-400 bg-clip-text text-transparent;
+  }
+
+  .text-gradient-gold {
+    @apply bg-gradient-to-r from-brand-gold-600 to-brand-gold-400 bg-clip-text text-transparent;
+  }
+
+  .text-gradient-brand {
+    @apply bg-gradient-to-r from-brand-purple-600 via-brand-purple-500 to-brand-gold-500 bg-clip-text text-transparent;
+  }
+
+  /* Button base */
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 font-sans font-medium
+           rounded-xl transition-all duration-200 cursor-pointer
+           focus-visible:outline-2 focus-visible:outline-offset-2
+           disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  .btn-primary {
+    @apply btn bg-brand-purple-600 text-white px-6 py-3
+           hover:bg-brand-purple-700 active:bg-brand-purple-800
+           shadow-purple hover:shadow-strong
+           focus-visible:outline-brand-purple-500;
+  }
+
+  .btn-secondary {
+    @apply btn bg-white text-brand-purple-700 px-6 py-3
+           border border-brand-purple-200
+           hover:bg-brand-purple-50 hover:border-brand-purple-400
+           focus-visible:outline-brand-purple-500;
+  }
+
+  .btn-gold {
+    @apply btn bg-brand-gold-500 text-white px-6 py-3
+           hover:bg-brand-gold-600 active:bg-brand-gold-700
+           shadow-gold hover:shadow-strong
+           focus-visible:outline-brand-gold-500;
+  }
+
+  .btn-ghost {
+    @apply btn bg-transparent text-neutral-700 px-6 py-3
+           hover:bg-neutral-100
+           focus-visible:outline-neutral-400;
+  }
+
+  .btn-lg {
+    @apply px-8 py-4 text-lg rounded-2xl;
+  }
+
+  .btn-sm {
+    @apply px-4 py-2 text-sm rounded-lg;
+  }
+
+  /* Card base */
+  .card {
+    @apply bg-white rounded-2xl border border-neutral-100 shadow-soft
+           transition-shadow duration-300 hover:shadow-medium;
+  }
+
+  .card-elevated {
+    @apply bg-white rounded-3xl shadow-medium
+           transition-shadow duration-300 hover:shadow-strong;
+  }
+
+  /* Badge */
+  .badge {
+    @apply inline-flex items-center gap-1.5 px-3 py-1 rounded-full
+           text-xs font-medium tracking-wide;
+  }
+
+  .badge-purple {
+    @apply badge bg-brand-purple-100 text-brand-purple-700;
+  }
+
+  .badge-gold {
+    @apply badge bg-brand-gold-100 text-brand-gold-700;
+  }
+
+  .badge-neutral {
+    @apply badge bg-neutral-100 text-neutral-600;
+  }
+
+  /* Divider */
+  .divider {
+    @apply w-full h-px bg-neutral-100;
+  }
+
+  .divider-brand {
+    @apply w-16 h-1 bg-gradient-to-r from-brand-purple-500 to-brand-gold-500 rounded-full;
+  }
+
+  /* Page hero wrapper */
+  .page-hero {
+    @apply relative overflow-hidden bg-gradient-to-br
+           from-brand-purple-900 via-brand-purple-800 to-brand-purple-700
+           text-white;
+  }
+
+  /* Input base */
+  .input-base {
+    @apply w-full px-4 py-3 rounded-xl border border-neutral-200 bg-white
+           text-neutral-800 placeholder-neutral-400
+           transition-all duration-200
+           focus:outline-none focus:ring-2 focus:ring-brand-purple-400
+           focus:border-brand-purple-400;
+  }
+
+  /* Overlay */
+  .overlay-dark {
+    @apply absolute inset-0 bg-neutral-900/60;
+  }
+
+  .overlay-purple {
+    @apply absolute inset-0 bg-brand-purple-900/70;
+  }
+}
+
+/* ------------------------------------------------------------
+   Utility Layer - Custom Helpers
+   ------------------------------------------------------------ */
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .gpu {
+    transform: translateZ(0);
+    will-change: transform;
+  }
+}
