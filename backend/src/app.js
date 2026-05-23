@@ -20,8 +20,6 @@ app.get("/api/health", (req, res) => {
   res.status(200).json({ status: "ok", message: "Server is running" });
 });
 
-// Routes will be mounted here
-// app.use("/api/v1/users", userRoutes);
 
 // 404 handler
 app.use((req, res) => {
