@@ -77,8 +77,8 @@ const Sidebar = ({ onClose }) => {
 
   return (
     <aside className="flex flex-col h-full bg-white border-r border-neutral-100 shadow-sm">
-      {/* Logo */}
-      <div className="flex items-center h-16 px-5 border-b border-neutral-100 shrink-0">
+      {/* Logo — black bg to match brand */}
+      <div className="flex items-center h-16 px-5 border-b border-neutral-100 shrink-0 bg-black">
         <Logo scrolled />
       </div>
 

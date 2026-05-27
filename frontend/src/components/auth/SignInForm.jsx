@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import GoogleIcon from './GoogleIcon';
 import { useAuth } from '@/context/AuthContext';
+import logoImg from "@/assets/image/logo.jpeg";
 
 const SignInForm = ({ onSwitchToSignUp, onClose, hideHeader }) => {
   const [form, setForm] = useState({ email: '', password: '' });
@@ -12,9 +13,10 @@ const SignInForm = ({ onSwitchToSignUp, onClose, hideHeader }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    // Set company role and mark as logged in — redirect handled by route guard
+    // Determine role from email for mock — in real app this comes from API
+    const role = form.email.toLowerCase().includes('company') ? 'company' : 'candidate';
     setIsLoggedIn(true);
-    setUserRole('company');
+    setUserRole(role);
     if (onClose) onClose();
   };
 
@@ -23,11 +25,8 @@ const SignInForm = ({ onSwitchToSignUp, onClose, hideHeader }) => {
       {/* Header */}
       {!hideHeader && (
         <div className="text-center mb-8">
-          <div className="w-12 h-12 rounded-xl flex items-center justify-center mx-auto mb-4" style={{ background: '#f3e8f4' }}>
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-              <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" stroke="#8B3A8F" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              <circle cx="12" cy="7" r="4" stroke="#8B3A8F" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
+          <div className="inline-block rounded-xl overflow-hidden bg-black px-4 py-2 mb-5">
+            <img src={logoImg} alt="Stryper Solution" className="h-10 w-auto object-contain" />
           </div>
           <h2 className="text-2xl font-bold text-neutral-800">Welcome Back</h2>
           <p className="text-neutral-500 text-sm mt-1">Sign in to your Stryper account</p>

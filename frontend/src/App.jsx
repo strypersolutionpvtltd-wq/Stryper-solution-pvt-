@@ -13,6 +13,15 @@ import Jobs        from '@/pages/Jobs';
 import Contact     from '@/pages/Contact';
 import NotFound    from '@/pages/NotFound';
 
+// Career Hub layout + pages
+import CareerHubGuard   from '@/career-hub/components/shared/CareerHubLayout';
+import CHProfile        from '@/career-hub/pages/Profile';
+import CHResume         from '@/career-hub/pages/Resume';
+import CHAppliedJobs    from '@/career-hub/pages/AppliedJobs';
+import CHSavedJobs      from '@/career-hub/pages/SavedJobs';
+import CHNotifications  from '@/career-hub/pages/Notifications';
+import CHSettings       from '@/career-hub/pages/Settings';
+
 // Hire Zone layout + pages
 import HireZoneLayout   from '@/hire-zone/components/layout/HireZoneLayout';
 import HireZoneNotFound from '@/hire-zone/components/shared/HireZoneNotFound';
@@ -56,6 +65,7 @@ const HireZoneGuard = () => {
 const PublicGuard = () => {
   const { isLoggedIn, userRole } = useAuth();
   if (isLoggedIn && userRole === 'company') return <Navigate to="/hire-zone/dashboard" replace />;
+  // Candidates stay on the main site — no redirect
   return <MainLayout />;
 };
 
@@ -70,7 +80,7 @@ function App() {
 
   return (
     <Routes>
-      {/* ── Public routes ── */}
+      {/* ── Public routes + Career Hub (both use MainLayout) ── */}
       <Route element={<PublicGuard />}>
         <Route path="/"           element={<Home />} />
         <Route path="/about"      element={<About />} />
@@ -80,10 +90,20 @@ function App() {
         <Route path="/jobs"       element={<Jobs />} />
         <Route path="/contact"    element={<Contact />} />
         <Route path="*"           element={<NotFound />} />
+
+        {/* Career Hub — nested inside MainLayout, guarded by role */}
+        <Route path="/career-hub" element={<CareerHubGuard />}>
+          <Route index element={<Navigate to="/career-hub/profile" replace />} />
+          <Route path="profile"       element={<CHProfile />} />
+          <Route path="resume"        element={<CHResume />} />
+          <Route path="applied-jobs"  element={<CHAppliedJobs />} />
+          <Route path="saved-jobs"    element={<CHSavedJobs />} />
+          <Route path="notifications" element={<CHNotifications />} />
+          <Route path="settings"      element={<CHSettings />} />
+        </Route>
       </Route>
 
-      {/* ── Hire Zone routes ── */}
-      <Route path="/hire-zone" element={<HireZoneGuard />}>
+      {/* ── Hire Zone routes ── */}      <Route path="/hire-zone" element={<HireZoneGuard />}>
         <Route index element={<Navigate to="/hire-zone/dashboard" replace />} />
         <Route path="dashboard"        element={<Dashboard />} />
         <Route path="post-job"         element={<PostJob />} />

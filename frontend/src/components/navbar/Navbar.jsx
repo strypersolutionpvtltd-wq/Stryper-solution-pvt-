@@ -6,6 +6,8 @@ import NavLinks from './NavLinks';
 import MobileMenu from './MobileMenu';
 import Logo from '@/components/shared/Logo';
 import AuthModal from '@/components/auth/AuthModal';
+import CandidateNavMenu from '@/career-hub/components/shared/CandidateNavMenu';
+import { useAuth } from '@/context/AuthContext';
 
 /**
  * Navbar :
@@ -16,6 +18,9 @@ const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileOpen, setMobileOpen] = useState(false);
   const [authModal, setAuthModal] = useState({ open: false, view: 'signin' });
+  const { isLoggedIn, userRole } = useAuth();
+
+  const isCandidate = isLoggedIn && userRole === 'candidate';
 
   const openSignIn = () => setAuthModal({ open: true, view: 'signin' });
   const openSignUp = () => setAuthModal({ open: true, view: 'signup-choice' });
@@ -84,12 +89,16 @@ const Navbar = () => {
 
               <div className="flex items-center gap-3">
                 <motion.div className="hidden lg:block" whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}>
-                  <button
-                    onClick={openSignIn}
-                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-semibold text-white transition-colors duration-200"
-                    style={{ background: '#8B3A8F' }}>
-                    Company Login
-                  </button>
+                  {isCandidate ? (
+                    <CandidateNavMenu />
+                  ) : (
+                    <button
+                      onClick={openSignIn}
+                      className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-semibold text-white transition-colors duration-200"
+                      style={{ background: '#8B3A8F' }}>
+                      Company Login
+                    </button>
+                  )}
                 </motion.div>
 
                 <button

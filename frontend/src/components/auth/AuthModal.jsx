@@ -61,7 +61,10 @@ const AuthModal = ({ isOpen, onClose, defaultView = 'signin' }) => {
               </button>
 
               <div className="p-8 pb-0 flex flex-col items-center">
-                <img src={logoImg} alt="Logo" className="h-12 w-auto mb-6" />
+                {/* Logo on black background — matches brand */}
+                <div className="rounded-xl overflow-hidden mb-6 bg-black px-4 py-2">
+                  <img src={logoImg} alt="Stryper Solution" className="h-10 w-auto object-contain" />
+                </div>
                 
                 {/* Tabs */}
                 <div className="flex w-full border-b border-neutral-100 mb-6">
