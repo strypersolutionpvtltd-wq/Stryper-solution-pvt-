@@ -1,7 +1,8 @@
 import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, Filter, MoreVertical, UserX, Mail, Trash2, ShieldCheck, CheckCircle2 } from 'lucide-react';
+import { Search, MoreVertical, UserX, Mail, Trash2, ShieldCheck, Eye } from 'lucide-react';
 import { ALL_USERS } from '@/data/adminData';
+import UserProfileModal from '@/components/admin/UserProfileModal';
 import toast from 'react-hot-toast';
 
 const fadeInUp = {
@@ -9,10 +10,18 @@ const fadeInUp = {
   visible: { opacity: 1, y: 0 }
 };
 
+// Normalise row for modal compatibility
+const normaliseRow = (user) => ({
+  ...user,
+  joined: user.joined || 'N/A'
+});
+
 const AdminUsers = () => {
   const [users, setUsers] = useState(ALL_USERS);
   const [searchTerm, setSearchText] = useState('');
   const [activeMenu, setActiveMenu] = useState(null);
+  const [selectedUser, setSelectedUser] = useState(null);
+  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
 
   const filteredUsers = useMemo(() => {
     return users.filter(user => 
@@ -46,6 +55,11 @@ const AdminUsers = () => {
     setActiveMenu(null);
   };
 
+  const handleViewProfile = (user) => {
+    setSelectedUser(normaliseRow(user));
+    setIsProfileModalOpen(true);
+  };
+
   return (
     <motion.div 
       initial="hidden" 
@@ -54,6 +68,13 @@ const AdminUsers = () => {
       className="space-y-6 pb-10"
       onClick={() => setActiveMenu(null)}
     >
+      {/* Profile Modal */}
+      <UserProfileModal 
+        isOpen={isProfileModalOpen} 
+        onClose={() => setIsProfileModalOpen(false)} 
+        user={selectedUser} 
+      />
+
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h2 className="text-2xl font-bold text-white tracking-tight">User Management</h2>
@@ -70,10 +91,6 @@ const AdminUsers = () => {
               className="bg-white/5 border border-white/5 rounded-xl pl-10 pr-4 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-brand-purple-600/50 w-full sm:w-64 text-white"
             />
           </div>
-          <button className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/5 border border-white/5 text-sm font-medium hover:bg-white/10 transition-colors text-white">
-            <Filter size={16} />
-            Filters
-          </button>
         </div>
       </div>
 
@@ -101,7 +118,8 @@ const AdminUsers = () => {
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0, x: -20 }}
                     key={user.id} 
-                    className="group hover:bg-white/[0.02] transition-colors"
+                    className="group hover:bg-white/[0.02] transition-colors cursor-pointer"
+                    onClick={() => handleViewProfile(user)}
                   >
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
@@ -120,21 +138,28 @@ const AdminUsers = () => {
                       </span>
                     </td>
                     <td className="px-6 py-4">
-                      <button 
+                      <div 
                         onClick={(e) => { e.stopPropagation(); handleStatusToggle(user.id, user.status); }}
                         className="flex items-center gap-2 hover:opacity-80 transition-opacity"
                       >
                         <div className={`w-1.5 h-1.5 rounded-full ${user.status === 'Active' || user.status === 'Verified' ? 'bg-emerald-500' : 'bg-red-500'}`} />
                         <span className="text-xs text-neutral-400 font-medium">{user.status}</span>
-                      </button>
+                      </div>
                     </td>
                     <td className="px-6 py-4">
                       <span className="text-xs text-neutral-500 font-medium">{user.joined}</span>
                     </td>
                     <td className="px-6 py-4 text-right relative">
-                      <div className="flex items-center justify-end gap-2">
+                      <div className="flex items-center justify-end gap-2" onClick={(e) => e.stopPropagation()}>
                         <button 
-                          onClick={(e) => { e.stopPropagation(); handleEmail(user.email); }}
+                          onClick={() => handleViewProfile(user)}
+                          title="View Profile" 
+                          className="p-2 rounded-lg hover:bg-brand-purple-600/10 text-neutral-400 hover:text-brand-purple-400 transition-all"
+                        >
+                          <Eye size={16} />
+                        </button>
+                        <button 
+                          onClick={() => handleEmail(user.email)}
                           title="Email User" 
                           className="p-2 rounded-lg hover:bg-white/5 text-neutral-400 hover:text-white transition-colors"
                         >
@@ -142,7 +167,7 @@ const AdminUsers = () => {
                         </button>
                         <div className="relative">
                           <button 
-                            onClick={(e) => { e.stopPropagation(); setActiveMenu(activeMenu === user.id ? null : user.id); }}
+                            onClick={() => setActiveMenu(activeMenu === user.id ? null : user.id)}
                             className="p-2 rounded-lg hover:bg-white/5 text-neutral-400 hover:text-white transition-colors"
                           >
                             <MoreVertical size={16} />

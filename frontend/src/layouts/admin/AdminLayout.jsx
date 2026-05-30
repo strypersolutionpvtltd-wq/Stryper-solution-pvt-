@@ -15,8 +15,10 @@ import {
   Settings, 
   LogOut,
   Menu,
-  Search
+  X,
+  CheckCircle2
 } from 'lucide-react';
+import { ADMIN_NOTIFICATIONS } from '@/data/adminData';
 
 // ... (SidebarItem component remains the same) ...
 const SidebarItem = ({ icon: Icon, label, path, active, collapsed, onClick }) => {
@@ -49,9 +51,12 @@ const AdminLayout = () => {
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  const [showNotifications, setShowNotifications] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
   const { logout, userData } = useAuth();
+
+  const unreadCount = ADMIN_NOTIFICATIONS.filter(n => !n.read).length;
 
   const handleLogoutClick = () => {
     setShowLogoutConfirm(true);
@@ -66,7 +71,7 @@ const AdminLayout = () => {
     { label: 'Dashboard', icon: LayoutDashboard, path: '/admin/dashboard' },
     { label: 'Users', icon: Users, path: '/admin/users' },
     { label: 'Companies', icon: Building2, path: '/admin/companies' },
-    { label: 'Consultants', icon: Briefcase, path: '/admin/consultants' },
+    { label: 'Stryper Partners', icon: Briefcase, path: '/admin/consultants' },
     { label: 'Jobs', icon: Briefcase, path: '/admin/jobs' },
     { label: 'Applications', icon: FileText, path: '/admin/applications' },
     { label: 'Analytics', icon: BarChart3, path: '/admin/analytics' },
@@ -189,21 +194,56 @@ const AdminLayout = () => {
             </h1>
           </div>
 
-          <div className="flex items-center gap-6">
-            <div className="relative hidden md:flex items-center">
-              <Search className="absolute left-3 text-neutral-500" size={16} />
-              <input 
-                type="text" 
-                placeholder="Search..." 
-                className="bg-white/5 border border-white/5 rounded-xl pl-10 pr-4 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-brand-purple-600/50 w-64 text-white"
-              />
-            </div>
-            
+          <div className="flex items-center gap-4">
             <div className="flex items-center gap-4">
-              <button className="relative p-2 rounded-xl hover:bg-white/5 text-neutral-400">
-                <Bell size={20} />
-                <span className="absolute top-2 right-2 w-2 h-2 rounded-full bg-red-500 border-2 border-[#0a0a0a]" />
-              </button>
+              <div className="relative">
+                <button 
+                  onClick={() => setShowNotifications(!showNotifications)}
+                  className={`relative p-2 rounded-xl transition-colors ${showNotifications ? 'bg-brand-purple-600/20 text-brand-purple-400' : 'hover:bg-white/5 text-neutral-400'}`}
+                  title="Notifications"
+                >
+                  <Bell size={20} />
+                  {unreadCount > 0 && (
+                    <span className="absolute top-2 right-2 w-2 h-2 rounded-full bg-red-500 border-2 border-[#0a0a0a]" />
+                  )}
+                </button>
+
+                <AnimatePresence>
+                  {showNotifications && (
+                    <>
+                      <div className="fixed inset-0 z-10" onClick={() => setShowNotifications(false)} />
+                      <motion.div
+                        initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                        className="absolute right-0 mt-3 w-80 bg-[#161616] border border-white/10 rounded-2xl shadow-2xl z-20 overflow-hidden"
+                      >
+                        <div className="p-4 border-b border-white/5 flex items-center justify-between">
+                          <h3 className="text-sm font-bold text-white">Notifications</h3>
+                          <Link to="/admin/notifications" onClick={() => setShowNotifications(false)} className="text-[10px] font-bold text-brand-purple-400 uppercase hover:underline">View All</Link>
+                        </div>
+                        <div className="max-h-[350px] overflow-y-auto no-scrollbar">
+                          {ADMIN_NOTIFICATIONS.slice(0, 5).map(n => (
+                            <div key={n.id} className="p-4 border-b border-white/5 hover:bg-white/[0.02] transition-colors cursor-pointer" onClick={() => { navigate('/admin/notifications'); setShowNotifications(false); }}>
+                              <div className="flex justify-between items-start mb-1">
+                                <p className={`text-xs font-bold ${n.read ? 'text-neutral-400' : 'text-white'}`}>{n.title}</p>
+                                <span className="text-[9px] text-neutral-600 whitespace-nowrap">{n.time}</span>
+                              </div>
+                              <p className="text-[11px] text-neutral-500 line-clamp-2">{n.message}</p>
+                            </div>
+                          ))}
+                        </div>
+                        <button 
+                          onClick={() => { navigate('/admin/notifications'); setShowNotifications(false); }}
+                          className="w-full py-3 bg-white/5 text-[11px] font-bold text-neutral-400 hover:text-white hover:bg-white/10 transition-colors"
+                        >
+                          Show all notifications
+                        </button>
+                      </motion.div>
+                    </>
+                  )}
+                </AnimatePresence>
+              </div>
               
               <div className="flex items-center gap-3 pl-4 border-l border-white/10">
                 <div className="text-right hidden sm:block">

@@ -249,6 +249,83 @@ const ScheduleModal = ({ onClose, onSubmit }) => {
   );
 };
 
+/* ── Setup Meeting Link Modal ── */
+const SetupLinkModal = ({ onClose, onSubmit, candidateName }) => {
+  const [platform, setPlatform] = useState('Google Meet');
+  const [link, setLink] = useState('');
+  const [error, setError] = useState('');
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (!link.trim()) {
+      setError('Please provide a meeting link');
+      return;
+    }
+    if (!link.startsWith('http')) {
+      setError('Please enter a valid URL (starting with http:// or https://)');
+      return;
+    }
+    onSubmit({ platform, link });
+  };
+
+  return (
+    <AnimatePresence>
+      <motion.div className="fixed inset-0 z-50 flex items-center justify-center p-4" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+        <motion.div className="absolute inset-0 bg-neutral-900/50 backdrop-blur-sm" onClick={onClose} />
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95, y: 16 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          exit={{ opacity: 0, scale: 0.95, y: 16 }}
+          className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden"
+        >
+          <div className="p-6 border-b border-neutral-100">
+            <h2 className="text-lg font-bold text-neutral-900">Setup Interview Link</h2>
+            <p className="text-sm text-neutral-500 mt-1">Provide the meeting details for {candidateName}.</p>
+          </div>
+          <form onSubmit={handleSubmit} className="p-6 space-y-5">
+            <div>
+              <label className="block text-xs font-semibold text-neutral-600 mb-2 uppercase tracking-wide">Select Platform</label>
+              <div className="grid grid-cols-2 gap-2">
+                {['Google Meet', 'Zoom', 'Microsoft Teams', 'Other'].map(p => (
+                  <button
+                    key={p}
+                    type="button"
+                    onClick={() => setPlatform(p)}
+                    className={`py-2.5 rounded-xl text-xs font-bold border-2 transition-all ${
+                      platform === p ? 'border-brand-purple-600 bg-brand-purple-50 text-brand-purple-700' : 'border-neutral-100 text-neutral-500 hover:border-neutral-200'
+                    }`}
+                  >
+                    {p}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div>
+              <label className="block text-xs font-semibold text-neutral-600 mb-1.5 uppercase tracking-wide">Meeting Link <span className="text-red-400">*</span></label>
+              <input
+                type="text"
+                placeholder="https://meet.google.com/xxx-xxxx-xxx"
+                value={link}
+                onChange={e => { setLink(e.target.value); setError(''); }}
+                className={`${inputCls} ${error ? 'border-red-300 bg-red-50' : ''}`}
+                autoFocus
+              />
+              {error && <p className="text-xs text-red-500 mt-1.5 flex items-center gap-1">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                {error}
+              </p>}
+            </div>
+            <div className="flex gap-3 pt-2">
+              <button type="button" onClick={onClose} className="flex-1 py-3 rounded-xl text-sm font-semibold border border-neutral-200 text-neutral-600">Cancel</button>
+              <button type="submit" className="flex-1 py-3 rounded-xl text-sm font-semibold text-white shadow-lg" style={{ background: '#8B3A8F' }}>Save & Join</button>
+            </div>
+          </form>
+        </motion.div>
+      </motion.div>
+    </AnimatePresence>
+  );
+};
+
 /* ── Success toast ── */
 const Toast = ({ name, onClose }) => (
   <motion.div
@@ -279,6 +356,7 @@ const Interviews = () => {
   const [filter, setFilter]       = useState('All');
   const [interviews, setInterviews] = useState(MOCK_INTERVIEWS);
   const [showModal, setShowModal] = useState(false);
+  const [setupInterview, setSetupInterview] = useState(null); // { id, candidate }
   const [toast, setToast]         = useState(null);
 
   const filtered = filter === 'All' ? interviews : interviews.filter(i => i.status === filter);
@@ -322,6 +400,22 @@ const Interviews = () => {
     setShowModal(false);
     setToast(form.candidate);
     setTimeout(() => setToast(null), 3500);
+  };
+
+  const handleJoin = (iv) => {
+    if (iv.link) {
+      window.open(iv.link, '_blank');
+    } else {
+      setSetupInterview(iv);
+    }
+  };
+
+  const handleLinkSubmit = ({ platform, link }) => {
+    setInterviews(prev => prev.map(iv => 
+      iv.id === setupInterview.id ? { ...iv, platform, link } : iv
+    ));
+    setSetupInterview(null);
+    window.open(link, '_blank');
   };
 
   return (
@@ -428,6 +522,12 @@ const Interviews = () => {
                             {iv.notes && (
                               <p className="text-xs text-neutral-400 mt-0.5 italic">"{iv.notes}"</p>
                             )}
+                            {iv.link && (
+                              <p className="text-[10px] text-green-600 font-medium mt-1 flex items-center gap-1">
+                                <span className="w-1 h-1 rounded-full bg-green-500 animate-pulse" />
+                                Link Ready: {iv.platform}
+                              </p>
+                            )}
                           </div>
 
                           <div className="text-right shrink-0">
@@ -443,10 +543,11 @@ const Interviews = () => {
                           {iv.status === 'Scheduled' && (
                             <div className="flex gap-2 shrink-0 ml-2">
                               <button
-                                className="px-3 py-1.5 rounded-lg text-xs font-semibold text-white transition-colors"
-                                style={{ background: '#8B3A8F' }}
+                                onClick={() => handleJoin(iv)}
+                                className={`px-4 py-1.5 rounded-lg text-xs font-semibold text-white transition-all ${iv.link ? 'bg-green-600 hover:bg-green-700' : ''}`}
+                                style={!iv.link ? { background: '#8B3A8F' } : {}}
                               >
-                                Join
+                                {iv.link ? 'Join Meeting' : 'Join'}
                               </button>
                               <button
                                 onClick={() => setInterviews(p => p.map(x => x.id === iv.id ? { ...x, status: 'Cancelled' } : x))}
@@ -472,6 +573,17 @@ const Interviews = () => {
           <ScheduleModal
             onClose={() => setShowModal(false)}
             onSubmit={handleSchedule}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* Setup Link modal */}
+      <AnimatePresence>
+        {setupInterview && (
+          <SetupLinkModal
+            candidateName={setupInterview.candidate}
+            onClose={() => setSetupInterview(null)}
+            onSubmit={handleLinkSubmit}
           />
         )}
       </AnimatePresence>

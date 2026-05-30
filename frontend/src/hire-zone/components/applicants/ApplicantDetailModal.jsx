@@ -1,4 +1,5 @@
 import { motion, AnimatePresence } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 import StatusBadge from '@/hire-zone/components/shared/StatusBadge';
 
 const AVATAR_COLORS = ['#8B3A8F', '#2563eb', '#0d9488', '#d97706', '#ea580c', '#16a34a'];
@@ -6,10 +7,16 @@ const AVATAR_COLORS = ['#8B3A8F', '#2563eb', '#0d9488', '#d97706', '#ea580c', '#
 const PIPELINE_STAGES = ['Applied', 'Screening', 'Interview', 'Offer', 'Hired'];
 
 const ApplicantDetailModal = ({ applicant, onClose, onStageChange }) => {
+  const navigate = useNavigate();
   if (!applicant) return null;
 
   const colorIdx = applicant.id % AVATAR_COLORS.length;
   const currentStageIdx = PIPELINE_STAGES.indexOf(applicant.stage);
+
+  const handleSchedule = () => {
+    onClose();
+    navigate('/hire-zone/interviews');
+  };
 
   return (
     <AnimatePresence>
@@ -134,15 +141,15 @@ const ApplicantDetailModal = ({ applicant, onClose, onStageChange }) => {
           {/* Action footer */}
           <div className="px-6 py-4 border-t border-neutral-100 flex gap-2 shrink-0">
             <button
-              className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white transition-colors"
+              className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white transition-colors shadow-lg shadow-purple-100"
               style={{ background: '#8B3A8F' }}
-              onClick={() => onStageChange?.(applicant.id, 'Interview')}
+              onClick={handleSchedule}
             >
               Schedule Interview
             </button>
             <button
               className="px-4 py-2.5 rounded-xl text-sm font-semibold border-2 border-red-200 text-red-500 hover:bg-red-50 transition-colors"
-              onClick={() => onStageChange?.(applicant.id, 'Rejected')}
+              onClick={() => { onStageChange?.(applicant.id, 'Rejected'); onClose(); }}
             >
               Reject
             </button>

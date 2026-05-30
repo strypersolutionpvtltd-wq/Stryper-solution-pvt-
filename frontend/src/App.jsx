@@ -16,6 +16,7 @@ import NotFound    from '@/pages/NotFound';
 // Career Hub layout + pages
 import CareerHubGuard   from '@/career-hub/components/shared/CareerHubLayout';
 import CHProfile        from '@/career-hub/pages/Profile';
+import CHInterviews     from '@/career-hub/pages/Interviews';
 import CHResume         from '@/career-hub/pages/Resume';
 import CHAppliedJobs    from '@/career-hub/pages/AppliedJobs';
 import CHSavedJobs      from '@/career-hub/pages/SavedJobs';
@@ -40,9 +41,10 @@ import CompanyProfile   from '@/hire-zone/pages/CompanyProfile';
 import AdminLayout    from '@/layouts/admin/AdminLayout';
 import AdminDashboard from '@/pages/admin/AdminDashboard';
 import AdminUsers     from '@/pages/admin/AdminUsers';
+import AdminUserDetail  from '@/pages/admin/AdminUserDetail';
 import AdminCompanies from '@/pages/admin/AdminCompanies';
 import AdminJobs      from '@/pages/admin/AdminJobs';
-import AdminConsultants from '@/pages/admin/AdminConsultants';
+import AdminStryperPartners from '@/pages/admin/AdminStryperPartners';
 import AdminApplications from '@/pages/admin/AdminApplications';
 import AdminAnalytics from '@/pages/admin/AdminAnalytics';
 import AdminNotifications from '@/pages/admin/AdminNotifications';
@@ -108,6 +110,7 @@ function App() {
         <Route path="/career-hub" element={<CareerHubGuard />}>
           <Route index element={<Navigate to="/career-hub/profile" replace />} />
           <Route path="profile"       element={<CHProfile />} />
+          <Route path="interviews"    element={<CHInterviews />} />
           <Route path="resume"        element={<CHResume />} />
           <Route path="applied-jobs"  element={<CHAppliedJobs />} />
           <Route path="saved-jobs"    element={<CHSavedJobs />} />
@@ -136,8 +139,9 @@ function App() {
         <Route index element={<Navigate to="/admin/dashboard" replace />} />
         <Route path="dashboard"    element={<AdminDashboard />} />
         <Route path="users"        element={<AdminUsers />} />
+        <Route path="users/:id"    element={<AdminUserDetail />} />
         <Route path="companies"    element={<AdminCompanies />} />
-        <Route path="consultants"  element={<AdminConsultants />} />
+        <Route path="consultants"  element={<AdminStryperPartners />} />
         <Route path="jobs"         element={<AdminJobs />} />
         <Route path="applications" element={<AdminApplications />} />
         <Route path="analytics"    element={<AdminAnalytics />} />

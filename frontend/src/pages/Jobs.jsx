@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import AuthModal from '@/components/auth/AuthModal';
+import toast from 'react-hot-toast';
 
 // ─── Mock Data ───────────────────────────────────────────────────────────────
 const MOCK_JOBS = [
@@ -118,11 +119,46 @@ const ApplyModal = ({ job, onClose }) => {
   const [form, setForm] = useState({ resume: null, experience: '', expectedSalary: '', noticePeriod: '', currentLocation: '' });
   const [submitted, setSubmitted] = useState(false);
   const [dragOver, setDragOver] = useState(false);
+  const [isParsing, setIsParsing] = useState(false);
 
   const handleChange = e => setForm(p => ({ ...p, [e.target.name]: e.target.value }));
-  const handleFile = e => setForm(p => ({ ...p, resume: e.target.files[0] || null }));
-  const handleDrop = e => { e.preventDefault(); setDragOver(false); setForm(p => ({ ...p, resume: e.dataTransfer.files[0] || null })); };
-  const handleSubmit = e => { e.preventDefault(); setSubmitted(true); };
+  
+  const handleFile = e => {
+    const file = e.target.files[0] || null;
+    if (file) simulateParsing(file);
+  };
+
+  const handleDrop = e => { 
+    e.preventDefault(); 
+    setDragOver(false); 
+    const file = e.dataTransfer.files[0] || null;
+    if (file) simulateParsing(file);
+  };
+
+  const simulateParsing = (file) => {
+    setForm(p => ({ ...p, resume: file }));
+    setIsParsing(true);
+    // Simulate AI parsing
+    setTimeout(() => {
+      setIsParsing(false);
+      setForm(p => ({ 
+        ...p, 
+        experience: '3–5 Years', 
+        currentLocation: 'Delhi NCR',
+        expectedSalary: '₹10–15 LPA',
+        noticePeriod: '1 Month'
+      }));
+      toast.success('AI has extracted details from your resume!', {
+        icon: '🤖',
+        style: { borderRadius: '12px', background: '#333', color: '#fff' }
+      });
+    }, 2000);
+  };
+
+  const handleSubmit = e => { 
+    e.preventDefault(); 
+    setSubmitted(true); 
+  };
 
   return (
     <AnimatePresence>
@@ -140,11 +176,18 @@ const ApplyModal = ({ job, onClose }) => {
                 <svg width="28" height="28" viewBox="0 0 28 28" fill="none"><path d="M5 14l6 6 12-12" stroke="#8B3A8F" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/></svg>
               </div>
               <h3 className="font-display font-bold text-neutral-900 text-xl mb-2">Application Submitted!</h3>
-              <p className="text-sm text-neutral-500 mb-6">We'll review your profile and reach out within 48 hours.</p>
+              <p className="text-sm text-neutral-500 mb-6">We've also updated your Career Hub profile with your resume details.</p>
               <button onClick={onClose} className="px-6 py-2.5 rounded-xl text-sm font-semibold text-white" style={{ background: '#8B3A8F' }}>Close</button>
             </div>
           ) : (
-            <div className="p-6 md:p-8">
+            <div className="p-6 md:p-8 relative">
+              {isParsing && (
+                <div className="absolute inset-0 bg-white/80 backdrop-blur-[2px] z-20 flex flex-col items-center justify-center rounded-2xl">
+                  <div className="w-12 h-12 border-4 border-brand-purple-200 border-t-brand-purple-600 rounded-full animate-spin mb-4" />
+                  <p className="text-sm font-bold text-neutral-800 uppercase tracking-widest">AI Extracting Data...</p>
+                  <p className="text-xs text-neutral-500 mt-1">Reading your resume profile</p>
+                </div>
+              )}
               {/* Header */}
               <div className="flex items-start justify-between mb-6">
                 <div>

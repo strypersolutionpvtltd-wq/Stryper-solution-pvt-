@@ -3,7 +3,7 @@ export const OVERVIEW_STATS = [
   { label: 'Candidates', value: '8,420', change: '+18%', type: 'up' },
   { label: 'Companies', value: '4,420', change: '+5%', type: 'up' },
   { label: 'Active Jobs', value: '1,245', change: '-2%', type: 'down' },
-  { label: 'Total Apps', value: '45,210', change: '+24%', type: 'up' },
+  { label: 'Applicants', value: '45,210', change: '+24%', type: 'up' },
   { label: 'New Today', value: '142', change: '+8%', type: 'up' },
   { label: 'Revenue', value: '₹4.2M', change: '+15%', type: 'up' },
   { label: 'Site Visits', value: '184K', change: '+10%', type: 'up' },
@@ -97,12 +97,9 @@ export const ADMIN_NOTIFICATIONS = [
   { id: 4, title: 'High Traffic Alert', message: 'Candidate registration increased by 40%.', time: '5 hours ago', type: 'success', read: true },
 ];
 
-export const ALL_CONSULTANTS = [
-  { id: 'CON01', name: 'Elite Recruitment', specialty: 'Tech & IT', experience: '10+ years', activeHires: 25, rating: 4.8, status: 'Active' },
-  { id: 'CON02', name: 'Global Talent HR', specialty: 'Executive Search', experience: '15 years', activeHires: 12, rating: 4.9, status: 'Verified' },
-  { id: 'CON03', name: 'Future Career Sol.', specialty: 'Marketing & Sales', experience: '5 years', activeHires: 40, rating: 4.5, status: 'Active' },
-  { id: 'CON04', name: 'ProHire Advisors', specialty: 'Healthcare', experience: '8 years', activeHires: 18, rating: 4.7, status: 'Pending' },
+export const ALL_STRYPER_PARTNERS = [
+  { id: 'PART01', name: 'Elite Recruitment', specialty: 'Tech & IT', experience: '10+ years', activeHires: 25, rating: 4.8, status: 'Active' },
+  { id: 'PART02', name: 'Global Talent HR', specialty: 'Executive Search', experience: '15 years', activeHires: 12, rating: 4.9, status: 'Verified' },
+  { id: 'PART03', name: 'Future Career Sol.', specialty: 'Marketing & Sales', experience: '5 years', activeHires: 40, rating: 4.5, status: 'Active' },
+  { id: 'PART04', name: 'ProHire Advisors', specialty: 'Healthcare', experience: '8 years', activeHires: 18, rating: 4.7, status: 'Pending' },
 ];
-
-
-

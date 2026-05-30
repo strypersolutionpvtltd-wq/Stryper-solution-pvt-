@@ -8,11 +8,17 @@ import logoImg from "@/assets/image/logo.jpeg";
  * AuthModal — handles Sign In / Sign Up flow
  */
 const AuthModal = ({ isOpen, onClose, defaultView = 'signin' }) => {
-  const [view, setView] = useState(defaultView === 'signin' ? 'signin' : 'signup');
+  const [view, setView] = useState('signin');
+  const [signUpType, setSignUpType] = useState('hire-workforce'); // 'find-job' or 'hire-workforce'
 
   useEffect(() => {
     if (isOpen) {
-      setView(defaultView === 'signin' ? 'signin' : 'signup');
+      if (defaultView === 'signin') {
+        setView('signin');
+      } else {
+        setView('signup');
+        setSignUpType(defaultView.includes('find-job') ? 'find-job' : 'hire-workforce');
+      }
     }
   }, [isOpen, defaultView]);
 
@@ -99,10 +105,10 @@ const AuthModal = ({ isOpen, onClose, defaultView = 'signin' }) => {
                     </div>
                   </SlideView>
                 ) : (
-                  <SlideView key="signup">
+                  <SlideView key={signUpType}>
                     <div className="px-8 pb-8">
                       <SignUpForm
-                        type="hire-workforce"
+                        type={signUpType}
                         onBack={() => setView('signin')}
                         onSwitchToSignIn={() => setView('signin')}
                         onClose={onClose}

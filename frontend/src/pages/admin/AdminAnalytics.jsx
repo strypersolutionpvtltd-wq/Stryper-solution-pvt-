@@ -5,6 +5,7 @@ import {
 } from 'recharts';
 import { TrendingUp, Users, Briefcase, IndianRupee, Download, Filter, Calendar } from 'lucide-react';
 import { ANALYTICS_PERFORMANCE, REVENUE_DATA, JOB_ANALYTICS_DATA } from '@/data/adminData';
+import toast from 'react-hot-toast';
 
 const fadeInUp = {
   hidden: { opacity: 0, y: 20 },
@@ -14,6 +15,14 @@ const fadeInUp = {
 const COLORS = ['#8B3A8F', '#F5A623', '#10b981', '#ef4444'];
 
 const AdminAnalytics = () => {
+  const handleDownload = () => {
+    toast.loading('Preparing PDF report...');
+    setTimeout(() => {
+      toast.dismiss();
+      window.print();
+    }, 1000);
+  };
+
   return (
     <motion.div 
       initial="hidden" 
@@ -21,17 +30,52 @@ const AdminAnalytics = () => {
       variants={{ visible: { transition: { staggerChildren: 0.05 } } }}
       className="space-y-8 pb-10"
     >
+      <style>{`
+        @media print {
+          aside, header, .flex.items-center.gap-3, button {
+            display: none !important;
+          }
+          body {
+            background: white !important;
+            color: black !important;
+          }
+          .grid {
+            display: block !important;
+          }
+          .rounded-2xl {
+            border: 1px solid #eee !important;
+            break-inside: avoid;
+            margin-bottom: 2rem;
+          }
+          .bg-[#0f0f0f] {
+            background: white !important;
+          }
+          h2, h3, h4, p {
+            color: black !important;
+          }
+          main {
+            padding: 0 !important;
+            margin: 0 !important;
+          }
+        }
+      `}</style>
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h2 className="text-2xl font-bold text-white tracking-tight">Performance Analytics</h2>
           <p className="text-neutral-500 text-sm mt-1">Deep dive into platform growth and revenue metrics.</p>
         </div>
         <div className="flex items-center gap-3">
-          <button className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/5 border border-white/5 text-sm font-medium hover:bg-white/10 transition-colors">
+          <button 
+            onClick={() => toast('Date range selection coming soon!', { icon: '📅' })}
+            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/5 border border-white/5 text-sm font-medium hover:bg-white/10 transition-colors"
+          >
             <Calendar size={16} />
             May 2026
           </button>
-          <button className="flex items-center gap-2 px-4 py-2 rounded-xl bg-brand-purple-600 text-white text-sm font-semibold hover:bg-brand-purple-700 transition-all">
+          <button 
+            onClick={handleDownload}
+            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-brand-purple-600 text-white text-sm font-semibold hover:bg-brand-purple-700 transition-all"
+          >
             <Download size={16} />
             Download PDF
           </button>

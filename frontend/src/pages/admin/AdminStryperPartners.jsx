@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Search, Filter, MoreVertical, Briefcase, Star, UserCheck, ShieldCheck, Trash2, Edit2, ShieldAlert } from 'lucide-react';
-import { ALL_CONSULTANTS } from '@/data/adminData';
+import { ALL_STRYPER_PARTNERS } from '@/data/adminData';
 import toast from 'react-hot-toast';
 
 const fadeInUp = {
@@ -10,26 +10,26 @@ const fadeInUp = {
 };
 
 const AdminConsultants = () => {
-  const [consultants, setConsultants] = useState(ALL_CONSULTANTS);
+  const [partners, setPartners] = useState(ALL_STRYPER_PARTNERS);
   const [searchTerm, setSearchText] = useState('');
   const [activeMenu, setActiveMenu] = useState(null);
 
   const filtered = useMemo(() => {
-    return consultants.filter(c => 
-      c.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      c.specialty.toLowerCase().includes(searchTerm.toLowerCase())
+    return partners.filter(p => 
+      p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      p.specialty.toLowerCase().includes(searchTerm.toLowerCase())
     );
-  }, [consultants, searchTerm]);
+  }, [partners, searchTerm]);
 
   const handleDelete = (id, name) => {
-    setConsultants(consultants.filter(c => c.id !== id));
-    toast.success(`${name} has been removed from consultants.`);
+    setPartners(partners.filter(p => p.id !== id));
+    toast.success(`${name} has been removed from Stryper Partners.`);
     setActiveMenu(null);
   };
 
   const handleStatusUpdate = (id, name, currentStatus) => {
     const nextStatus = currentStatus === 'Verified' ? 'Active' : 'Verified';
-    setConsultants(consultants.map(c => c.id === id ? { ...c, status: nextStatus } : c));
+    setPartners(partners.map(p => p.id === id ? { ...p, status: nextStatus } : p));
     toast.success(`${name} status updated to ${nextStatus}`);
     setActiveMenu(null);
   };
@@ -44,15 +44,15 @@ const AdminConsultants = () => {
     >
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-bold text-white tracking-tight">Consultant Management</h2>
-          <p className="text-neutral-500 text-sm mt-1">Manage {consultants.length} recruitment partners and consultants.</p>
+          <h2 className="text-2xl font-bold text-white tracking-tight">Stryper Partner Management</h2>
+          <p className="text-neutral-500 text-sm mt-1">Manage {partners.length} recruitment partners and Stryper Partners.</p>
         </div>
         <div className="flex items-center gap-3">
           <div className="relative flex items-center">
             <Search className="absolute left-3 text-neutral-500" size={16} />
             <input 
               type="text" 
-              placeholder="Search consultants..." 
+              placeholder="Search partners..." 
               value={searchTerm}
               onChange={(e) => setSearchText(e.target.value)}
               className="bg-white/5 border border-white/5 rounded-xl pl-10 pr-4 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-brand-purple-600/50 w-full sm:w-64 text-white"
@@ -75,7 +75,7 @@ const AdminConsultants = () => {
           <table className="w-full text-left border-collapse">
             <thead className="bg-white/5">
               <tr>
-                <th className="px-6 py-4 text-xs font-bold text-neutral-400 uppercase tracking-widest">Consultant / Agency</th>
+                <th className="px-6 py-4 text-xs font-bold text-neutral-400 uppercase tracking-widest">Stryper Partner / Agency</th>
                 <th className="px-6 py-4 text-xs font-bold text-neutral-400 uppercase tracking-widest">Specialty</th>
                 <th className="px-6 py-4 text-xs font-bold text-neutral-400 uppercase tracking-widest">Experience</th>
                 <th className="px-6 py-4 text-xs font-bold text-neutral-400 uppercase tracking-widest">Active Hires</th>
@@ -146,7 +146,7 @@ const AdminConsultants = () => {
                             className={`w-full flex items-center gap-2 px-4 py-2.5 text-xs font-medium transition-colors ${con.status === 'Verified' ? 'text-orange-400 hover:bg-orange-500/10' : 'text-emerald-400 hover:bg-emerald-500/10'}`}
                           >
                             {con.status === 'Verified' ? <ShieldAlert size={14} /> : <ShieldCheck size={14} />}
-                            {con.status === 'Verified' ? 'Revoke Verification' : 'Verify Consultant'}
+                            {con.status === 'Verified' ? 'Revoke Verification' : 'Verify Partner'}
                           </button>
                           
                           <button 
@@ -154,7 +154,7 @@ const AdminConsultants = () => {
                             className="w-full flex items-center gap-2 px-4 py-2.5 text-xs font-medium text-red-400 hover:bg-red-500/10 transition-colors border-t border-white/5 mt-1"
                           >
                             <Trash2 size={14} />
-                            Remove Consultant
+                            Remove Partner
                           </button>
                         </div>
                       )}

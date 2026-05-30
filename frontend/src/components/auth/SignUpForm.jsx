@@ -7,12 +7,13 @@ import { useAuth } from '@/context/AuthContext';
 import toast from 'react-hot-toast';
 
 const HIRE_FIELDS = [
-  { name: 'companyName', label: 'Company Name', type: 'text', placeholder: 'Acme Pvt. Ltd.' },
-  { name: 'fullName',    label: 'Your Full Name', type: 'text', placeholder: 'Rahul Sharma' },
-  { name: 'email',       label: 'Work Email', type: 'email', placeholder: 'rahul@company.com' },
-  { name: 'phone',       label: 'Phone Number', type: 'tel', placeholder: '+91 98765 43210' },
-  { name: 'city',        label: 'City', type: 'text', placeholder: 'Gurugram' },
-  { name: 'password',    label: 'Password', type: 'password', placeholder: '••••••••' },
+  { name: 'companyName', label: 'Company Name', type: 'text', placeholder: 'e.g. Acme Services Pvt. Ltd.' },
+  { name: 'industry',    label: 'Industry Type', type: 'text', placeholder: 'e.g. Manufacturing, IT, Logistics' },
+  { name: 'fullName',    label: 'Contact Person Name', type: 'text', placeholder: 'e.g. Rahul Sharma' },
+  { name: 'email',       label: 'Official Work Email', type: 'email', placeholder: 'rahul@company.com' },
+  { name: 'phone',       label: 'Contact Number', type: 'tel', placeholder: '+91 98765 43210' },
+  { name: 'website',     label: 'Company Website (Optional)', type: 'text', placeholder: 'www.company.com' },
+  { name: 'password',    label: 'Set Password', type: 'password', placeholder: '••••••••' },
 ];
 
 const JOB_FIELDS = [
@@ -28,12 +29,15 @@ const SignUpForm = ({ type, onBack, onSwitchToSignIn, onClose, hideHeader }) => 
   const isHire = type === 'hire-workforce';
   const fields = isHire ? HIRE_FIELDS : JOB_FIELDS;
   const [form, setForm] = useState({});
+  const [file, setFile] = useState(null);
+  const [dragOver, setDragOver] = useState(false);
   const [showPass, setShowPass] = useState(false);
   const [captchaVerified, setCaptchaVerified] = useState(false);
   const { setIsLoggedIn, setUserRole, setUserData } = useAuth();
   const navigate = useNavigate();
 
   const handleChange = (e) => setForm(p => ({ ...p, [e.target.name]: e.target.value }));
+  const handleFile = (e) => setFile(e.target.files[0] || null);
 
   const onCaptchaChange = (value) => {
     if (value) setCaptchaVerified(true);
@@ -66,6 +70,11 @@ const SignUpForm = ({ type, onBack, onSwitchToSignIn, onClose, hideHeader }) => 
     
     if (!captchaVerified) {
       alert("Security Check Required: Please verify that you are not a robot.");
+      return;
+    }
+
+    if (!isHire && !file) {
+      toast.error("Please upload your resume to continue.");
       return;
     }
 
@@ -175,6 +184,34 @@ const SignUpForm = ({ type, onBack, onSwitchToSignIn, onClose, hideHeader }) => 
           </div>
         ))}
 
+        {!isHire && (
+          <div>
+            <label className="block text-xs font-semibold text-neutral-600 mb-1.5">
+              Upload Resume / CV
+            </label>
+            <label 
+              htmlFor="signup-resume" 
+              className={`flex flex-col items-center justify-center w-full py-6 rounded-xl border-2 border-dashed cursor-pointer transition-all ${dragOver ? 'border-brand-purple-500 bg-brand-purple-50' : 'border-neutral-200 hover:border-brand-purple-400 hover:bg-neutral-50'}`}
+              onDragOver={e => { e.preventDefault(); setDragOver(true); }}
+              onDragLeave={() => setDragOver(false)}
+              onDrop={e => { e.preventDefault(); setDragOver(false); setFile(e.dataTransfer.files[0] || null); }}
+            >
+              <input id="signup-resume" type="file" accept=".pdf,.doc,.docx" className="hidden" onChange={handleFile} />
+              {file ? (
+                <div className="flex items-center gap-2 text-xs font-medium text-brand-purple-600">
+                  <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><rect x="2" y="1" width="12" height="14" rx="1.5" stroke="currentColor" strokeWidth="1.4"/><path d="M5 5h6M5 8h6M5 11h4" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/></svg>
+                  {file.name}
+                </div>
+              ) : (
+                <>
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" className="mb-1 text-neutral-400"><path d="M12 16V4M8 8l4-4 4 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/><path d="M4 20h16" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg>
+                  <p className="text-xs text-neutral-500">Drop resume or <span className="text-brand-purple-600 font-semibold">browse</span></p>
+                </>
+              )}
+            </label>
+          </div>
+        )}
+
         {/* Google ReCAPTCHA */}
         <div className="flex justify-center py-2">
           <ReCAPTCHA
@@ -191,7 +228,7 @@ const SignUpForm = ({ type, onBack, onSwitchToSignIn, onClose, hideHeader }) => 
           className="w-full py-3 rounded-xl text-white text-sm font-semibold transition-colors mt-2"
           style={{ background: '#8B3A8F' }}
         >
-          Create Account
+          {isHire ? 'Create Employer Account' : 'Create Candidate Account'}
         </motion.button>
       </form>
 

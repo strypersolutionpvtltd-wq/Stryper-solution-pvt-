@@ -1,386 +1,409 @@
-﻿import { useState } from 'react';
-import { motion } from 'framer-motion';
+import { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import PageHero from '@/components/shared/PageHero';
 import img4 from '@/assets/image/4.jpeg';
-import { fadeInUp, fadeInRight, staggerContainer, viewportOnce } from '@/utils/animations';
+import { fadeInUp, staggerContainer, viewportOnce } from '@/utils/animations';
 
 const P = '#8B3A8F';
 const G = '#F5A623';
 
-function Chk() {
-  return (<svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 6l2.5 2.5 5.5-5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/></svg>);
-}
-
-const JOBS = [
-  { id:1, title:'Business Development Manager', location:'Gurugram / Remote', type:'Full-Time', exp:'2-5 yrs', desc:'Lead our business growth efforts by identifying new corporate partnerships and managing existing client relationships for Stryper Solution.' },
-  { id:2, title:'HR Operations Executive',        location:'Gurugram, HR',   type:'Full-Time', exp:'1-3 yrs', desc:'Join our core HR team to manage workforce deployment, compliance, and employee relations for our growing pan-India operations.' },
-  { id:3, title:'Regional Operations Head',      location:'Pune / Mumbai',  type:'Full-Time', exp:'5-8 yrs', desc:'Oversee our regional service delivery, ensuring operational excellence and client satisfaction across multiple industrial sites.' },
-  { id:4, title:'Digital Marketing Specialist',  location:'Remote / Hybrid',type:'Full-Time', exp:'1-3 yrs', desc:'Help us build Stryper brand presence online. Manage our social media, content strategy, and lead generation campaigns.' },
-  { id:5, title:'Technical Support Lead',        location:'Gurugram, HR',   type:'Full-Time', exp:'3-5 yrs', desc:'Support our internal digital infrastructure and provide technical guidance for our site-based management tools.' },
-  { id:6, title:'Accounts & Finance Manager',    location:'Gurugram, HR',   type:'Full-Time', exp:'4-6 yrs', desc:'Manage internal company finances, payroll processing for our massive workforce, and ensure complete statutory compliance.' },
+const INTERNAL_JOBS = [
+  { id: 1, title: 'Business Development Manager', location: 'Gurugram / Remote', type: 'Full-Time', exp: '2-5 yrs' },
+  { id: 2, title: 'HR Operations Executive', location: 'Gurugram, HR', type: 'Full-Time', exp: '1-3 yrs' },
+  { id: 3, title: 'Regional Operations Head', location: 'Pune / Mumbai', type: 'Full-Time', exp: '5-8 yrs' },
 ];
 
-const WHY = [
-  { title:'Opportunities for Career Advancement', desc:'Clear career paths and opportunities for promotion with regular performance reviews.', a:'p' },
-  { title:'Safety',                              desc:'Rigorous safety practices and compliance standards on all client sites.',                                  a:'g' },
-  { title:'Professional Training',               desc:'On job training, skill development programs and certification support.',                                 a:'p' },
-  { title:'Salary Support',                      desc:'On-time salary with full statutory benefits.',                                                              a:'g' },
-  { title:'Long Term Stability',                 desc:'Regular work assignment with reputed clients of various industries.',                                      a:'p' },
-  { title:'Supportive Management',               desc:'Each employee has access to dedicated HR support and responsive management.',                              a:'g' },
+const STRATEGY = [
+  { 
+    title: 'Career Advancement', 
+    desc: 'We map out your career path with our partner industries for long-term growth.',
+    icon: '🚀' 
+  },
+  { 
+    title: 'Deployment & Support', 
+    desc: 'From document verification to site onboarding, we handle the heavy lifting.',
+    icon: '🤝' 
+  },
+  { 
+    title: 'Skill Development', 
+    desc: 'Regular training sessions to keep you relevant in the changing job market.',
+    icon: '📚' 
+  }
 ];
 
 const STEPS = [
-  { s:1, t:'Apply Now',                d:'Complete our online form or upload your resume. We personally review every application.' },
-  { s:2, t:'Profile Review',           d:'Your profile and skill set are assessed by our HR team to find a match.' },
-  { s:3, t:'Interview & Verification', d:'A quick interview and document check to make sure you\'re eligible and that we have your preferences right.' },
-  { s:4, t:'Deployment & Onboarding',  d:'Once chosen, we take care of onboarding, documentation, and a seamless first day.' },
+  { s: 1, t: 'Registration', d: 'Upload your details to our candidate pool.' },
+  { s: 2, t: 'Skill Assessment', d: 'Our experts evaluate your profile and skills.' },
+  { s: 3, t: 'Match-Making', d: 'We find the perfect client company for your role.' },
+  { s: 4, t: 'Deployment', d: 'Get placed with full legal and salary support.' },
 ];
 
-const POS = ['Business Development Manager', 'HR Operations Executive', 'Regional Operations Head', 'Digital Marketing Specialist', 'Technical Support Lead', 'Accounts & Finance Manager', 'Admin & Front Office', 'Other'];
-
-function CareersIntro() {
-  return (
-    <section className="relative overflow-hidden bg-white section-padding">
-      <div className="container-base relative z-10">
-        <div className="grid lg:grid-cols-2 gap-14 lg:gap-20 items-center">
-          <motion.div variants={staggerContainer(0.1,0.05)} initial="hidden" whileInView="visible" viewport={viewportOnce} className="flex flex-col">
-            <motion.div variants={fadeInUp} className="mb-5">
-              <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border text-xs font-semibold tracking-wide uppercase" style={{background:'#faf5fb',borderColor:'#e4d0e9',color:P}}>
-                <span className="w-1.5 h-1.5 rounded-full" style={{background:P}}/>Work AT Stryper Solution
-              </span>
-            </motion.div>
-            <motion.h2 variants={fadeInUp} className="font-display font-bold text-neutral-900 leading-[1.1] tracking-tight mb-5" style={{fontSize:'clamp(1.8rem,3vw,2.5rem)'}}>
-              Join Our <span style={{color:P}}>Core Corporate Team</span>
-            </motion.h2>
-            <motion.p variants={fadeInUp} className="text-neutral-500 text-[1.02rem] leading-relaxed mb-5">At Stryper Solution Pvt. Ltd., we are looking for passionate professionals to join our internal team. Unlike our job board for external workers, this page is dedicated to those who want to build a career *within* our organization—managing operations, HR, business development, and more.</motion.p>
-            <motion.p variants={fadeInUp} className="text-neutral-500 text-[1.02rem] leading-relaxed mb-8">We foster a culture of ownership and growth. If you are ready to help us lead the workforce solutions industry, explore our internal openings below.</motion.p>
-            <motion.ul variants={staggerContainer(0.08,0.1)} className="space-y-3 mb-8" role="list">
-              {['Professional corporate environment.', 'Clear career growth within the company.', 'Competitive compensation & benefits.', 'Opportunity to lead large-scale operations.'].map(pt=>(
-                <motion.li key={pt} variants={fadeInUp} className="flex items-center gap-3">
-                  <span className="w-5 h-5 rounded-full flex items-center justify-center shrink-0" style={{background:P+'15',color:P}}><Chk/></span>
-                  <span className="text-sm text-neutral-700 font-medium">{pt}</span>
-                </motion.li>
-              ))}
-            </motion.ul>
-            <motion.div variants={fadeInUp}>
-              <a href="#positions" className="inline-flex items-center gap-2.5 px-7 py-3.5 rounded-lg text-sm font-semibold text-white w-fit" style={{background:P}}>
-                Explore Internal Openings
-                <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2.5 7h9M7.5 3l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
-              </a>
-            </motion.div>
-          </motion.div>
-
-          <motion.div variants={fadeInRight} initial="hidden" whileInView="visible" viewport={viewportOnce}>
-            <div className="relative w-full aspect-[4/4.2] max-w-[480px] mx-auto lg:ml-auto">
-              <div className="absolute inset-0 rounded-3xl overflow-hidden shadow-strong">
-                <img src={img4} alt="Stryper Solution corporate office" className="w-full h-full object-cover object-center"/>
-                <div className="absolute inset-0" style={{background:'linear-gradient(145deg,rgba(30,10,50,0.75) 0%,rgba(60,20,80,0.5) 100%)'}} aria-hidden="true"/>
-                <div className="relative z-10 p-6 flex flex-col gap-4 h-full">
-                  <div className="flex items-center justify-between">
-                    <p className="text-white/50 text-[10px] uppercase tracking-widest font-medium">Internal Hiring</p>
-                    <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[9px] font-semibold bg-emerald-500/20 text-emerald-300 border border-emerald-400/25">
-                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"/>Actively Hiring
-                    </span>
-                  </div>
-                  <div className="grid grid-cols-2 gap-3">
-                    {[{val:'Corporate',lbl:'Roles',c:'text-white'},{val:'Pan-India',lbl:'Presence',c:'text-[#F5A623]'},{val:'Top Tier',lbl:'Management',c:'text-emerald-300'},{val:'2021',lbl:'Est. Year',c:'text-white/70'}].map(s=>(
-                      <div key={s.lbl} className="bg-white/10 rounded-2xl px-3 py-3 text-center border border-white/10">
-                        <p className={'text-xl font-bold font-display leading-none mb-1 '+s.c}>{s.val}</p>
-                        <p className="text-white/45 text-[9px] font-medium">{s.lbl}</p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </motion.div>
+/* ── Role Detail Modal ── */
+const RoleDetailModal = ({ job, onClose, onApply }) => (
+  <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+    <motion.div 
+      initial={{ opacity: 0 }} 
+      animate={{ opacity: 1 }} 
+      exit={{ opacity: 0 }}
+      className="absolute inset-0 bg-neutral-900/60 backdrop-blur-sm" 
+      onClick={onClose} 
+    />
+    <motion.div
+      initial={{ opacity: 0, scale: 0.9, y: 20 }}
+      animate={{ opacity: 1, scale: 1, y: 0 }}
+      exit={{ opacity: 0, scale: 0.9, y: 20 }}
+      className="relative bg-white rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden z-10"
+    >
+      <div className="p-8 border-b border-neutral-100 flex justify-between items-start">
+        <div>
+          <span className="text-[10px] font-bold px-2 py-1 rounded-full bg-brand-purple-50 text-brand-purple-600 uppercase mb-2 inline-block">{job.type}</span>
+          <h3 className="text-xl font-bold text-neutral-900">{job.title}</h3>
+          <p className="text-sm text-neutral-500 mt-1">{job.location} • {job.exp}</p>
         </div>
+        <button onClick={onClose} className="text-neutral-400 hover:text-neutral-600 transition-colors">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
+        </button>
       </div>
-    </section>
-  );
-}
-
-function OpenPositions() {
-  return (
-    <section id="positions" className="relative overflow-hidden section-padding scroll-mt-20" style={{background:'linear-gradient(180deg,#fafafa 0%,#f5f0fb 55%,#fafafa 100%)'}}>
-      <div className="container-base relative z-10">
-        <motion.div variants={staggerContainer(0.1)} initial="hidden" whileInView="visible" viewport={viewportOnce} className="text-center max-w-xl mx-auto mb-14">
-          <motion.div variants={fadeInUp} className="mb-5">
-            <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border text-xs font-semibold tracking-wide uppercase" style={{background:'#faf5fb',borderColor:'#e4d0e9',color:P}}>
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"/>Now Hiring
-            </span>
-          </motion.div>
-          <motion.h2 variants={fadeInUp} className="font-display font-bold text-neutral-900 leading-[1.1] tracking-tight mb-4" style={{fontSize:'clamp(1.9rem,3.2vw,2.75rem)'}}>
-            Current <span style={{color:P}}>Open Positions</span>
-          </motion.h2>
-          <motion.div variants={fadeInUp} className="w-16 h-1 rounded-full mx-auto mb-5" style={{background:'linear-gradient(90deg,#8B3A8F,#F5A623)'}}/>
-          <motion.p variants={fadeInUp} className="text-neutral-500 text-[1.02rem] leading-relaxed">We are actively hiring across multiple roles. Find the right opportunity and apply today.</motion.p>
-        </motion.div>
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
-          {JOBS.map((job,i)=>(
-            <motion.article key={job.id} initial={{opacity:0,y:22}} whileInView={{opacity:1,y:0}} viewport={viewportOnce} transition={{duration:0.45,delay:i*0.08}} whileHover={{y:-4,transition:{duration:0.18}}}
-              className="group relative bg-white rounded-2xl p-6 border border-neutral-100 shadow-soft hover:shadow-medium transition-all duration-300 overflow-hidden flex flex-col">
-              <div className="absolute top-0 left-0 right-0 h-[3px] rounded-t-2xl scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left" style={{background:i%2===0?P:G}} aria-hidden="true"/>
-              <div className="flex items-start justify-between mb-3">
-                <h3 className="font-display font-semibold text-neutral-900 text-base leading-snug pr-2">{job.title}</h3>
-                <span className="shrink-0 text-[9px] font-bold px-2 py-1 rounded-full" style={{background:i%2===0?P+'15':G+'15',color:i%2===0?P:G}}>{job.type}</span>
-              </div>
-              <div className="flex flex-wrap gap-3 mb-3">
-                <span className="text-[11px] text-neutral-500">{job.location}</span>
-                <span className="text-[11px] text-neutral-500">{job.exp}</span>
-              </div>
-              <p className="text-sm text-neutral-500 leading-relaxed flex-1 mb-5">{job.desc}</p>
-              <a href="#apply" className="inline-flex items-center justify-center gap-2 w-full py-2.5 rounded-xl text-sm font-semibold text-white" style={{background:i%2===0?P:G}}>Apply Now</a>
-            </motion.article>
-          ))}
-        </div>
-        <p className="text-center text-sm text-neutral-400 mt-8">
-          Do not see your role? <a href="#apply" className="font-semibold" style={{color:P}}>Submit your resume anyway</a> - we will reach out when a match opens.
-        </p>
+      <div className="p-8 space-y-6">
+        <section>
+          <h4 className="text-xs font-bold text-neutral-400 uppercase tracking-widest mb-3">Key Responsibilities</h4>
+          <ul className="text-sm text-neutral-600 space-y-2.5 list-disc pl-4">
+            <li>Liaise with core stakeholders to drive business results.</li>
+            <li>Maintain high standards of operational excellence.</li>
+            <li>Ensure compliance with all regulatory and company standards.</li>
+            <li>Drive continuous improvement in workflow and team performance.</li>
+          </ul>
+        </section>
+        <section>
+          <h4 className="text-xs font-bold text-neutral-400 uppercase tracking-widest mb-3">Requirements</h4>
+          <ul className="text-sm text-neutral-600 space-y-2.5 list-disc pl-4">
+            <li>Proven experience in {job.title} or similar role.</li>
+            <li>Strong communication and leadership skills.</li>
+            <li>Ability to work in a fast-paced environment.</li>
+          </ul>
+        </section>
       </div>
-    </section>
-  );
-}
-
-function WhyWorkWithUs() {
-  return (
-    <section className="relative overflow-hidden bg-white section-padding">
-      <div className="container-base relative z-10">
-        <motion.div variants={staggerContainer(0.1)} initial="hidden" whileInView="visible" viewport={viewportOnce} className="text-center max-w-xl mx-auto mb-14">
-          <motion.div variants={fadeInUp} className="mb-5">
-            <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border text-xs font-semibold tracking-wide uppercase" style={{background:'#faf5fb',borderColor:'#e4d0e9',color:P}}>
-              <span className="w-1.5 h-1.5 rounded-full" style={{background:P}}/>Why Join Us
-            </span>
-          </motion.div>
-          <motion.h2 variants={fadeInUp} className="font-display font-bold text-neutral-900 leading-[1.1] tracking-tight mb-4" style={{fontSize:'clamp(1.9rem,3.2vw,2.75rem)'}}>
-            Why Work With <span style={{color:P}}>Stryper Solution</span>
-          </motion.h2>
-          <motion.div variants={fadeInUp} className="w-16 h-1 rounded-full mx-auto mb-5" style={{background:'linear-gradient(90deg,#8B3A8F,#F5A623)'}}/>
-          <motion.p variants={fadeInUp} className="text-neutral-500 text-[1.02rem] leading-relaxed">We are more than a staffing company - we are a career partner committed to your long-term success.</motion.p>
-        </motion.div>
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
-          {WHY.map((f,i)=>(
-            <motion.div key={f.title} initial={{opacity:0,y:22}} whileInView={{opacity:1,y:0}} viewport={viewportOnce} transition={{duration:0.45,delay:i*0.08}} whileHover={{y:-4,transition:{duration:0.18}}}
-              className="group relative bg-white rounded-2xl p-6 border border-neutral-100 shadow-soft hover:shadow-medium transition-all duration-300 overflow-hidden">
-              <div className="absolute top-0 left-0 right-0 h-[3px] rounded-t-2xl scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left" style={{background:f.a==='p'?P:G}} aria-hidden="true"/>
-              <div className="w-11 h-11 rounded-xl flex items-center justify-center mb-4" style={{background:f.a==='p'?'#faf5fb':'#fffbf0',color:f.a==='p'?P:G}}>
-                <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M10 2l7 3v4c0 3.5-2.5 6-7 7-4.5-1-7-3.5-7-7V5l7-3z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round"/><path d="M7 10l2 2 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
-              </div>
-              <h3 className="font-display font-semibold text-neutral-900 text-base mb-2">{f.title}</h3>
-              <p className="text-sm text-neutral-500 leading-relaxed">{f.desc}</p>
-            </motion.div>
-          ))}
-        </div>
+      <div className="p-8 pt-0">
+        <button 
+          onClick={onApply}
+          className="w-full flex items-center justify-center py-4 rounded-2xl text-white font-bold shadow-lg shadow-purple-200 transition-transform active:scale-95" 
+          style={{ background: P }}
+        >
+          Apply for this Role
+        </button>
       </div>
-    </section>
-  );
-}
-
-function ApplicationProcess() {
-  return (
-    <section className="relative overflow-hidden section-padding" style={{background:'linear-gradient(180deg,#fafafa 0%,#f5f0fb 55%,#fafafa 100%)'}}>
-      <div className="container-base relative z-10">
-        <motion.div variants={staggerContainer(0.1)} initial="hidden" whileInView="visible" viewport={viewportOnce} className="text-center max-w-xl mx-auto mb-14">
-          <motion.div variants={fadeInUp} className="mb-5">
-            <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border text-xs font-semibold tracking-wide uppercase" style={{background:'#faf5fb',borderColor:'#e4d0e9',color:P}}>
-              <span className="w-1.5 h-1.5 rounded-full" style={{background:P}}/>How to Apply
-            </span>
-          </motion.div>
-          <motion.h2 variants={fadeInUp} className="font-display font-bold text-neutral-900 leading-[1.1] tracking-tight mb-4" style={{fontSize:'clamp(1.9rem,3.2vw,2.75rem)'}}>
-            Our <span style={{color:P}}>Application Process</span>
-          </motion.h2>
-          <motion.div variants={fadeInUp} className="w-16 h-1 rounded-full mx-auto" style={{background:'linear-gradient(90deg,#8B3A8F,#F5A623)'}}/>
-        </motion.div>
-        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-5">
-          {STEPS.map((step,i)=>(
-            <motion.div key={step.s} initial={{opacity:0,y:24}} whileInView={{opacity:1,y:0}} viewport={viewportOnce} transition={{duration:0.48,delay:i*0.12}} whileHover={{y:-4,transition:{duration:0.18}}}
-              className="group relative flex flex-col items-center text-center bg-white rounded-3xl px-6 pt-8 pb-7 border border-neutral-100 shadow-soft hover:shadow-medium transition-all duration-300 overflow-hidden">
-              <div className="relative mb-6">
-                <div className="w-[100px] h-[100px] rounded-full border-2 border-dashed flex items-center justify-center" style={{borderColor:P+'30'}}>
-                  <div className="w-[72px] h-[72px] rounded-full flex items-center justify-center text-white" style={{background:'linear-gradient(135deg,#8B3A8F,#662a6b)'}}>
-                    <svg width="26" height="26" viewBox="0 0 26 26" fill="none">
-                      {step.s===1&&<><rect x="4" y="3" width="18" height="20" rx="2" stroke="white" strokeWidth="1.6"/><path d="M8 9h10M8 13h10M8 17h6" stroke="white" strokeWidth="1.5" strokeLinecap="round"/></>}
-                      {step.s===2&&<><circle cx="13" cy="10" r="5" stroke="white" strokeWidth="1.6"/><path d="M4 22c0-4.97 4.03-9 9-9s9 4.03 9 9" stroke="white" strokeWidth="1.5" strokeLinecap="round"/></>}
-                      {step.s===3&&<><path d="M13 3l9 4v5c0 5-3.5 8-9 9-5.5-1-9-4-9-9V7l9-4z" stroke="white" strokeWidth="1.5" strokeLinejoin="round"/><path d="M9 13l3 3 5-5" stroke="white" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/></>}
-                      {step.s===4&&<><circle cx="13" cy="9" r="4" stroke="white" strokeWidth="1.5"/><path d="M4 22c0-4.97 4.03-9 9-9s9 4.03 9 9" stroke="white" strokeWidth="1.5" strokeLinecap="round"/></>}
-                    </svg>
-                  </div>
-                </div>
-                <div className="absolute -bottom-1 -right-1 w-7 h-7 rounded-full border-2 border-white flex items-center justify-center text-white text-[10px] font-bold" style={{background:G}}>{step.s}</div>
-              </div>
-              <h3 className="text-[0.95rem] font-display font-semibold text-neutral-900 mb-2.5 leading-snug">{step.t}</h3>
-              <p className="text-sm text-neutral-500 leading-relaxed">{step.d}</p>
-            </motion.div>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function ResumeSubmission() {
-  const [form, setForm] = useState({name:'',phone:'',email:'',position:'',experience:'',file:null});
-  const [submitted, setSubmitted] = useState(false);
-  const [focused, setFocused] = useState('');
-  const [dragOver, setDragOver] = useState(false);
-  const handleChange = e => setForm(p=>({...p,[e.target.name]:e.target.value}));
-  const handleFile  = e => setForm(p=>({...p,file:e.target.files[0]||null}));
-  const handleSubmit = e => { e.preventDefault(); setSubmitted(true); };
-  const ic = name => ['w-full px-4 py-3.5 rounded-xl border text-sm text-neutral-800 bg-white placeholder-neutral-400 outline-none transition-all duration-200', focused===name?'border-[#8B3A8F] shadow-[0_0_0_3px_rgba(139,58,143,0.12)]':'border-neutral-200 hover:border-neutral-300'].join(' ');
-
-  return (
-    <section id="apply" className="relative overflow-hidden bg-white section-padding scroll-mt-20">
-      <div className="container-base relative z-10">
-        <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-start">
-          <motion.div variants={staggerContainer(0.1)} initial="hidden" whileInView="visible" viewport={viewportOnce} className="flex flex-col lg:sticky lg:top-28">
-            <motion.div variants={fadeInUp} className="mb-5">
-              <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border text-xs font-semibold tracking-wide uppercase" style={{background:'#faf5fb',borderColor:'#e4d0e9',color:P}}>
-                <span className="w-1.5 h-1.5 rounded-full" style={{background:P}}/>Submit Your Resume
-              </span>
-            </motion.div>
-            <motion.h2 variants={fadeInUp} className="font-display font-bold text-neutral-900 leading-[1.1] tracking-tight mb-5" style={{fontSize:'clamp(1.8rem,3vw,2.5rem)'}}>
-              Create Your <span style={{color:P}}>Next Opportunity</span>
-            </motion.h2>
-            <motion.p variants={fadeInUp} className="text-neutral-500 text-[1.02rem] leading-relaxed mb-8">Fill in your information and attach your CV. Our HR team reviews every application and will contact you within 48 hours if you are a fit.</motion.p>
-            <motion.ul variants={staggerContainer(0.08,0.1)} className="space-y-3" role="list">
-              {['We personally review every application.', 'Reply within 48 business hours.', 'No application fee, ever.', 'Your information is kept strictly confidential.'].map(pt=>(
-                <motion.li key={pt} variants={fadeInUp} className="flex items-center gap-3">
-                  <span className="w-5 h-5 rounded-full flex items-center justify-center shrink-0" style={{background:P+'15',color:P}}><Chk/></span>
-                  <span className="text-sm text-neutral-700 font-medium">{pt}</span>
-                </motion.li>
-              ))}
-            </motion.ul>
-          </motion.div>
-
-          <motion.div variants={fadeInRight} initial="hidden" whileInView="visible" viewport={viewportOnce}>
-            {submitted ? (
-              <motion.div initial={{opacity:0,scale:0.95}} animate={{opacity:1,scale:1}} transition={{duration:0.4}} className="bg-white rounded-3xl p-10 border border-neutral-100 shadow-medium text-center">
-                <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-5" style={{background:P+'12'}}>
-                  <svg width="28" height="28" viewBox="0 0 28 28" fill="none"><path d="M5 14l6 6 12-12" stroke={P} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                </div>
-                <h3 className="font-display font-bold text-neutral-900 text-xl mb-3">Application Submitted!</h3>
-                <p className="text-neutral-500 text-sm leading-relaxed mb-6">Thank you for applying. Our HR team will review your profile and reach out within 48 hours.</p>
-                <button onClick={()=>setSubmitted(false)} className="inline-flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-semibold text-white" style={{background:P}}>Submit Another Application</button>
-              </motion.div>
-            ) : (
-              <form onSubmit={handleSubmit} noValidate className="bg-white rounded-3xl p-7 lg:p-9 border border-neutral-100 shadow-medium space-y-5">
-                <div className="grid sm:grid-cols-2 gap-4">
-                  <div>
-                    <label htmlFor="cname" className="block text-xs font-semibold text-neutral-600 mb-1.5 uppercase tracking-wide">Full Name <span style={{color:P}}>*</span></label>
-                    <input id="cname" name="name" type="text" required placeholder="Rahul Sharma" value={form.name} onChange={handleChange} onFocus={()=>setFocused('name')} onBlur={()=>setFocused('')} className={ic('name')}/>
-                  </div>
-                  <div>
-                    <label htmlFor="cphone" className="block text-xs font-semibold text-neutral-600 mb-1.5 uppercase tracking-wide">Phone <span style={{color:P}}>*</span></label>
-                    <input id="cphone" name="phone" type="tel" required placeholder="+91 98765 43210" value={form.phone} onChange={handleChange} onFocus={()=>setFocused('phone')} onBlur={()=>setFocused('')} className={ic('phone')}/>
-                  </div>
-                </div>
-                <div>
-                  <label htmlFor="cemail" className="block text-xs font-semibold text-neutral-600 mb-1.5 uppercase tracking-wide">Email <span style={{color:P}}>*</span></label>
-                  <input id="cemail" name="email" type="email" required placeholder="rahul@email.com" value={form.email} onChange={handleChange} onFocus={()=>setFocused('email')} onBlur={()=>setFocused('')} className={ic('email')}/>
-                </div>
-                <div className="grid sm:grid-cols-2 gap-4">
-                  <div>
-                    <label htmlFor="cpos" className="block text-xs font-semibold text-neutral-600 mb-1.5 uppercase tracking-wide">Position <span style={{color:P}}>*</span></label>
-                    <select id="cpos" name="position" required value={form.position} onChange={handleChange} onFocus={()=>setFocused('position')} onBlur={()=>setFocused('')} className={ic('position')+' cursor-pointer'}>
-                      <option value="" disabled>Select position...</option>
-                      {POS.map(p=><option key={p} value={p}>{p}</option>)}
-                    </select>
-                  </div>
-                  <div>
-                    <label htmlFor="cexp" className="block text-xs font-semibold text-neutral-600 mb-1.5 uppercase tracking-wide">Experience</label>
-                    <select id="cexp" name="experience" value={form.experience} onChange={handleChange} onFocus={()=>setFocused('experience')} onBlur={()=>setFocused('')} className={ic('experience')+' cursor-pointer'}>
-                      <option value="" disabled>Select...</option>
-                      {['Fresher (0 yrs)','0-1 Year','1-3 Years','3-5 Years','5+ Years'].map(e=><option key={e} value={e}>{e}</option>)}
-                    </select>
-                  </div>
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold text-neutral-600 mb-1.5 uppercase tracking-wide">Resume / CV</label>
-                  <label htmlFor="resume" className={`flex flex-col items-center justify-center w-full py-8 rounded-xl border-2 border-dashed cursor-pointer transition-all duration-200 ${dragOver?'border-[#8B3A8F] bg-[#faf5fb]':'border-neutral-200 hover:border-[#8B3A8F] hover:bg-[#faf5fb]'}`}
-                    onDragOver={e=>{e.preventDefault();setDragOver(true);}} onDragLeave={()=>setDragOver(false)}
-                    onDrop={e=>{e.preventDefault();setDragOver(false);setForm(p=>({...p,file:e.dataTransfer.files[0]||null}));}}>
-                    <input id="resume" type="file" accept=".pdf,.doc,.docx" className="hidden" onChange={handleFile}/>
-                    {form.file ? (
-                      <div className="flex items-center gap-2 text-sm font-medium" style={{color:P}}>
-                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="2" y="1" width="12" height="14" rx="1.5" stroke="currentColor" strokeWidth="1.4"/><path d="M5 5h6M5 8h6M5 11h4" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/></svg>
-                        {form.file.name}
-                      </div>
-                    ) : (
-                      <>
-                        <svg width="28" height="28" viewBox="0 0 28 28" fill="none" className="mb-2" style={{color:P+'60'}}><path d="M14 18V8M10 12l4-4 4 4" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/><path d="M6 22h16" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
-                        <p className="text-sm text-neutral-500">Drag & drop or <span className="font-semibold" style={{color:P}}>browse</span></p>
-                        <p className="text-xs text-neutral-400 mt-1">PDF, DOC, DOCX - max 5MB</p>
-                      </>
-                    )}
-                  </label>
-                </div>
-                <p className="text-xs text-neutral-400">Our HR team reviews every application personally and responds within 48 hours.</p>
-                <motion.button type="submit" whileHover={{scale:1.02}} whileTap={{scale:0.97}} className="w-full flex items-center justify-center gap-2.5 py-4 rounded-xl text-white text-sm font-semibold" style={{background:P}}>
-                  Submit Application
-                  <svg width="15" height="15" viewBox="0 0 15 15" fill="none"><path d="M2 7.5h11M8 3.5l4 4-4 4" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                </motion.button>
-              </form>
-            )}
-          </motion.div>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function CareersCTA() {
-  return (
-    <section className="relative overflow-hidden py-20 lg:py-28" style={{background:'linear-gradient(135deg,#3d1940 0%,#662a6b 45%,#8B3A8F 100%)'}}>
-      <div className="absolute inset-0 pointer-events-none overflow-hidden" aria-hidden="true">
-        <div className="absolute -top-20 -right-20 w-[400px] h-[400px] rounded-full blur-3xl opacity-20" style={{background:G}}/>
-        <div className="absolute -bottom-20 -left-20 w-[350px] h-[350px] rounded-full blur-3xl opacity-15" style={{background:P}}/>
-      </div>
-      <div className="container-sm relative z-10 text-center">
-        <motion.div variants={staggerContainer(0.12)} initial="hidden" whileInView="visible" viewport={viewportOnce}>
-          <motion.div variants={fadeInUp} className="mb-6">
-            <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-semibold tracking-wide uppercase" style={{background:'rgba(255,255,255,0.12)',border:'1px solid rgba(255,255,255,0.2)',color:'rgba(255,255,255,0.8)'}}>
-              <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{background:G}}/>Join Our Team
-            </span>
-          </motion.div>
-          <motion.h2 variants={fadeInUp} className="font-display font-bold text-white leading-[1.08] tracking-tight mb-5 text-balance" style={{fontSize:'clamp(2rem,4vw,3.2rem)'}}>
-            Ready to Enter Our <span style={{background:`linear-gradient(90deg,${G},#fbbf24)`,WebkitBackgroundClip:'text',WebkitTextFillColor:'transparent',backgroundClip:'text'}}>Workforce Network?</span>
-          </motion.h2>
-          <motion.p variants={fadeInUp} className="text-white/65 text-lg leading-relaxed max-w-lg mx-auto mb-10">Join one of India’s leading workforce solutions companies and step into a stable and rewarding career.</motion.p>
-          <motion.div variants={fadeInUp} className="flex flex-wrap items-center justify-center gap-4">
-            <motion.div whileHover={{scale:1.04}} whileTap={{scale:0.97}}>
-              <a href="#apply" className="inline-flex items-center gap-2.5 px-8 py-4 rounded-xl text-white text-base font-semibold" style={{background:G,boxShadow:'0 4px 20px rgba(245,166,35,0.4)'}}>
-                Apply Now
-                <svg width="15" height="15" viewBox="0 0 15 15" fill="none"><path d="M3 7.5h9M8 3.5l4 4-4 4" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/></svg>
-              </a>
-            </motion.div>
-            <motion.div whileHover={{scale:1.04}} whileTap={{scale:0.97}}>
-              <Link to="/contact" className="inline-flex items-center gap-2.5 px-8 py-4 rounded-xl text-white text-base font-semibold border" style={{borderColor:'rgba(255,255,255,0.3)',background:'rgba(255,255,255,0.1)'}}>
-                Contact HR Team
-              </Link>
-            </motion.div>
-          </motion.div>
-        </motion.div>
-      </div>
-    </section>
-  );
-}
+    </motion.div>
+  </div>
+);
 
 function Careers() {
+  const [activeTab, setActiveTab] = useState('candidate'); // 'candidate' or 'corporate'
+  const [selectedJob, setSelectedJob] = useState(null);
+  const [uploading, setUploading] = useState(false);
+  const [resume, setResume] = useState(null);
+  const [form, setForm] = useState({ name: '', phone: '', email: '', roleType: '' });
+  const [submitted, setSubmitted] = useState(false);
+
+  const scrollToApply = () => {
+    document.getElementById('apply')?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  const handleFileUpload = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setUploading(true);
+      // Simulating upload
+      setTimeout(() => {
+        setResume(file);
+        setUploading(false);
+      }, 1500);
+    }
+  };
+
+  const handleChange = (e) => {
+    setForm(p => ({ ...p, [e.target.name]: e.target.value }));
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    setSubmitted(true);
+    setTimeout(() => setSubmitted(false), 5000);
+  };
+
   return (
     <>
       <PageHero 
-        title="Build Your Career AT Stryper Solution" 
-        subtitle="Join our core corporate team. We are hiring professionals to lead our HR, Operations, and Business growth across India." 
+        title="Your Career Partner" 
+        subtitle="Stryper Solution connects talent with India's top industries. Whether you're looking for a job or want to join our core team, we've got you covered." 
         breadcrumb="Careers" 
         image={img4}
       />
-      <CareersIntro/>
-      <OpenPositions/>
-      <WhyWorkWithUs/>
-      <ApplicationProcess/>
-      <ResumeSubmission/>
-      <CareersCTA/>
+
+      {/* ── Selection Section (The "Dual Path") ── */}
+      <section className="py-16 bg-white">
+        <div className="container-base">
+          <div className="flex flex-col items-center mb-12">
+            <h2 className="text-3xl font-bold text-neutral-900 text-center mb-6">Choose Your Path</h2>
+            <div className="flex bg-neutral-100 p-1.5 rounded-2xl w-full max-w-md shadow-inner">
+              <button 
+                onClick={() => setActiveTab('candidate')}
+                className={`flex-1 py-3 rounded-xl text-sm font-bold transition-all ${activeTab === 'candidate' ? 'bg-white text-brand-purple-600 shadow-sm' : 'text-neutral-500 hover:text-neutral-700'}`}
+              >
+                I want a Job
+              </button>
+              <button 
+                onClick={() => setActiveTab('corporate')}
+                className={`flex-1 py-3 rounded-xl text-sm font-bold transition-all ${activeTab === 'corporate' ? 'bg-white text-brand-purple-600 shadow-sm' : 'text-neutral-500 hover:text-neutral-700'}`}
+              >
+                Join Stryper Core Team
+              </button>
+            </div>
+          </div>
+
+          <AnimatePresence mode="wait">
+            {activeTab === 'candidate' ? (
+              <motion.div
+                key="candidate"
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: 20 }}
+                transition={{ duration: 0.3 }}
+                className="grid lg:grid-cols-2 gap-12 items-center"
+              >
+                <div>
+                  <span className="text-xs font-bold text-amber-600 uppercase tracking-widest bg-amber-50 px-3 py-1 rounded-full mb-4 inline-block">Workforce Solutions</span>
+                  <h3 className="text-4xl font-bold text-neutral-900 leading-tight mb-6">
+                    Let Us Help You Find <span style={{ color: P }}>The Right Opportunity</span>
+                  </h3>
+                  <p className="text-neutral-600 mb-8 leading-relaxed">
+                    Stryper Solution works as an intermediary between top employers and skilled candidates. We don't just find you a job; we ensure you are deployed safely, paid on time, and supported throughout your career journey.
+                  </p>
+                  
+                  <div className="space-y-4 mb-8">
+                    {STRATEGY.map(item => (
+                      <div key={item.title} className="flex gap-4 p-4 rounded-2xl bg-neutral-50 border border-neutral-100">
+                        <span className="text-2xl">{item.icon}</span>
+                        <div>
+                          <h4 className="font-bold text-neutral-800 text-sm">{item.title}</h4>
+                          <p className="text-xs text-neutral-500 mt-0.5">{item.desc}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  <Link to="/jobs" className="inline-flex items-center gap-2 px-8 py-4 rounded-xl text-white font-bold transition-transform hover:scale-105" style={{ background: P }}>
+                    Browse Available Jobs
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                  </Link>
+                </div>
+                <div className="relative">
+                  <div className="bg-neutral-100 aspect-square rounded-[3rem] overflow-hidden rotate-3 shadow-2xl">
+                    <img src={img4} alt="Candidate Support" className="w-full h-full object-cover -rotate-3 scale-110" />
+                  </div>
+                  <div className="absolute -bottom-6 -left-6 bg-white p-6 rounded-3xl shadow-xl border border-neutral-100 max-w-[200px]">
+                    <p className="text-3xl font-bold text-neutral-900 mb-1">5000+</p>
+                    <p className="text-xs text-neutral-500 font-medium uppercase tracking-wider">Candidates Placed Annually</p>
+                  </div>
+                </div>
+              </motion.div>
+            ) : (
+              <motion.div
+                key="corporate"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                transition={{ duration: 0.3 }}
+                className="space-y-12"
+              >
+                <div className="max-w-3xl mx-auto text-center">
+                  <span className="text-xs font-bold text-purple-600 uppercase tracking-widest bg-purple-50 px-3 py-1 rounded-full mb-4 inline-block">Internal Careers</span>
+                  <h3 className="text-4xl font-bold text-neutral-900 leading-tight mb-6">
+                    Build Your Career <span style={{ color: P }}>At Stryper HQ</span>
+                  </h3>
+                  <p className="text-neutral-600 leading-relaxed">
+                    Join the team that drives workforce innovation in India. We're looking for leaders in HR, Sales, Operations, and Technology to help us grow Stryper Solution to new heights.
+                  </p>
+                </div>
+
+                <div className="grid md:grid-cols-3 gap-6">
+                  {INTERNAL_JOBS.map(job => (
+                    <div key={job.id} className="bg-white p-6 rounded-2xl border border-neutral-100 shadow-sm hover:shadow-md transition-shadow">
+                      <div className="flex justify-between items-start mb-4">
+                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-purple-50 text-purple-600 uppercase">{job.type}</span>
+                        <span className="text-[10px] font-bold text-neutral-400">{job.exp}</span>
+                      </div>
+                      <h4 className="font-bold text-neutral-900 mb-2">{job.title}</h4>
+                      <p className="text-xs text-neutral-500 mb-4">{job.location}</p>
+                      <button 
+                        onClick={() => setSelectedJob(job)}
+                        className="w-full py-2.5 rounded-xl text-xs font-bold text-brand-purple-600 border border-brand-purple-100 hover:bg-brand-purple-50 transition-colors"
+                      >
+                        View Role
+                      </button>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="bg-neutral-900 rounded-[3rem] p-10 text-center text-white relative overflow-hidden">
+                  <div className="relative z-10">
+                    <h4 className="text-2xl font-bold mb-4">Ready to lead with us?</h4>
+                    <p className="text-white/60 text-sm mb-8 max-w-md mx-auto">We're always looking for exceptional talent. If you don't see a fit, send us your resume anyway.</p>
+                    <button 
+                      onClick={scrollToApply}
+                      className="inline-flex items-center gap-2 px-8 py-3.5 rounded-xl bg-white text-neutral-900 font-bold hover:bg-neutral-100 transition-colors text-sm"
+                    >
+                      Submit General Application
+                    </button>
+                  </div>
+                  <div className="absolute top-0 right-0 w-64 h-64 bg-purple-600/20 blur-[100px] rounded-full" />
+                  <div className="absolute bottom-0 left-0 w-64 h-64 bg-amber-500/10 blur-[100px] rounded-full" />
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+      </section>
+
+      {/* ── How it Works (Intermediate Process) ── */}
+      <section className="py-20 bg-neutral-50 border-y border-neutral-100">
+        <div className="container-base">
+          <div className="text-center max-w-2xl mx-auto mb-16">
+            <h2 className="text-3xl font-bold text-neutral-900 mb-4">Our Placement Process</h2>
+            <p className="text-sm text-neutral-500">Transparent, fast, and supportive. Here is how we get you from application to your first day at work.</p>
+          </div>
+          
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-8">
+            {STEPS.map((step) => (
+              <div key={step.s} className="relative group">
+                <div className="bg-white p-8 rounded-3xl border border-neutral-100 shadow-sm hover:shadow-xl transition-all h-full">
+                  <div className="w-12 h-12 rounded-2xl flex items-center justify-center text-white text-xl font-bold mb-6 group-hover:scale-110 transition-transform" style={{ background: step.s % 2 === 0 ? G : P }}>
+                    {step.s}
+                  </div>
+                  <h3 className="font-bold text-neutral-900 mb-3">{step.t}</h3>
+                  <p className="text-xs text-neutral-500 leading-relaxed">{step.d}</p>
+                </div>
+                {step.s < 4 && (
+                  <div className="hidden lg:block absolute top-1/2 -right-4 w-8 h-[2px] bg-neutral-200" />
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── Unified Application Section ── */}
+      <section id="apply" className="py-24 bg-white overflow-hidden">
+        <div className="container-base">
+          <div className="max-w-5xl mx-auto">
+            <div className="bg-neutral-50 rounded-[3rem] p-8 lg:p-16 relative overflow-hidden border border-neutral-100">
+              <div className="grid lg:grid-cols-2 gap-12 relative z-10">
+                <div>
+                  <h2 className="text-4xl font-bold text-neutral-900 mb-6 leading-tight">Start Your <span style={{ color: P }}>Success Story</span></h2>
+                  <p className="text-neutral-500 mb-8">Whether it's for an external industry role or an internal corporate position, fill out this form and we'll route it to the right team.</p>
+                  
+                  <div className="space-y-6">
+                    <div className="flex gap-4">
+                      <div className="w-10 h-10 rounded-xl bg-white shadow-sm flex items-center justify-center shrink-0">✨</div>
+                      <p className="text-xs text-neutral-600 font-medium">Free application and assessment for all candidates.</p>
+                    </div>
+                    <div className="flex gap-4">
+                      <div className="w-10 h-10 rounded-xl bg-white shadow-sm flex items-center justify-center shrink-0">⚡</div>
+                      <p className="text-xs text-neutral-600 font-medium">Fast-track recruitment through our pan-India network.</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-white p-8 rounded-[2rem] shadow-2xl shadow-purple-900/5">
+                  {submitted ? (
+                    <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="text-center py-10">
+                      <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6 text-3xl text-green-600">✓</div>
+                      <h3 className="text-2xl font-bold text-neutral-900 mb-2">Application Sent!</h3>
+                      <p className="text-sm text-neutral-500">Thank you for applying. Our HR team will review your profile and contact you soon.</p>
+                      <button onClick={() => setSubmitted(false)} className="mt-6 text-brand-purple-600 font-bold text-sm hover:underline">Submit another application</button>
+                    </motion.div>
+                  ) : (
+                    <form onSubmit={handleSubmit} className="space-y-4">
+                      <div className="grid sm:grid-cols-2 gap-4">
+                        <input type="text" name="name" required placeholder="Full Name" value={form.name} onChange={handleChange} className="w-full px-4 py-3 rounded-xl bg-neutral-50 border-none text-sm outline-none focus:ring-2 focus:ring-purple-200 transition-all" />
+                        <input type="tel" name="phone" required placeholder="Phone Number" value={form.phone} onChange={handleChange} className="w-full px-4 py-3 rounded-xl bg-neutral-50 border-none text-sm outline-none focus:ring-2 focus:ring-purple-200 transition-all" />
+                      </div>
+                      <input type="email" name="email" required placeholder="Email Address" value={form.email} onChange={handleChange} className="w-full px-4 py-3 rounded-xl bg-neutral-50 border-none text-sm outline-none focus:ring-2 focus:ring-purple-200 transition-all" />
+                      <select name="roleType" required value={form.roleType} onChange={handleChange} className="w-full px-4 py-3 rounded-xl bg-neutral-50 border-none text-sm outline-none focus:ring-2 focus:ring-purple-200 transition-all appearance-none">
+                        <option value="" disabled>Preferred Role Type</option>
+                        <option value="Client">Client / Industry Job</option>
+                        <option value="Stryper">Stryper Corporate Role</option>
+                      </select>
+                      
+                      <div className="relative">
+                        <input 
+                          type="file" 
+                          id="resume-upload" 
+                          className="hidden" 
+                          accept=".pdf,.doc,.docx" 
+                          onChange={handleFileUpload}
+                          disabled={uploading}
+                        />
+                        <label 
+                          htmlFor="resume-upload"
+                          className={`flex flex-col items-center justify-center w-full py-8 rounded-2xl border-2 border-dashed transition-all cursor-pointer ${
+                            resume ? 'border-green-200 bg-green-50/30' : 
+                            uploading ? 'border-purple-200 bg-purple-50/30' :
+                            'border-neutral-100 hover:bg-neutral-50'
+                          }`}
+                        >
+                          {uploading ? (
+                            <div className="flex flex-col items-center">
+                              <div className="w-6 h-6 border-2 border-brand-purple-600 border-t-transparent rounded-full animate-spin mb-2" />
+                              <p className="text-xs text-brand-purple-600 font-bold">Uploading Resume...</p>
+                            </div>
+                          ) : resume ? (
+                            <div className="flex flex-col items-center">
+                              <span className="text-2xl mb-1">📄</span>
+                              <p className="text-xs text-green-700 font-bold">{resume.name}</p>
+                              <p className="text-[10px] text-green-500 mt-0.5">Click to change</p>
+                            </div>
+                          ) : (
+                            <>
+                              <span className="text-2xl mb-2">☁️</span>
+                              <p className="text-xs text-neutral-400 font-medium">Click to upload Resume / CV</p>
+                              <p className="text-[10px] text-neutral-300 mt-1 uppercase tracking-widest font-bold">PDF, DOC, DOCX</p>
+                            </>
+                          )}
+                        </label>
+                      </div>
+
+                      <button 
+                        type="submit"
+                        disabled={uploading}
+                        className={`w-full py-4 rounded-xl text-white font-bold shadow-lg shadow-purple-200 transition-all ${uploading ? 'opacity-50 cursor-not-allowed' : 'hover:scale-[1.02] active:scale-95'}`} 
+                        style={{ background: P }}
+                      >
+                        Submit Application
+                      </button>
+                    </form>
+                  )}
+                </div>
+              </div>
+              
+              {/* Decorative blobs */}
+              <div className="absolute -top-20 -right-20 w-80 h-80 bg-brand-purple-100 rounded-full blur-[100px] opacity-50" />
+              <div className="absolute -bottom-20 -left-20 w-80 h-80 bg-amber-100 rounded-full blur-[100px] opacity-50" />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Role Modal */}
+      <AnimatePresence>
+        {selectedJob && (
+          <RoleDetailModal
+            job={selectedJob}
+            onClose={() => setSelectedJob(null)}
+            onApply={() => { setSelectedJob(null); scrollToApply(); }}
+          />
+        )}
+      </AnimatePresence>
     </>
   );
 }
