@@ -1,5 +1,5 @@
 const express = require("express");
-const { registerUser, loginUser, getMe } = require("../controllers/auth.controller");
+const { registerUser, loginUser, getMe, changePassword } = require("../controllers/auth.controller");
 const { protect, authorizeRoles } = require("../middleware/auth.middleware");
 
 const router = express.Router();
@@ -12,6 +12,9 @@ router.post("/login", loginUser);
 
 // GET /api/v1/auth/me  (protected)
 router.get("/me", protect, getMe);
+
+// PUT /api/v1/auth/change-password
+router.put("/change-password", protect, changePassword);
 
 // --- Role-based test routes ---
 

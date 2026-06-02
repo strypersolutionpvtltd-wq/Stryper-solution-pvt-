@@ -85,7 +85,7 @@ const getMe = async (req, res) => {
   }
 };
 
-module.exports = { registerUser, loginUser, getMe };
+
 
 // @desc    Login existing user
 // @route   POST /api/v1/auth/login
@@ -147,3 +147,67 @@ async function loginUser(req, res) {
     });
   }
 }
+
+const changePassword = async (req, res) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+
+    // Check if fields are provided
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({
+        success: false,
+        message: "Current password and new password are required",
+      });
+    }
+
+    // Find logged in user
+    const user = await User.findById(req.user.id);
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    // Compare current password
+    const isPasswordMatched = await bcrypt.compare(
+      currentPassword,
+      user.password
+    );
+
+    if (!isPasswordMatched) {
+      return res.status(401).json({
+        success: false,
+        message: "urrent password is incorrecCt",
+      });
+    }
+
+    // Hash new password
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    // Update password
+    user.password = hashedPassword;
+
+    await user.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "Password updated successfully",
+    });
+  } catch (error) {
+    console.error("Change Password Error:", error.message);
+
+    return res.status(500).json({
+      success: false,
+      message: "Server error while changing password",
+    });
+  }
+};
+
+module.exports = {
+  registerUser,
+  loginUser,
+  getMe,
+  changePassword,
+};

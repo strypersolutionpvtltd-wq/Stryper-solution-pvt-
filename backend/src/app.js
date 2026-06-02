@@ -27,6 +27,15 @@ app.use("/api/v1/auth", authRoutes);
 const companyProfileRoutes = require("./routes/companyProfile.routes");
 app.use("/api/v1/company", companyProfileRoutes);
 
+const candidateProfileRoutes = require("./routes/candidateProfile.routes");
+app.use("/api/v1/candidate", candidateProfileRoutes);
+
+const candidateExperienceRoutes = require("./routes/candidateExperience.routes");
+app.use("/api/v1/candidate/experience", candidateExperienceRoutes);
+
+const candidateEducationRoutes = require("./routes/candidateEducation.routes");
+app.use("/api/v1/candidate/education", candidateEducationRoutes);
+
 // 404 handler
 app.use((req, res) => {
   res.status(404).json({ success: false, message: "Route not found" });
