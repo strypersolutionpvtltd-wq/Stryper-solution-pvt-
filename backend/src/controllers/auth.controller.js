@@ -1,6 +1,8 @@
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const User = require("../models/user.model");
+const CandidateProfile = require("../models/candidateProfile.model");
+const CompanyProfile = require("../models/companyProfile.model");
 
 // @desc    Register a new user
 // @route   POST /api/v1/auth/register
@@ -205,9 +207,100 @@ const changePassword = async (req, res) => {
   }
 };
 
+// @desc    Logout current user
+// @route   POST /api/v1/auth/logout
+// @access  Private (requires token)
+//
+// NOTE ON JWT LOGOUT STRATEGY:
+// JWTs are stateless — the server does not store them, so there is nothing
+// to "invalidate" on the server side. The correct professional approach is:
+//   1. Backend confirms the request and returns a success response.
+//   2. Frontend is responsible for deleting the token from localStorage / cookies.
+// This is the industry-standard pattern for JWT-based auth without a token
+// blacklist or Redis cache (which would be added in a more advanced setup).
+const logoutUser = async (req, res) => {
+  try {
+    // The protect middleware already verified the token is valid.
+    // Nothing to delete server-side — just confirm the logout.
+    return res.status(200).json({
+      success: true,
+      message: "Logged out successfully",
+    });
+  } catch (error) {
+    console.error("Logout Error:", error.message);
+    return res.status(500).json({
+      success: false,
+      message: "Server error. Please try again later.",
+    });
+  }
+};
+
+// @desc    Permanently delete authenticated user account and linked profile
+// @route   DELETE /api/v1/auth/delete-account
+// @access  Private (requires token)
+const deleteAccount = async (req, res) => {
+  try {
+    const { password } = req.body;
+
+    // 1. Password is required to confirm the destructive action
+    if (!password) {
+      return res.status(400).json({
+        success: false,
+        message: "Password is required to delete your account",
+      });
+    }
+
+    // 2. Fetch the user from DB using the ID from the verified JWT token
+    //    SECURITY: Never trust a userId sent from the frontend — always use req.user.id
+    const user = await User.findById(req.user.id);
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    // 3. Verify the provided password matches the stored hashed password
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+
+    if (!isPasswordValid) {
+      return res.status(401).json({
+        success: false,
+        message: "Incorrect password. Account deletion cancelled.",
+      });
+    }
+
+    // 4. Delete the linked profile based on the user's role
+    //    This keeps the database clean — no orphaned profile documents
+    if (user.role === "CANDIDATE") {
+      await CandidateProfile.findOneAndDelete({ userId: user._id });
+    } else if (user.role === "COMPANY") {
+      await CompanyProfile.findOneAndDelete({ userId: user._id });
+    }
+    // ADMIN role has no linked profile — skip profile deletion
+
+    // 5. Delete the user account itself
+    await User.findByIdAndDelete(user._id);
+
+    return res.status(200).json({
+      success: true,
+      message: "Account deleted successfully",
+    });
+  } catch (error) {
+    console.error("Delete Account Error:", error.message);
+    return res.status(500).json({
+      success: false,
+      message: "Server error. Please try again later.",
+    });
+  }
+};
+
 module.exports = {
   registerUser,
   loginUser,
   getMe,
   changePassword,
+  logoutUser,
+  deleteAccount,
 };
