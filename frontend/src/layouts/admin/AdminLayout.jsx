@@ -103,9 +103,12 @@ const AdminLayout = () => {
           className={`hidden lg:flex flex-col bg-[#0f0f0f] border-r border-white/5 h-screen sticky top-0 overflow-hidden z-50`}
         >
           <div className="p-6 h-20 flex items-center gap-3 shrink-0">
-            <div className="w-8 h-8 rounded-lg bg-brand-purple-600 flex items-center justify-center shrink-0">
-              <span className="font-bold text-white">S</span>
-            </div>
+            <button 
+              onClick={() => setCollapsed(!collapsed)}
+              className="w-8 h-8 rounded-lg bg-brand-purple-600 flex items-center justify-center shrink-0 hover:bg-brand-purple-700 transition-colors"
+            >
+              <Menu size={18} className="text-white" />
+            </button>
             {!collapsed && (
               <span className="font-display font-bold text-lg tracking-tight whitespace-nowrap overflow-hidden">
                 Stryper Admin
@@ -153,7 +156,7 @@ const AdminLayout = () => {
             >
               <div className="p-6 h-20 flex items-center gap-3">
                 <div className="w-8 h-8 rounded-lg bg-brand-purple-600 flex items-center justify-center shrink-0">
-                  <span className="font-bold text-white">S</span>
+                  <Menu size={18} className="text-white" />
                 </div>
                 <span className="font-display font-bold text-lg tracking-tight">Stryper Admin</span>
               </div>
@@ -189,9 +192,6 @@ const AdminLayout = () => {
             >
               <Menu size={20} />
             </button>
-            <h1 className="text-sm font-semibold text-white uppercase tracking-wider hidden sm:block">
-              Admin Control Center
-            </h1>
           </div>
 
           <div className="flex items-center gap-4">

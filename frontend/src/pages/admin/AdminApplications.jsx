@@ -16,9 +16,9 @@ const AdminApplications = () => {
 
   const filtered = useMemo(() => {
     return apps.filter(a => 
-      a.candidate.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      a.job.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      a.company.toLowerCase().includes(searchTerm.toLowerCase())
+      (a.candidate?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+      (a.job?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+      (a.company?.toLowerCase() || '').includes(searchTerm.toLowerCase())
     );
   }, [apps, searchTerm]);
 

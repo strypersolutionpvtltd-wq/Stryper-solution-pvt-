@@ -16,8 +16,8 @@ const AdminJobs = () => {
 
   const filtered = useMemo(() => {
     return jobs.filter(j => 
-      j.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      j.company.toLowerCase().includes(searchTerm.toLowerCase())
+      (j.title?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+      (j.company?.toLowerCase() || '').includes(searchTerm.toLowerCase())
     );
   }, [jobs, searchTerm]);
 
