@@ -356,8 +356,8 @@ const AdminDashboard = () => {
     if (debouncedSearch) {
       const lower = debouncedSearch.toLowerCase();
       data = data.filter(u => 
-        u.name.toLowerCase().includes(lower) || 
-        u.email.toLowerCase().includes(lower)
+        (u.name?.toLowerCase() || '').includes(lower) || 
+        (u.email?.toLowerCase() || '').includes(lower)
       );
     }
 

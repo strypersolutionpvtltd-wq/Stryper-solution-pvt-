@@ -16,8 +16,8 @@ const AdminConsultants = () => {
 
   const filtered = useMemo(() => {
     return partners.filter(p => 
-      p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      p.specialty.toLowerCase().includes(searchTerm.toLowerCase())
+      (p.name?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+      (p.specialty?.toLowerCase() || '').includes(searchTerm.toLowerCase())
     );
   }, [partners, searchTerm]);
 
