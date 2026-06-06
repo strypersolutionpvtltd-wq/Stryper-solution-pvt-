@@ -13,12 +13,12 @@ import CTASection        from '@/components/shared/CTASection';
 const Home = () => (
   <>
     <Hero />
-    <AboutPreview />
     <ServicesSection />
     <IndustriesSection />
+    <Testimonials />
+    <AboutPreview />
     <WhyChooseUs />
     <ProcessSection />
-    <Testimonials />
     <CTASection />
   </>
 );

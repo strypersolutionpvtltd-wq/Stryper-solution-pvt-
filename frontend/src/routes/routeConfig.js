@@ -4,27 +4,27 @@
  */
 export const NAV_ROUTES = [
   { label: 'Home',       path: '/',           exact: true  },
-  { label: 'About',      path: '/about',      exact: false },
   { label: 'Services',   path: '/services',   exact: false },
   { label: 'Industries', path: '/industries', exact: false },
   { label: 'Careers',    path: '/careers',    exact: false },
+  { label: 'About',      path: '/about',      exact: false },
   { label: 'Contact',    path: '/contact',    exact: false },
 ];
 
 // Navbar only — Services & Industries removed
 export const NAVBAR_ROUTES = [
   { label: 'Home',    path: '/',        exact: true  },
-  { label: 'About',   path: '/about',   exact: false },
   { label: 'Jobs',    path: '/jobs',    exact: false },
   { label: 'Careers', path: '/careers', exact: false },
+  { label: 'About',   path: '/about',   exact: false },
   { label: 'Contact', path: '/contact', exact: false },
 ];
 
 export const FOOTER_ROUTES = {
   company: [
+    { label: 'Careers',     path: '/careers'     },
     { label: 'About Us',    path: '/about'      },
     { label: 'Our Team',    path: '/about#team'  },
-    { label: 'Careers',     path: '/careers'     },
     { label: 'Contact',     path: '/contact'     },
     { label: 'Admin Panel', path: '/admin/dashboard' },
   ],

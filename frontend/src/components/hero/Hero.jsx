@@ -161,12 +161,12 @@ const Hero = () => {
               textShadow: "0 2px 12px rgba(0,0,0,0.4)",
             }}
           >
-            Driven by People &amp; Powered by Talent
+            Your Ambition. Our People. Zero Friction.
           </h1>
           <p className="text-white/80 text-lg leading-relaxed mb-8 max-w-xl mx-auto">
-            Hiring aur compliance ka tension humein dein. Industrial workers se
-            lekar warehouse teams tak, hum vetted staff provide karte hain jo
-            aapke business ko rukne nahi deta.
+            The strategic workforce partner for industrial and warehouse leaders.
+            We deliver vetted talent and manage complete compliance, ensuring
+            your operations run at peak efficiency.
           </p>
           <div className="flex flex-wrap items-center justify-center gap-4">
             <motion.div whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.97 }}>
@@ -223,7 +223,7 @@ const Hero = () => {
               className="text-sm font-semibold mb-1"
               style={{ color: "#8B3A8F" }}
             >
-              Looking for Workforce?
+              Partner with Us
             </p>
             <h3 className="text-xl font-display font-bold text-neutral-900 mb-4">
               I am a Company
