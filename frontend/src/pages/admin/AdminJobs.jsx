@@ -10,16 +10,30 @@ const fadeInUp = {
 };
 
 const AdminJobs = () => {
-  const [jobs, setJobs] = useState(ALL_JOBS);
+  const initialJobs = useMemo(() => {
+    const stryperJobs = [
+      { id: 'S01', title: 'HR Manager', company: 'Stryper Solution', location: 'Delhi', applicants: 12, salary: '₹8L - ₹12L', status: 'Active', isStryper: true },
+      { id: 'S02', title: 'Operations Executive', company: 'Stryper Solution', location: 'Gurgaon', applicants: 45, salary: '₹4L - ₹6L', status: 'Active', isStryper: true },
+    ];
+    return [...ALL_JOBS, ...stryperJobs];
+  }, []);
+
+  const [activeCategory, setActiveCategory] = useState('company'); // 'company' or 'stryper'
+  const [jobs, setJobs] = useState(initialJobs);
   const [searchTerm, setSearchText] = useState('');
   const [activeMenu, setActiveMenu] = useState(null);
 
   const filtered = useMemo(() => {
-    return jobs.filter(j => 
-      (j.title?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
-      (j.company?.toLowerCase() || '').includes(searchTerm.toLowerCase())
-    );
-  }, [jobs, searchTerm]);
+    return jobs.filter(j => {
+      const matchesSearch = (j.title?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+                            (j.company?.toLowerCase() || '').includes(searchTerm.toLowerCase());
+      
+      const isStryper = j.company === 'Stryper Solution' || j.isStryper;
+      const matchesCategory = activeCategory === 'stryper' ? isStryper : !isStryper;
+
+      return matchesSearch && matchesCategory;
+    });
+  }, [jobs, searchTerm, activeCategory]);
 
   const handleDelete = (id, title) => {
     setJobs(jobs.filter(j => j.id !== id));
@@ -47,7 +61,15 @@ const AdminJobs = () => {
           <h2 className="text-2xl font-bold text-white tracking-tight">Job Moderation</h2>
           <p className="text-neutral-500 text-sm mt-1">Review and manage {jobs.length} job postings.</p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3">
+          <button 
+            onClick={() => toast.success('Open Post Job Modal')}
+            className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold text-white transition-all shadow-lg hover:shadow-brand-purple-500/20"
+            style={{ background: '#8B3A8F' }}
+          >
+            <Briefcase size={16} />
+            Post New Job
+          </button>
           <div className="relative flex items-center">
             <Search className="absolute left-3 text-neutral-500" size={16} />
             <input 
@@ -55,14 +77,26 @@ const AdminJobs = () => {
               placeholder="Search jobs..." 
               value={searchTerm}
               onChange={(e) => setSearchText(e.target.value)}
-              className="bg-white/5 border border-white/5 rounded-xl pl-10 pr-4 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-brand-purple-600/50 w-full sm:w-64 text-white"
+              className="bg-white/5 border border-white/5 rounded-xl pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:ring-1 focus:ring-brand-purple-600/50 w-full sm:w-64 text-white"
             />
           </div>
-          <button className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/5 border border-white/5 text-sm font-medium hover:bg-white/10 transition-colors">
-            <Filter size={16} />
-            Filters
-          </button>
         </div>
+      </div>
+
+      {/* Category Tabs */}
+      <div className="flex items-center gap-1 bg-white/5 p-1 rounded-2xl w-fit border border-white/5">
+        <button
+          onClick={() => setActiveCategory('company')}
+          className={`px-6 py-2 rounded-xl text-xs font-bold transition-all ${activeCategory === 'company' ? 'bg-[#8B3A8F] text-white shadow-lg' : 'text-neutral-500 hover:text-white hover:bg-white/5'}`}
+        >
+          Company Jobs
+        </button>
+        <button
+          onClick={() => setActiveCategory('stryper')}
+          className={`px-6 py-2 rounded-xl text-xs font-bold transition-all ${activeCategory === 'stryper' ? 'bg-[#8B3A8F] text-white shadow-lg' : 'text-neutral-500 hover:text-white hover:bg-white/5'}`}
+        >
+          Stryper Internal Jobs
+        </button>
       </div>
 
       <motion.div 
