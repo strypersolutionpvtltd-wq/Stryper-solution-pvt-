@@ -181,12 +181,6 @@ const AdminLayout = () => {
         <header className="sticky top-0 z-40 bg-[#0a0a0a]/80 backdrop-blur-xl border-b border-white/5 px-6 h-20 flex items-center justify-between shrink-0">
           <div className="flex items-center gap-4">
             <button 
-              onClick={() => setCollapsed(!collapsed)} 
-              className="hidden lg:flex p-2 rounded-lg hover:bg-white/5 text-neutral-400 transition-colors"
-            >
-              <Menu size={20} />
-            </button>
-            <button 
               onClick={() => setMobileOpen(!mobileOpen)} 
               className="lg:hidden p-2 rounded-lg hover:bg-white/5 text-neutral-400"
             >
