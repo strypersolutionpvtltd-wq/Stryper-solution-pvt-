@@ -31,6 +31,15 @@ const userSchema = new mongoose.Schema(
         enum: ["local", "google"],
         default: "local",
         },
+
+        // Account status — managed by ADMIN only
+        // Active    → normal access
+        // Suspended → login blocked, user cannot access platform
+        accountStatus: {
+        type: String,
+        enum: ["Active", "Suspended"],
+        default: "Active",
+        },
     },
     {
         timestamps: true,

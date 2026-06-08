@@ -102,6 +102,14 @@ const companyProfileSchema = new mongoose.Schema(
       trim: true,
       default: "",
     },
+
+    // ── Admin Verification ────────────────────────────────
+    // Set to true by ADMIN after reviewing the company
+    // Frontend can show a "Verified Partner" badge when true
+    isVerifiedCompany: {
+      type: Boolean,
+      default: false,
+    },
   },
   {
     timestamps: true,

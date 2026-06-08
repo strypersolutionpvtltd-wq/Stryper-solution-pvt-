@@ -1,6 +1,7 @@
 const jwt = require("jsonwebtoken");
+const User = require("../models/user.model");
 
-const protect = (req, res, next) => {
+const protect = async (req, res, next) => {
   try {
     const authHeader = req.headers.authorization;
 
@@ -25,7 +26,25 @@ const protect = (req, res, next) => {
     // 3. Verify token
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-    // 4. Attach decoded payload to request
+    // 4. Check if user still exists and is not suspended
+    //    This catches cases where admin suspended the user after they logged in
+    const user = await User.findById(decoded.id).select("accountStatus role");
+
+    if (!user) {
+      return res.status(401).json({
+        success: false,
+        message: "User no longer exists. Please login again.",
+      });
+    }
+
+    if (user.accountStatus === "Suspended") {
+      return res.status(403).json({
+        success: false,
+        message: "Your account has been suspended. Please contact admin.",
+      });
+    }
+
+    // 5. Attach decoded payload to request
     req.user = decoded; // { id, role, iat, exp }
 
     next();
