@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, MoreVertical, FileText, Calendar, Building2, User, Trash2, CheckCircle2, XCircle, Briefcase, Phone, MapPin } from 'lucide-react';
+import { Search, Eye, FileText, Calendar, Building2, User, Trash2, Briefcase, MapPin, X, CheckCircle } from 'lucide-react';
 import { ALL_APPLICATIONS, STRYPER_APPLICATIONS } from '@/data/adminData';
 import toast from 'react-hot-toast';
 
@@ -9,22 +9,113 @@ const fadeInUp = {
   visible: { opacity: 1, y: 0 }
 };
 
+const STATUS_FLOW = ['Applied', 'Screening', 'Interview', 'Offer', 'Hired', 'Rejected'];
+
 const STATUS_STYLE = {
-  Shortlisted: 'bg-emerald-500/10 text-emerald-500',
-  Rejected:    'bg-red-500/10 text-red-500',
-  Interview:   'bg-purple-500/10 text-purple-400',
-  Hired:       'bg-teal-500/10 text-teal-400',
   Applied:     'bg-blue-500/10 text-blue-500',
+  Screening:   'bg-amber-500/10 text-amber-500',
+  Interview:   'bg-purple-500/10 text-purple-400',
+  Offer:       'bg-pink-500/10 text-pink-400',
+  Hired:       'bg-teal-500/10 text-teal-400',
+  Rejected:    'bg-red-500/10 text-red-500',
+};
+
+const AppViewModal = ({ isOpen, onClose, app, onStatusUpdate, activeTab }) => {
+  if (!isOpen || !app) return null;
+
+  return (
+    <AnimatePresence>
+      <div className="fixed inset-0 z-[110] flex items-center justify-center p-4">
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose} className="absolute inset-0 bg-black/80 backdrop-blur-sm" />
+        <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} className="relative bg-[#0f0f0f] border border-white/10 rounded-[2rem] w-full max-w-lg shadow-2xl overflow-hidden text-white flex flex-col max-h-[90vh]">
+          <div className="p-6 border-b border-white/5 flex items-center justify-between">
+            <h3 className="font-bold text-lg">Application Details</h3>
+            <button onClick={onClose} className="p-2 hover:bg-white/5 rounded-full text-neutral-400 hover:text-white transition-colors"><X size={20}/></button>
+          </div>
+          
+          <div className="p-8 space-y-6 overflow-y-auto">
+            {/* Candidate Summary */}
+            <div className="flex gap-4 items-center">
+              <div className="w-12 h-12 rounded-full bg-brand-purple-600/10 flex items-center justify-center text-brand-purple-500 font-bold text-xl border border-brand-purple-600/20">
+                {app.candidate.charAt(0)}
+              </div>
+              <div>
+                <h4 className="text-lg font-bold">{app.candidate}</h4>
+                <p className="text-sm text-neutral-400">{app.job}</p>
+              </div>
+            </div>
+
+            {/* Details Grid */}
+            <div className="grid grid-cols-2 gap-4">
+              <div className="p-4 bg-white/5 rounded-xl border border-white/5">
+                <p className="text-[10px] text-neutral-500 uppercase font-bold mb-1">Company</p>
+                <p className="text-sm font-medium">{activeTab === 'stryper' ? 'Stryper Solution' : app.company}</p>
+              </div>
+              <div className="p-4 bg-white/5 rounded-xl border border-white/5">
+                <p className="text-[10px] text-neutral-500 uppercase font-bold mb-1">Applied Date</p>
+                <p className="text-sm font-medium">{app.date}</p>
+              </div>
+              {app.experience && (
+                <div className="p-4 bg-white/5 rounded-xl border border-white/5">
+                  <p className="text-[10px] text-neutral-500 uppercase font-bold mb-1">Experience</p>
+                  <p className="text-sm font-medium">{app.experience}</p>
+                </div>
+              )}
+              {app.location && (
+                <div className="p-4 bg-white/5 rounded-xl border border-white/5">
+                  <p className="text-[10px] text-neutral-500 uppercase font-bold mb-1">Location</p>
+                  <p className="text-sm font-medium">{app.location}</p>
+                </div>
+              )}
+            </div>
+
+            {/* Documents */}
+            <div className="space-y-3">
+              <h5 className="text-xs font-bold text-neutral-500 uppercase tracking-widest">Documents</h5>
+              <button onClick={() => toast.success("Opening Resume...")} className="w-full p-4 rounded-xl border border-brand-purple-600/20 bg-brand-purple-600/5 hover:bg-brand-purple-600/10 flex items-center justify-between transition-colors">
+                <div className="flex items-center gap-3 text-brand-purple-400">
+                  <FileText size={18} />
+                  <span className="font-medium text-sm">Resume.pdf</span>
+                </div>
+                <Eye size={16} className="text-neutral-500" />
+              </button>
+            </div>
+
+            {/* Status Management */}
+            <div className="space-y-3">
+              <h5 className="text-xs font-bold text-neutral-500 uppercase tracking-widest">Status Flow</h5>
+              <div className="flex flex-wrap gap-2">
+                {STATUS_FLOW.map(s => (
+                  <button
+                    key={s}
+                    onClick={() => {
+                      onStatusUpdate(app.id, s);
+                    }}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all ${
+                      app.status === s ? 'bg-brand-purple-600 text-white' : 'bg-white/5 text-neutral-400 hover:bg-white/10 hover:text-white'
+                    }`}
+                  >
+                    {app.status === s && <CheckCircle size={12} />}
+                    {s}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        </motion.div>
+      </div>
+    </AnimatePresence>
+  );
 };
 
 const AdminApplications = () => {
-  const [activeTab, setActiveTab]   = useState('company'); // 'company' | 'stryper'
-  const [companyApps, setCompanyApps]   = useState(ALL_APPLICATIONS);
-  const [stryperApps, setStryperApps]   = useState(STRYPER_APPLICATIONS);
+  const [activeTab, setActiveTab]   = useState('company');
+  const [companyApps, setCompanyApps]   = useState(ALL_APPLICATIONS.map(a => ({...a, status: a.status === 'Shortlisted' ? 'Screening' : a.status})));
+  const [stryperApps, setStryperApps]   = useState(STRYPER_APPLICATIONS.map(a => ({...a, status: a.status === 'Shortlisted' ? 'Screening' : a.status})));
   const [searchTerm, setSearchText] = useState('');
-  const [activeMenu, setActiveMenu] = useState(null);
+  
+  const [viewAppId, setViewAppId] = useState(null);
 
-  // ── Derived data ─────────────────────────────────────────────────────────
   const apps    = activeTab === 'company' ? companyApps : stryperApps;
   const setApps = activeTab === 'company' ? setCompanyApps : setStryperApps;
 
@@ -37,18 +128,12 @@ const AdminApplications = () => {
     );
   }, [apps, searchTerm]);
 
-  // ── Handlers ─────────────────────────────────────────────────────────────
-  const handleDelete = (id, candidate) => {
-    setApps(prev => prev.filter(a => a.id !== id));
-    toast.success(`Application for ${candidate} removed.`);
-    setActiveMenu(null);
-  };
-
   const handleStatusUpdate = (id, newStatus) => {
     setApps(prev => prev.map(a => a.id === id ? { ...a, status: newStatus } : a));
-    toast.success(`Application marked as ${newStatus}`);
-    setActiveMenu(null);
+    toast.success(`Application updated to ${newStatus}`);
   };
+
+  const selectedApp = useMemo(() => apps.find(a => a.id === viewAppId), [apps, viewAppId]);
 
   return (
     <motion.div
@@ -56,8 +141,15 @@ const AdminApplications = () => {
       animate="visible"
       variants={{ visible: { transition: { staggerChildren: 0.05 } } }}
       className="space-y-6 pb-10 text-white"
-      onClick={() => setActiveMenu(null)}
     >
+      <AppViewModal 
+        isOpen={!!viewAppId} 
+        onClose={() => setViewAppId(null)} 
+        app={selectedApp} 
+        onStatusUpdate={handleStatusUpdate}
+        activeTab={activeTab}
+      />
+
       {/* ── Header ── */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
@@ -72,7 +164,7 @@ const AdminApplications = () => {
             type="text"
             placeholder="Search applications..."
             value={searchTerm}
-            onChange={e => { setSearchText(e.target.value); setActiveMenu(null); }}
+            onChange={e => setSearchText(e.target.value)}
             className="bg-white/5 border border-white/5 rounded-xl pl-10 pr-4 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-brand-purple-600/50 w-full sm:w-64 text-white"
           />
         </div>
@@ -115,7 +207,7 @@ const AdminApplications = () => {
                   <th className="px-6 py-4 text-xs font-bold text-neutral-400 uppercase tracking-widest">Company</th>
                   <th className="px-6 py-4 text-xs font-bold text-neutral-400 uppercase tracking-widest">Applied Date</th>
                   <th className="px-6 py-4 text-xs font-bold text-neutral-400 uppercase tracking-widest">Status</th>
-                  <th className="px-6 py-4 text-xs font-bold text-neutral-400 uppercase tracking-widest text-right">Actions</th>
+                  <th className="px-6 py-4 text-xs font-bold text-neutral-400 uppercase tracking-widest text-right">View</th>
                 </tr>
               ) : (
                 <tr>
@@ -124,7 +216,7 @@ const AdminApplications = () => {
                   <th className="px-6 py-4 text-xs font-bold text-neutral-400 uppercase tracking-widest">Experience</th>
                   <th className="px-6 py-4 text-xs font-bold text-neutral-400 uppercase tracking-widest">Applied Date</th>
                   <th className="px-6 py-4 text-xs font-bold text-neutral-400 uppercase tracking-widest">Status</th>
-                  <th className="px-6 py-4 text-xs font-bold text-neutral-400 uppercase tracking-widest text-right">Actions</th>
+                  <th className="px-6 py-4 text-xs font-bold text-neutral-400 uppercase tracking-widest text-right">View</th>
                 </tr>
               )}
             </thead>
@@ -143,7 +235,8 @@ const AdminApplications = () => {
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0, scale: 0.95 }}
                     key={app.id}
-                    className="group hover:bg-white/[0.02] transition-colors"
+                    className="group hover:bg-white/[0.02] transition-colors cursor-pointer"
+                    onClick={() => setViewAppId(app.id)}
                   >
                     {/* Candidate */}
                     <td className="px-6 py-4">
@@ -197,53 +290,14 @@ const AdminApplications = () => {
                       </span>
                     </td>
 
-                    {/* Actions */}
-                    <td className="px-6 py-4 text-right relative">
+                    {/* Actions -> View */}
+                    <td className="px-6 py-4 text-right">
                       <button
-                        onClick={e => { e.stopPropagation(); setActiveMenu(activeMenu === app.id ? null : app.id); }}
-                        className="p-2 rounded-lg hover:bg-white/5 text-neutral-400 hover:text-white transition-colors"
+                        onClick={e => { e.stopPropagation(); setViewAppId(app.id); }}
+                        className="p-2 rounded-lg bg-white/5 hover:bg-brand-purple-600/20 text-neutral-400 hover:text-brand-purple-400 transition-colors inline-flex items-center justify-center"
                       >
-                        <MoreVertical size={16} />
+                        <Eye size={16} />
                       </button>
-
-                      {activeMenu === app.id && (
-                        <div className="absolute right-0 top-full mt-2 w-52 bg-[#1a1a1a] border border-white/10 rounded-xl shadow-2xl z-50 py-1 overflow-hidden text-left">
-                          {app.status !== 'Shortlisted' && (
-                            <button
-                              onClick={() => handleStatusUpdate(app.id, 'Shortlisted')}
-                              className="w-full flex items-center gap-2 px-4 py-2.5 text-xs font-medium text-emerald-400 hover:bg-emerald-500/10 transition-colors"
-                            >
-                              <CheckCircle2 size={14} />
-                              Mark Shortlisted
-                            </button>
-                          )}
-                          {app.status !== 'Interview' && activeTab === 'stryper' && (
-                            <button
-                              onClick={() => handleStatusUpdate(app.id, 'Interview')}
-                              className="w-full flex items-center gap-2 px-4 py-2.5 text-xs font-medium text-purple-400 hover:bg-purple-500/10 transition-colors"
-                            >
-                              <Briefcase size={14} />
-                              Move to Interview
-                            </button>
-                          )}
-                          {app.status !== 'Rejected' && (
-                            <button
-                              onClick={() => handleStatusUpdate(app.id, 'Rejected')}
-                              className="w-full flex items-center gap-2 px-4 py-2.5 text-xs font-medium text-red-400 hover:bg-red-500/10 transition-colors"
-                            >
-                              <XCircle size={14} />
-                              Mark Rejected
-                            </button>
-                          )}
-                          <button
-                            onClick={() => handleDelete(app.id, app.candidate)}
-                            className="w-full flex items-center gap-2 px-4 py-2.5 text-xs font-medium text-neutral-400 hover:bg-white/5 transition-colors border-t border-white/5 mt-1"
-                          >
-                            <Trash2 size={14} />
-                            Delete Record
-                          </button>
-                        </div>
-                      )}
                     </td>
                   </motion.tr>
                 ))}

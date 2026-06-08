@@ -112,7 +112,7 @@ const UserProfileModal = ({ isOpen, onClose, user }) => {
                       <Activity size={16} className="text-brand-purple-500" />
                       <h4 className="text-[10px] font-bold text-neutral-400 uppercase tracking-[0.2em]">Recent Activity Logs</h4>
                     </div>
-                    <button className="text-[10px] font-bold text-brand-purple-400 hover:underline">View All Logs</button>
+                    <button onClick={handleFullDetail} className="text-[10px] font-bold text-brand-purple-400 hover:underline">View All Logs</button>
                   </div>
                   <div className="space-y-3">
                     {[
@@ -130,37 +130,6 @@ const UserProfileModal = ({ isOpen, onClose, user }) => {
                         <span className="text-[10px] text-neutral-500">{log.time}</span>
                       </div>
                     ))}
-                  </div>
-                </div>
-
-                {/* History Section */}
-                <div className="space-y-4 pt-4 border-t border-white/5">
-                  <div className="flex items-center gap-2">
-                    <History size={16} className="text-brand-purple-500" />
-                    <h4 className="text-[10px] font-bold text-neutral-400 uppercase tracking-[0.2em]">Transaction / Interaction History</h4>
-                  </div>
-                  <div className="rounded-2xl bg-white/5 border border-white/5 overflow-hidden">
-                    <table className="w-full text-left text-xs">
-                      <thead className="bg-white/5 text-neutral-500 font-bold uppercase">
-                        <tr>
-                          <th className="px-4 py-3">Event</th>
-                          <th className="px-4 py-3">Date</th>
-                          <th className="px-4 py-3 text-right">Reference</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-white/5 text-neutral-300">
-                        <tr>
-                          <td className="px-4 py-3">Premium Subscription</td>
-                          <td className="px-4 py-3 font-medium">Jun 12, 2026</td>
-                          <td className="px-4 py-3 text-right text-brand-purple-400 font-mono">#TXN-8942</td>
-                        </tr>
-                        <tr>
-                          <td className="px-4 py-3">Course Purchase</td>
-                          <td className="px-4 py-3 font-medium">May 28, 2026</td>
-                          <td className="px-4 py-3 text-right text-brand-purple-400 font-mono">#TXN-7731</td>
-                        </tr>
-                      </tbody>
-                    </table>
                   </div>
                 </div>
               </div>

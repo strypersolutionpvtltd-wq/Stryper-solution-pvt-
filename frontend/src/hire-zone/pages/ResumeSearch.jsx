@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useSearchParams } from 'react-router-dom';
 import SectionHeader from '@/hire-zone/components/shared/SectionHeader';
 import { MOCK_APPLICANTS } from '@/hire-zone/data/mockApplicants';

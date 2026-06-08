@@ -55,13 +55,50 @@ export const ALL_COMPANIES = [
   { id: 'C05', name: 'Netflix', industry: 'Entertainment', location: 'Mumbai', employees: '1000+', jobs: 4, status: 'Verified' },
 ];
 
-export const ALL_JOBS = [
-  { id: 'J01', title: 'Senior React Developer', company: 'Google', location: 'Remote', applicants: 45, salary: '₹25L - ₹40L', status: 'Active' },
-  { id: 'J02', title: 'UI/UX Designer', company: 'Zomato', location: 'Gurgaon', applicants: 120, salary: '₹15L - ₹25L', status: 'Active' },
-  { id: 'J03', title: 'Backend Engineer', company: 'Microsoft', location: 'Bangalore', applicants: 80, salary: '₹20L - ₹35L', status: 'Active' },
-  { id: 'J04', title: 'Data Scientist', company: 'Amazon', location: 'Hyderabad', applicants: 210, salary: '₹30L - ₹50L', status: 'Pending' },
-  { id: 'J05', title: 'Product Manager', company: 'Swiggy', location: 'Bangalore', applicants: 55, salary: '₹25L - ₹45L', status: 'Active' },
+export const PUBLIC_JOBS = [
+  {
+    id: 'J1', featured: true,
+    title: 'Senior React Developer', company: 'Google', location: 'Remote', locationType: 'Remote',
+    experience: '3-6 Years', salary: '₹25 - 40 LPA', type: 'Full-time', industry: 'IT / Software',
+    skills: ['React', 'TypeScript', 'Node.js', 'AWS'], postedDays: 1, applicants: 45, status: 'Active',
+    desc: 'Build scalable web applications using React and modern frontend tooling. Work with cross-functional teams.',
+    logo: null,
+  },
+  {
+    id: 'J2', featured: true,
+    title: 'UI/UX Designer', company: 'Zomato', location: 'Gurgaon', locationType: 'Remote',
+    experience: '2-4 Years', salary: '₹15 - 25 LPA', type: 'Full-time', industry: 'Design',
+    skills: ['Figma', 'Prototyping', 'User Research', 'Tailwind'], postedDays: 2, applicants: 120, status: 'Active',
+    desc: 'Create beautiful, user-centric designs for web and mobile products. Own the design system.',
+    logo: null,
+  },
+  {
+    id: 'J3', featured: false,
+    title: 'Backend Engineer', company: 'Microsoft', location: 'Bangalore', locationType: 'Onsite',
+    experience: '4-8 Years', salary: '₹20 - 35 LPA', type: 'Full-time', industry: 'IT / Software',
+    skills: ['Docker', 'Kubernetes', 'CI/CD', 'Terraform'], postedDays: 3, applicants: 80, status: 'Active',
+    desc: 'Manage cloud infrastructure, automate deployments, and ensure system reliability at scale.',
+    logo: null,
+  },
+  {
+    id: 'J4', featured: false,
+    title: 'Data Scientist', company: 'Amazon', location: 'Hyderabad', locationType: 'Hybrid',
+    experience: '3-5 Years', salary: '₹30 - 50 LPA', type: 'Full-time', industry: 'Data Science',
+    skills: ['Python', 'Machine Learning', 'SQL', 'Analytics'], postedDays: 5, applicants: 210, status: 'Pending',
+    desc: 'Lead data analysis, build predictive models, and drive measurable business growth.',
+    logo: null,
+  },
+  {
+    id: 'J5', featured: false,
+    title: 'Product Manager', company: 'Swiggy', location: 'Bangalore', locationType: 'Remote',
+    experience: '2-5 Years', salary: '₹25 - 45 LPA', type: 'Full-time', industry: 'Product Management',
+    skills: ['Agile', 'Jira', 'Product Strategy', 'Roadmapping'], postedDays: 7, applicants: 55, status: 'Active',
+    desc: 'Design and build robust product roadmaps. Work on high-traffic consumer features.',
+    logo: null,
+  },
 ];
+
+export const ALL_JOBS = PUBLIC_JOBS;
 
 export const ALL_APPLICATIONS = [
   { id: 'A01', candidate: 'Amit Kumar', job: 'Senior React Developer', company: 'Google', date: 'May 22, 2026', status: 'Shortlisted' },
@@ -100,9 +137,9 @@ export const REVENUE_DATA = [
 ];
 
 export const ADMIN_NOTIFICATIONS = [
-  { id: 1, title: 'New Company Request', message: 'Tesla India has requested verification.', time: '2 mins ago', type: 'warning', read: false },
+  { id: 1, title: 'New Company Request', message: 'Tesla India has requested verification.', time: '2 mins ago', type: 'warning', read: false, link: '/admin/users/C04' },
   { id: 2, title: 'System Update', message: 'Platform maintenance scheduled for Sunday.', time: '1 hour ago', type: 'info', read: false },
-  { id: 3, title: 'Job Reported', message: 'Job #J04 reported for suspicious content.', time: '3 hours ago', type: 'error', read: true },
+  { id: 3, title: 'Job Reported', message: 'Job #J04 reported for suspicious content.', time: '3 hours ago', type: 'error', read: true, link: '/admin/jobs' },
   { id: 4, title: 'High Traffic Alert', message: 'Candidate registration increased by 40%.', time: '5 hours ago', type: 'success', read: true },
 ];
 

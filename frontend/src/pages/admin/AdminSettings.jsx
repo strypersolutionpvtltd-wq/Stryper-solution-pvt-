@@ -125,20 +125,6 @@ const AdminSettings = () => {
           <div className="space-y-4">
             <div className="flex items-center justify-between p-4 bg-white/[0.02] border border-white/5 rounded-xl">
               <div>
-                <p className="text-sm font-bold text-white">Maintenance Mode</p>
-                <p className="text-xs text-neutral-500 mt-0.5">Disable public access while performing updates.</p>
-              </div>
-              <Toggle 
-                enabled={prefs.maintenance} 
-                onToggle={() => {
-                  const val = !prefs.maintenance;
-                  setPrefs({...prefs, maintenance: val});
-                  toast(val ? 'Maintenance mode enabled.' : 'System is live.', { icon: val ? '🚧' : '✅' });
-                }} 
-              />
-            </div>
-            <div className="flex items-center justify-between p-4 bg-white/[0.02] border border-white/5 rounded-xl">
-              <div>
                 <p className="text-sm font-bold text-white">Public Registration</p>
                 <p className="text-xs text-neutral-500 mt-0.5">Allow new candidates and companies to sign up.</p>
               </div>

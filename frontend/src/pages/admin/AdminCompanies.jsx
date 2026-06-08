@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, Filter, MoreVertical, Building2, MapPin, Briefcase, ShieldCheck, Trash2, Edit2, ExternalLink } from 'lucide-react';
+import { Search, Filter, MoreVertical, Building2, MapPin, Briefcase, ShieldCheck, Trash2, Edit2, ExternalLink, Eye } from 'lucide-react';
 import { ALL_COMPANIES } from '@/data/adminData';
 import toast from 'react-hot-toast';
 
@@ -10,16 +11,19 @@ const fadeInUp = {
 };
 
 const AdminCompanies = () => {
+  const navigate = useNavigate();
   const [companies, setCompanies] = useState(ALL_COMPANIES);
   const [searchTerm, setSearchText] = useState('');
   const [activeMenu, setActiveMenu] = useState(null);
+  const [filterPending, setFilterPending] = useState(false);
 
   const filtered = useMemo(() => {
     return companies.filter(c => 
-      (c.name?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
-      (c.industry?.toLowerCase() || '').includes(searchTerm.toLowerCase())
+      ((c.name?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+      (c.industry?.toLowerCase() || '').includes(searchTerm.toLowerCase())) &&
+      (!filterPending || c.status === 'Pending')
     );
-  }, [companies, searchTerm]);
+  }, [companies, searchTerm, filterPending]);
 
   const handleDelete = (id, name) => {
     setCompanies(companies.filter(c => c.id !== id));
@@ -57,8 +61,11 @@ const AdminCompanies = () => {
               className="bg-white/5 border border-white/5 rounded-xl pl-10 pr-4 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-brand-purple-600/50 w-full sm:w-64 text-white"
             />
           </div>
-          <button className="flex items-center gap-2 px-4 py-2 rounded-xl bg-brand-purple-600 text-white text-sm font-semibold hover:bg-brand-purple-700 transition-all whitespace-nowrap">
-            Verify New Request
+          <button 
+            onClick={() => setFilterPending(!filterPending)}
+            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-white text-sm font-semibold transition-all whitespace-nowrap ${filterPending ? 'bg-orange-600 hover:bg-orange-700' : 'bg-brand-purple-600 hover:bg-brand-purple-700'}`}
+          >
+            {filterPending ? 'Show All' : 'Verify New Request'}
           </button>
         </div>
       </div>
@@ -123,7 +130,7 @@ const AdminCompanies = () => {
                     <td className="px-6 py-4 text-right relative">
                       <div className="flex items-center justify-end gap-2">
                         <button 
-                          onClick={(e) => { e.stopPropagation(); toast.success(`Viewing ${company.name} profile...`); }}
+                          onClick={(e) => { e.stopPropagation(); navigate(`/admin/users/${company.id}`); }}
                           className="p-2 rounded-lg hover:bg-white/5 text-neutral-400 hover:text-white transition-colors"
                         >
                           <ExternalLink size={16} />
@@ -139,7 +146,14 @@ const AdminCompanies = () => {
                           {activeMenu === company.id && (
                             <div className="absolute right-0 top-full mt-2 w-48 bg-[#1a1a1a] border border-white/10 rounded-xl shadow-2xl z-50 py-1 overflow-hidden text-left">
                               <button 
-                                onClick={() => toast.success(`Editing ${company.name}...`)}
+                                onClick={() => navigate(`/admin/users/${company.id}`)}
+                                className="w-full flex items-center gap-2 px-4 py-2.5 text-xs font-medium text-brand-purple-400 hover:bg-white/5 transition-colors"
+                              >
+                                <Eye size={14} />
+                                View Profile
+                              </button>
+                              <button 
+                                onClick={() => navigate(`/admin/users/${company.id}`)}
                                 className="w-full flex items-center gap-2 px-4 py-2.5 text-xs font-medium text-neutral-300 hover:bg-white/5 transition-colors"
                               >
                                 <Edit2 size={14} />

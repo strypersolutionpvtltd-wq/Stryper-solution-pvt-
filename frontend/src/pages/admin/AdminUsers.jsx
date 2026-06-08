@@ -44,15 +44,7 @@ const AdminUsers = () => {
   };
 
   const handleEmail = (email) => {
-    toast.promise(
-      new Promise((resolve) => setTimeout(resolve, 1000)),
-      {
-        loading: 'Preparing email composer...',
-        success: `Email draft sent to ${email}`,
-        error: 'Failed to open composer',
-      }
-    );
-    setActiveMenu(null);
+    window.location.href = `mailto:${email}`;
   };
 
   const handleViewProfile = (user) => {
@@ -174,7 +166,7 @@ const AdminUsers = () => {
                           </button>
                           
                           {activeMenu === user.id && (
-                            <div className="absolute right-0 top-full mt-2 w-48 bg-[#1a1a1a] border border-white/10 rounded-xl shadow-2xl z-50 py-1 overflow-hidden">
+                            <div className="absolute right-0 top-full mt-2 w-48 bg-[#1a1a1a] border border-white/10 rounded-xl shadow-2xl z-50 py-1 overflow-hidden text-left">
                               <button 
                                 onClick={() => handleStatusToggle(user.id, user.status)}
                                 className="w-full flex items-center gap-2 px-4 py-2.5 text-xs font-medium text-neutral-300 hover:bg-white/5 transition-colors"
