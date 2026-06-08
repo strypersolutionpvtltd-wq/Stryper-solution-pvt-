@@ -71,6 +71,15 @@ export const ALL_APPLICATIONS = [
   { id: 'A05', candidate: 'Vikas Khanna', job: 'Product Manager', company: 'Swiggy', date: 'May 18, 2026', status: 'Shortlisted' },
 ];
 
+// Applications for Stryper's own internal job postings (from Careers page)
+export const STRYPER_APPLICATIONS = [
+  { id: 'SA01', candidate: 'Arjun Mehta', job: 'HR Manager', date: 'Jun 5, 2026', status: 'Applied', experience: '5 years', location: 'Delhi', phone: '+91 98001 11111', resume: null },
+  { id: 'SA02', candidate: 'Divya Sharma', job: 'Operations Executive', date: 'Jun 4, 2026', status: 'Shortlisted', experience: '3 years', location: 'Gurgaon', phone: '+91 98001 22222', resume: null },
+  { id: 'SA03', candidate: 'Karan Singh', job: 'HR Manager', date: 'Jun 3, 2026', status: 'Interview', experience: '7 years', location: 'Noida', phone: '+91 98001 33333', resume: null },
+  { id: 'SA04', candidate: 'Neha Joshi', job: 'Operations Executive', date: 'Jun 2, 2026', status: 'Rejected', experience: '2 years', location: 'Delhi', phone: '+91 98001 44444', resume: null },
+  { id: 'SA05', candidate: 'Rohit Gupta', job: 'HR Manager', date: 'Jun 1, 2026', status: 'Applied', experience: '4 years', location: 'Gurugram', phone: '+91 98001 55555', resume: null },
+];
+
 export const ANALYTICS_PERFORMANCE = [
   { day: 'Mon', apps: 120, hires: 12 },
   { day: 'Tue', apps: 150, hires: 18 },

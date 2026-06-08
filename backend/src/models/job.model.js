@@ -21,10 +21,22 @@ const jobSchema = new mongoose.Schema(
     // ── Ownership ─────────────────────────────────────────
     // Which company posted this job
     // Relation: Job.companyId → CompanyProfile._id
+    // NOTE: companyId is optional for Stryper internal jobs (isStryperJob: true)
+    // External company jobs must always have companyId
     companyId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "CompanyProfile",
-      required: true,
+      default: null,
+    },
+
+    // ── Stryper Internal Job Flag ─────────────────────────
+    // true  → posted by Stryper Solution itself (shown on Careers page)
+    // false → posted by an external company (shown on public Jobs page)
+    // This is the only field that separates the two job types
+    // Admin sets this to true when posting Stryper's own vacancies
+    isStryperJob: {
+      type: Boolean,
+      default: false,
     },
 
     // ── Basic Info ────────────────────────────────────────
@@ -173,6 +185,9 @@ jobSchema.index({ companyId: 1, status: 1 });
 
 // Public search: filter by location and employment type
 jobSchema.index({ location: 1, employmentType: 1 });
+
+// Stryper internal jobs — Careers page query
+jobSchema.index({ isStryperJob: 1, status: 1 });
 
 // ─────────────────────────────────────────────────────────────────────────────
 // PRE-SAVE HOOK — Auto-generate slug from title

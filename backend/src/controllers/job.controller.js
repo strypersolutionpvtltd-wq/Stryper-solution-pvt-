@@ -12,20 +12,13 @@ const getCompanyProfile = async (userId) => {
 // ─────────────────────────────────────────────────────────────────────────────
 // @desc    Create a new job posting
 // @route   POST /api/v1/jobs
-// @access  Private — COMPANY only
+// @access  Private — COMPANY or ADMIN
+//
+// COMPANY → external job (isStryperJob: false, companyId from their profile)
+// ADMIN   → can post Stryper internal job (isStryperJob: true, no companyId needed)
 // ─────────────────────────────────────────────────────────────────────────────
 const createJob = async (req, res) => {
   try {
-    // 1. Get the logged-in company's profile
-    //    SECURITY: companyId always comes from server — never trust frontend
-    const company = await getCompanyProfile(req.user.id);
-    if (!company) {
-      return res.status(404).json({
-        success: false,
-        message: "Company profile not found. Please create your company profile first.",
-      });
-    }
-
     const {
       title,
       department,
@@ -44,9 +37,10 @@ const createJob = async (req, res) => {
       vacancies,
       applicationDeadline,
       status,
+      isStryperJob,
     } = req.body;
 
-    // 2. Validate required fields
+    // 1. Validate required fields
     if (!title || !jobDescription || !employmentType || !experienceLevel) {
       return res.status(400).json({
         success: false,
@@ -54,9 +48,27 @@ const createJob = async (req, res) => {
       });
     }
 
-    // 3. Create the job — companyId locked to authenticated company
+    let companyId = null;
+    const isInternal = req.user.role === "ADMIN" && isStryperJob === true;
+
+    // 2. Determine companyId based on role
+    //    ADMIN posting Stryper internal job → no companyId needed
+    //    COMPANY posting external job → companyId from their profile (server-side)
+    if (!isInternal) {
+      const company = await getCompanyProfile(req.user.id);
+      if (!company) {
+        return res.status(404).json({
+          success: false,
+          message: "Company profile not found. Please create your company profile first.",
+        });
+      }
+      companyId = company._id;
+    }
+
+    // 3. Create the job
     const job = await Job.create({
-      companyId: company._id,
+      companyId,
+      isStryperJob: isInternal,
       title,
       department:       department       || "",
       customDepartment: customDepartment || "",
@@ -66,14 +78,13 @@ const createJob = async (req, res) => {
       perks:            Array.isArray(perks)            ? perks            : [],
       employmentType,
       experienceLevel,
-      salaryMin:          salaryMin          || null,
-      salaryMax:          salaryMax          || null,
-      location:           location           || "",
-      isRemote:           isRemote           || false,
-      skillsRequired:     Array.isArray(skillsRequired) ? skillsRequired : [],
-      vacancies:          vacancies          || 1,
+      salaryMin:           salaryMin           || null,
+      salaryMax:           salaryMax           || null,
+      location:            location            || "",
+      isRemote:            isRemote            || false,
+      skillsRequired:      Array.isArray(skillsRequired) ? skillsRequired : [],
+      vacancies:           vacancies           || 1,
       applicationDeadline: applicationDeadline || null,
-      // Default is "Draft" — company must explicitly publish as "Active"
       status: status || "Draft",
     });
 
@@ -115,8 +126,8 @@ const getAllJobs = async (req, res) => {
       experienceLevel,
     } = req.query;
 
-    // 1. Build filter — always restrict to Active jobs for public route
-    const filter = { status: "Active" };
+    // 1. Build filter — restrict to Active external (non-Stryper) jobs for public route
+    const filter = { status: "Active", isStryperJob: false };
 
     // Keyword: partial case-insensitive match on title, location, skills
     if (keyword && keyword.trim()) {
@@ -464,6 +475,79 @@ const getMyCompanyJobs = async (req, res) => {
   }
 };
 
+// ─────────────────────────────────────────────────────────────────────────────
+// @desc    Get all Stryper internal jobs (for Careers page)
+// @route   GET /api/v1/jobs/stryper
+// @access  Public
+//
+// Returns only Stryper's own job postings with status = Active
+// Used exclusively by the public Careers page — never mixes with company jobs
+// ─────────────────────────────────────────────────────────────────────────────
+const getStryperJobs = async (req, res) => {
+  try {
+    const { page = 1, limit = 10, keyword, location, employmentType, experienceLevel } = req.query;
+
+    // Always filter to Stryper internal Active jobs only
+    const filter = { isStryperJob: true, status: "Active" };
+
+    if (keyword && keyword.trim()) {
+      const regex = new RegExp(keyword.trim(), "i");
+      filter.$or = [
+        { title:          regex },
+        { location:       regex },
+        { skillsRequired: regex },
+        { department:     regex },
+      ];
+    }
+
+    if (location && location.trim()) {
+      filter.location = new RegExp(location.trim(), "i");
+    }
+
+    if (employmentType && employmentType.trim()) {
+      filter.employmentType = employmentType.trim();
+    }
+
+    if (experienceLevel && experienceLevel.trim()) {
+      filter.experienceLevel = experienceLevel.trim();
+    }
+
+    const pageNum  = Math.max(1, parseInt(page));
+    const limitNum = Math.min(50, Math.max(1, parseInt(limit)));
+    const skip     = (pageNum - 1) * limitNum;
+
+    const [jobs, totalJobs] = await Promise.all([
+      Job.find(filter)
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limitNum)
+        .lean(),
+      Job.countDocuments(filter),
+    ]);
+
+    const totalPages = Math.ceil(totalJobs / limitNum);
+
+    return res.status(200).json({
+      success: true,
+      pagination: {
+        totalJobs,
+        totalPages,
+        currentPage: pageNum,
+        limit:       limitNum,
+        hasNextPage: pageNum < totalPages,
+        hasPrevPage: pageNum > 1,
+      },
+      jobs,
+    });
+  } catch (error) {
+    console.error("Get Stryper Jobs Error:", error.message);
+    return res.status(500).json({
+      success: false,
+      message: "Server error while fetching Stryper jobs.",
+    });
+  }
+};
+
 module.exports = {
   createJob,
   getAllJobs,
@@ -472,4 +556,5 @@ module.exports = {
   deleteJob,
   updateJobStatus,
   getMyCompanyJobs,
+  getStryperJobs,
 };

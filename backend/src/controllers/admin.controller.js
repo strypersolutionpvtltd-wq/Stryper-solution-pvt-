@@ -382,6 +382,11 @@ const getAllJobs = async (req, res) => {
       filter.status = status;
     }
 
+    // Admin can also filter by job type
+    const { isStryperJob } = req.query;
+    if (isStryperJob === "true")  filter.isStryperJob = true;
+    if (isStryperJob === "false") filter.isStryperJob = false;
+
     const pageNum  = Math.max(1, parseInt(page));
     const limitNum = Math.min(100, Math.max(1, parseInt(limit)));
     const skip     = (pageNum - 1) * limitNum;
