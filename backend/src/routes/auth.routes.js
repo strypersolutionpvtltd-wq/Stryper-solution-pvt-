@@ -1,5 +1,5 @@
 const express = require("express");
-const { registerUser, loginUser, getMe } = require("../controllers/auth.controller");
+const { registerUser, loginUser, getMe, changePassword, logoutUser, deleteAccount } = require("../controllers/auth.controller");
 const { protect, authorizeRoles } = require("../middleware/auth.middleware");
 
 const router = express.Router();
@@ -12,6 +12,17 @@ router.post("/login", loginUser);
 
 // GET /api/v1/auth/me  (protected)
 router.get("/me", protect, getMe);
+
+// PUT /api/v1/auth/change-password  (protected)
+router.put("/change-password", protect, changePassword);
+
+// POST /api/v1/auth/logout  (protected)
+// Frontend must delete the token after receiving the success response
+router.post("/logout", protect, logoutUser);
+
+// DELETE /api/v1/auth/delete-account  (protected)
+// Requires current password in request body for confirmation
+router.delete("/delete-account", protect, deleteAccount);
 
 // --- Role-based test routes ---
 
