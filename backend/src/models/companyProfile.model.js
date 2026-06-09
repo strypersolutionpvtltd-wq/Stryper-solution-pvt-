@@ -110,6 +110,43 @@ const companyProfileSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+
+    // ── Stryper Partner ───────────────────────────────────
+    // true  → this company is an official Stryper recruitment partner
+    // false → regular company (default)
+    // Only ADMIN can set this to true
+    isStryperPartner: {
+      type: Boolean,
+      default: false,
+    },
+
+    // Date when company became a Stryper partner
+    partnerSince: {
+      type: Date,
+      default: null,
+    },
+
+    // e.g. "Tech & IT", "Executive Search", "Healthcare", "Marketing & Sales"
+    partnerSpecialty: {
+      type: String,
+      trim: true,
+      default: "",
+    },
+
+    // Star rating out of 5 — updated by admin
+    partnerRating: {
+      type: Number,
+      default: 0,
+      min: 0,
+      max: 5,
+    },
+
+    // Number of active placements/hires this partner is managing
+    activeHires: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
   },
   {
     timestamps: true,

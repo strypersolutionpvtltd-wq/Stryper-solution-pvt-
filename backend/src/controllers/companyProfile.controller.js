@@ -44,4 +44,28 @@ const updateCompanyProfile = async (req, res) => {
   }
 };
 
-module.exports = { createCompanyProfile, getMyCompanyProfile, updateCompanyProfile };
+// @desc    Get all Stryper Partners (public — for website/partner page)
+// @route   GET /api/v1/company/partners
+// @access  Public
+const getStryperPartners = async (req, res) => {
+  try {
+    const partners = await CompanyProfile.find({ isStryperPartner: true })
+      .select("companyName industry companySize companyLogo location website partnerSpecialty partnerRating activeHires partnerSince isVerifiedCompany")
+      .sort({ partnerRating: -1 }) // highest rated first
+      .lean();
+
+    return res.status(200).json({
+      success: true,
+      count: partners.length,
+      partners,
+    });
+  } catch (error) {
+    console.error("Get Stryper Partners Error:", error.message);
+    return res.status(500).json({
+      success: false,
+      message: "Server error while fetching Stryper partners.",
+    });
+  }
+};
+
+module.exports = { createCompanyProfile, getMyCompanyProfile, updateCompanyProfile, getStryperPartners };

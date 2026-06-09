@@ -11,6 +11,8 @@ const {
   updateJobStatus,
   deleteJob,
   getAllApplications,
+  markAsPartner,
+  addDirectPartner,
 } = require("../controllers/admin.controller");
 
 const router = express.Router();
@@ -27,8 +29,14 @@ router.patch("/users/:id/status",    ...adminOnly, updateUserStatus);
 router.delete("/users/:id",          ...adminOnly, deleteUser);
 
 // ── Companies ─────────────────────────────────────────────────────────────────
-router.get("/companies",             ...adminOnly, getAllCompanies);
-router.patch("/companies/:id/verify",...adminOnly, verifyCompany);
+router.get("/companies",              ...adminOnly, getAllCompanies);
+router.patch("/companies/:id/verify", ...adminOnly, verifyCompany);
+
+// ── Stryper Partners ──────────────────────────────────────────────────────────
+// Mark / unmark existing company as partner
+router.patch("/companies/:id/partner", ...adminOnly, markAsPartner);
+// Add a new partner directly from admin panel (no registration required)
+router.post("/partners/add",           ...adminOnly, addDirectPartner);
 
 // ── Jobs ──────────────────────────────────────────────────────────────────────
 router.get("/jobs",                  ...adminOnly, getAllJobs);
