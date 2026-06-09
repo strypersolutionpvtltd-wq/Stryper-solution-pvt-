@@ -67,18 +67,88 @@ const AppViewModal = ({ isOpen, onClose, app, onStatusUpdate, activeTab }) => {
                   <p className="text-sm font-medium">{app.location}</p>
                 </div>
               )}
+              {app.expectedSalary && (
+                <div className="p-4 bg-white/5 rounded-xl border border-white/5">
+                  <p className="text-[10px] text-neutral-500 uppercase font-bold mb-1">Expected Salary</p>
+                  <p className="text-sm font-medium">{app.expectedSalary}</p>
+                </div>
+              )}
+              {app.noticePeriod && (
+                <div className="p-4 bg-white/5 rounded-xl border border-white/5">
+                  <p className="text-[10px] text-neutral-500 uppercase font-bold mb-1">Notice Period</p>
+                  <p className="text-sm font-medium">{app.noticePeriod}</p>
+                </div>
+              )}
             </div>
+
+            {/* Skills Section */}
+            {app.skills && app.skills.length > 0 && (
+              <div className="space-y-3">
+                <h5 className="text-xs font-bold text-neutral-500 uppercase tracking-widest">Skills</h5>
+                <div className="flex flex-wrap gap-2">
+                  {app.skills.map((skill, i) => (
+                    <span key={i} className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-white/10 text-neutral-300 border border-white/10">
+                      {skill}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Cover Letter Section */}
+            {app.coverLetter && (
+              <div className="space-y-3">
+                <h5 className="text-xs font-bold text-neutral-500 uppercase tracking-widest">Cover Letter</h5>
+                <p className="text-sm text-neutral-400 leading-relaxed bg-white/5 p-4 rounded-xl border border-white/5">
+                  {app.coverLetter}
+                </p>
+              </div>
+            )}
 
             {/* Documents */}
             <div className="space-y-3">
               <h5 className="text-xs font-bold text-neutral-500 uppercase tracking-widest">Documents</h5>
-              <button onClick={() => toast.success("Opening Resume...")} className="w-full p-4 rounded-xl border border-brand-purple-600/20 bg-brand-purple-600/5 hover:bg-brand-purple-600/10 flex items-center justify-between transition-colors">
-                <div className="flex items-center gap-3 text-brand-purple-400">
-                  <FileText size={18} />
-                  <span className="font-medium text-sm">Resume.pdf</span>
+              {app.resumeUrl ? (
+                <div className="space-y-2">
+                  <button 
+                    onClick={() => {
+                      toast.success("Opening Resume...");
+                      window.open(app.resumeUrl, '_blank');
+                    }} 
+                    className="w-full p-4 rounded-xl border border-brand-purple-600/20 bg-brand-purple-600/5 hover:bg-brand-purple-600/10 flex items-center justify-between transition-colors"
+                  >
+                    <div className="flex items-center gap-3 text-brand-purple-400">
+                      <FileText size={18} />
+                      <div className="text-left">
+                        <span className="font-medium text-sm block">Resume</span>
+                        <span className="text-[10px] text-neutral-400">Uploaded by candidate</span>
+                      </div>
+                    </div>
+                    <Eye size={16} className="text-neutral-500" />
+                  </button>
+                  <button
+                    onClick={() => {
+                      toast.success("Downloading resume...");
+                      const link = document.createElement('a');
+                      link.href = app.resumeUrl;
+                      link.download = `${app.candidate}_Resume.pdf`;
+                      link.click();
+                    }}
+                    className="w-full py-2.5 px-4 rounded-lg text-xs font-semibold border border-brand-purple-600/30 text-brand-purple-400 hover:bg-brand-purple-600/5 transition-colors flex items-center justify-center gap-2"
+                  >
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                      <polyline points="7 10 12 15 17 10"/>
+                      <line x1="12" y1="15" x2="12" y2="3"/>
+                    </svg>
+                    Download Resume
+                  </button>
                 </div>
-                <Eye size={16} className="text-neutral-500" />
-              </button>
+              ) : (
+                <div className="w-full p-4 rounded-xl border border-neutral-500/20 bg-neutral-500/5 text-center">
+                  <p className="text-xs text-neutral-400">No resume uploaded</p>
+                </div>
+              )}
             </div>
 
             {/* Status Management */}

@@ -246,7 +246,7 @@ const AdminJobs = () => {
             style={{ background: '#8B3A8F' }}
           >
             <Briefcase size={16} />
-            Post New Job
+            Post Stryper Job
           </button>
           <div className="relative flex items-center">
             <Search className="absolute left-3 text-neutral-500" size={16} />

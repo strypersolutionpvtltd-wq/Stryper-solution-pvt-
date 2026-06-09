@@ -1,23 +1,25 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 import SectionHeader from '@/hire-zone/components/shared/SectionHeader';
 
 const MOCK_NOTIFICATIONS = [
-  { id: 1,  type: 'application', title: 'New Application Received',       body: 'Priya Sharma applied for Frontend Developer.',       time: '2 min ago',   read: false, color: '#8B3A8F', emoji: '📩' },
-  { id: 2,  type: 'interview',   title: 'Interview Reminder',             body: 'Interview with Rahul Verma at 2:00 PM today.',       time: '15 min ago',  read: false, color: '#2563eb', emoji: '📅' },
-  { id: 3,  type: 'application', title: '5 New Applications',             body: 'Backend Developer role received 5 new applicants.',  time: '1 hr ago',    read: false, color: '#8B3A8F', emoji: '📩' },
-  { id: 4,  type: 'offer',       title: 'Offer Accepted',                 body: 'Sneha Patel accepted the offer for UI/UX Designer.', time: '3 hrs ago',   read: false, color: '#16a34a', emoji: '🎉' },
-  { id: 5,  type: 'interview',   title: 'Interview Completed',            body: 'Anjali Singh\'s interview has been marked done.',    time: '5 hrs ago',   read: true,  color: '#2563eb', emoji: '✅' },
-  { id: 6,  type: 'system',      title: 'Job Posting Expiring Soon',      body: 'DevOps Engineer posting expires in 3 days.',         time: '1 day ago',   read: true,  color: '#d97706', emoji: '⚠️' },
-  { id: 7,  type: 'application', title: 'New Application Received',       body: 'Amit Joshi applied for Data Analyst.',               time: '1 day ago',   read: true,  color: '#8B3A8F', emoji: '📩' },
-  { id: 8,  type: 'system',      title: 'Profile Incomplete',             body: 'Complete your company profile to attract more candidates.', time: '2 days ago', read: true, color: '#ea580c', emoji: '🔔' },
-  { id: 9,  type: 'offer',       title: 'Offer Declined',                 body: 'Karan Mehta declined the offer for Backend Developer.', time: '2 days ago', read: true, color: '#ea580c', emoji: '❌' },
-  { id: 10, type: 'system',      title: 'Monthly Report Ready',           body: 'Your January hiring report is now available.',       time: '3 days ago',  read: true,  color: '#0d9488', emoji: '📊' },
+  { id: 1,  type: 'application', title: 'New Application Received',       body: 'Priya Sharma applied for Frontend Developer.',       time: '2 min ago',   read: false, color: '#8B3A8F', emoji: '📩', redirectTo: '/hire-zone/applicants' },
+  { id: 2,  type: 'interview',   title: 'Interview Reminder',             body: 'Interview with Rahul Verma at 2:00 PM today.',       time: '15 min ago',  read: false, color: '#2563eb', emoji: '📅', redirectTo: '/hire-zone/interviews' },
+  { id: 3,  type: 'application', title: '5 New Applications',             body: 'Backend Developer role received 5 new applicants.',  time: '1 hr ago',    read: false, color: '#8B3A8F', emoji: '📩', redirectTo: '/hire-zone/applicants' },
+  { id: 4,  type: 'offer',       title: 'Offer Accepted',                 body: 'Sneha Patel accepted the offer for UI/UX Designer.', time: '3 hrs ago',   read: false, color: '#16a34a', emoji: '🎉', redirectTo: '/hire-zone/dashboard' },
+  { id: 5,  type: 'interview',   title: 'Interview Completed',            body: 'Anjali Singh\'s interview has been marked done.',    time: '5 hrs ago',   read: true,  color: '#2563eb', emoji: '✅', redirectTo: '/hire-zone/interviews' },
+  { id: 6,  type: 'system',      title: 'Job Posting Expiring Soon',      body: 'DevOps Engineer posting expires in 3 days.',         time: '1 day ago',   read: true,  color: '#d97706', emoji: '⚠️', redirectTo: '/hire-zone/manage-jobs' },
+  { id: 7,  type: 'application', title: 'New Application Received',       body: 'Amit Joshi applied for Data Analyst.',               time: '1 day ago',   read: true,  color: '#8B3A8F', emoji: '📩', redirectTo: '/hire-zone/applicants' },
+  { id: 8,  type: 'system',      title: 'Profile Incomplete',             body: 'Complete your company profile to attract more candidates.', time: '2 days ago', read: true, color: '#ea580c', emoji: '🔔', redirectTo: '/hire-zone/company-profile' },
+  { id: 9,  type: 'offer',       title: 'Offer Declined',                 body: 'Karan Mehta declined the offer for Backend Developer.', time: '2 days ago', read: true, color: '#ea580c', emoji: '❌', redirectTo: '/hire-zone/dashboard' },
+  { id: 10, type: 'system',      title: 'Monthly Report Ready',           body: 'Your January hiring report is now available.',       time: '3 days ago',  read: true,  color: '#0d9488', emoji: '📊', redirectTo: '/hire-zone/analytics' },
 ];
 
 const TYPE_FILTERS = ['All', 'application', 'interview', 'offer', 'system'];
 
 const Notifications = () => {
+  const navigate = useNavigate();
   const [notifications, setNotifications] = useState(MOCK_NOTIFICATIONS);
   const [filter, setFilter] = useState('All');
 
@@ -27,6 +29,13 @@ const Notifications = () => {
   const markAllRead = () => setNotifications(p => p.map(n => ({ ...n, read: true })));
   const markRead = (id) => setNotifications(p => p.map(n => n.id === id ? { ...n, read: true } : n));
   const dismiss = (id) => setNotifications(p => p.filter(n => n.id !== id));
+
+  const handleNotificationClick = (n) => {
+    markRead(n.id);
+    if (n.redirectTo) {
+      navigate(n.redirectTo);
+    }
+  };
 
   return (
     <div className="p-6 max-w-3xl mx-auto">
@@ -87,9 +96,9 @@ const Notifications = () => {
                   exit={{ opacity: 0, x: 40, scale: 0.97 }}
                   transition={{ delay: i * 0.04 }}
                   className={`flex items-start gap-4 p-4 rounded-2xl border transition-all cursor-pointer group ${
-                    n.read ? 'bg-white border-neutral-100' : 'bg-purple-50/40 border-purple-100'
+                    n.read ? 'bg-white border-neutral-100 hover:border-neutral-200' : 'bg-purple-50/40 border-purple-100 hover:border-purple-200'
                   }`}
-                  onClick={() => markRead(n.id)}
+                  onClick={() => handleNotificationClick(n)}
                 >
                   {/* Icon */}
                   <div
@@ -109,6 +118,11 @@ const Notifications = () => {
                       <span className="text-[10px] text-neutral-400 shrink-0">{n.time}</span>
                     </div>
                     <p className="text-xs text-neutral-500 mt-0.5">{n.body}</p>
+                    {n.redirectTo && (
+                      <p className="text-[10px] text-brand-purple-500 font-medium mt-1.5">
+                        👉 Click to view details
+                      </p>
+                    )}
                   </div>
 
                   {/* Dismiss */}
