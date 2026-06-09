@@ -77,9 +77,12 @@ const HireZoneGuard = () => {
  */
 const PublicGuard = () => {
   const { isLoggedIn, userRole } = useAuth();
-  if (isLoggedIn && userRole === 'company') return <Navigate to="/hire-zone/dashboard" replace />;
-  if (isLoggedIn && userRole === 'admin') return <Navigate to="/admin/dashboard" replace />;
-  // Candidates stay on the main site — no redirect
+  const { pathname } = useLocation();
+
+  if (isLoggedIn && pathname === '/') {
+    if (userRole === 'company') return <Navigate to="/hire-zone/dashboard" replace />;
+    if (userRole === 'admin') return <Navigate to="/admin/dashboard" replace />;
+  }
   return <MainLayout />;
 };
 

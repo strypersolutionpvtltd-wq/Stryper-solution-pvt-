@@ -65,13 +65,13 @@ const AdminAnalytics = () => {
           <p className="text-neutral-500 text-sm mt-1">Deep dive into platform growth and revenue metrics.</p>
         </div>
         <div className="flex items-center gap-3">
-          <button 
-            onClick={() => toast('Date range selection coming soon!', { icon: '📅' })}
-            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/5 border border-white/5 text-sm font-medium hover:bg-white/10 transition-colors"
-          >
-            <Calendar size={16} />
-            May 2026
-          </button>
+          <div className="relative">
+            <Calendar size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400 pointer-events-none" />
+            <input 
+              type="date" 
+              className="pl-9 pr-4 py-2 rounded-xl bg-white/5 border border-white/5 text-sm font-medium hover:bg-white/10 transition-colors text-white focus:outline-none appearance-none cursor-pointer [&::-webkit-calendar-picker-indicator]:filter [&::-webkit-calendar-picker-indicator]:invert"
+            />
+          </div>
           <button 
             onClick={handleDownload}
             className="flex items-center gap-2 px-4 py-2 rounded-xl bg-brand-purple-600 text-white text-sm font-semibold hover:bg-brand-purple-700 transition-all"

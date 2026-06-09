@@ -1,5 +1,6 @@
 import { useState, useMemo, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   AreaChart, Area, PieChart, Pie, Cell,
@@ -364,6 +365,15 @@ const AdminDashboard = () => {
     return data.map(r => normaliseRow(r, r.role));
   }, [filters.userType, filters.status, filters.period, debouncedSearch]);
 
+  // Filter chart data
+  const chartData = useMemo(() => {
+    if (filters.period === 'Today') return USER_GROWTH_DATA.slice(-1);
+    if (filters.period === 'Last 7 Days') return USER_GROWTH_DATA.slice(-2);
+    if (filters.period === 'Last 30 Days') return USER_GROWTH_DATA.slice(-4);
+    if (filters.period === 'Last 6 Months') return USER_GROWTH_DATA.slice(-6);
+    return USER_GROWTH_DATA;
+  }, [filters.period]);
+
   const handleExport = async (format) => {
     setExportLoading(true);
     setExportError('');
@@ -430,7 +440,7 @@ const AdminDashboard = () => {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h2 className="text-2xl font-bold text-white tracking-tight">Platform Overview</h2>
-          <p className="text-neutral-500 text-sm mt-1">Welcome back, here's what's happening today.</p>
+          <p className="text-neutral-500 text-sm mt-1">Welcome back, here&apos;s what&apos;s happening today.</p>
         </div>
         <div className="flex items-center gap-3">
           {/* Simple Search Bar */}
@@ -560,7 +570,7 @@ const AdminDashboard = () => {
               </h3>
               <p className="text-xs text-neutral-500 mt-0.5">{filteredRows.length} records</p>
             </div>
-            <button className="text-brand-purple-400 text-xs font-bold hover:underline">View All</button>
+            <Link to="/admin/users" className="text-brand-purple-400 text-xs font-bold hover:underline">View All</Link>
           </div>
           <div className="overflow-x-auto min-h-[400px]">
             {tableLoading ? (

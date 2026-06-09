@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Bell, CheckCircle2, AlertTriangle, Info, XCircle, Trash2 } from 'lucide-react';
 import { ADMIN_NOTIFICATIONS } from '@/data/adminData';
@@ -10,11 +11,36 @@ const fadeInUp = {
 };
 
 const AdminNotifications = () => {
+  const navigate = useNavigate();
   const [notifications, setNotifications] = useState(ADMIN_NOTIFICATIONS);
 
   const handleMarkAllRead = () => {
     setNotifications(notifications.map(n => ({ ...n, read: true })));
     toast.success('All notifications marked as read.');
+  };
+
+  const handleNotificationClick = (notif) => {
+    setNotifications(notifications.map(n => n.id === notif.id ? { ...n, read: true } : n));
+    
+    if (notif.link) {
+      navigate(notif.link);
+      return;
+    }
+    
+    // Redirect logic based on notification content
+    const title = notif.title.toLowerCase();
+    const msg = notif.message.toLowerCase();
+    
+    if (title.includes('company') || msg.includes('company')) {
+      navigate('/admin/companies');
+    } else if (title.includes('job') || msg.includes('job')) {
+      navigate('/admin/jobs');
+    } else if (title.includes('candidate') || title.includes('user') || msg.includes('candidate')) {
+      navigate('/admin/users');
+    } else {
+      // Default info toast if no redirect needed
+      toast.success('Notification read.');
+    }
   };
 
   const handleMarkRead = (id) => {
@@ -55,13 +81,13 @@ const AdminNotifications = () => {
       <div className="space-y-4">
         <AnimatePresence>
           {notifications.map((notif) => (
-            <motion.div 
+            <motion.div
               layout
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95 }}
               key={notif.id}
-              onClick={() => handleMarkRead(notif.id)}
+              onClick={() => handleNotificationClick(notif)}
               className={`p-5 rounded-2xl border transition-all duration-200 flex gap-4 cursor-pointer hover:border-white/20 ${
                 notif.read ? 'bg-white/[0.02] border-white/5 opacity-60' : 'bg-white/5 border-white/10 shadow-lg shadow-black/20'
               }`}

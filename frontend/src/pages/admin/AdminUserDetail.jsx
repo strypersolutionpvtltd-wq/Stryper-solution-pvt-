@@ -7,7 +7,7 @@ import {
   AlertCircle, Edit2, Trash2, ExternalLink,
   User, Briefcase, Building2, Download, X, Save, Loader2
 } from 'lucide-react';
-import { ALL_USERS } from '@/data/adminData';
+import { ALL_USERS, ALL_COMPANIES, ALL_STRYPER_PARTNERS } from '@/data/adminData';
 import toast from 'react-hot-toast';
 
 // ── Edit Modal Component ──────────────────────────────────────
@@ -40,11 +40,12 @@ const EditUserModal = ({ isOpen, onClose, user, onSave }) => {
           
           <div className="p-8 space-y-5">
             <div className="space-y-2">
-              <label className="text-[10px] font-bold text-neutral-500 uppercase tracking-widest ml-1">Full Name</label>
+              <label className="text-[10px] font-bold text-neutral-500 uppercase tracking-widest ml-1">{user?.role === 'Company' ? 'Company Name' : 'Full Name'}</label>
               <input 
                 value={formData.name}
                 onChange={e => setFormData({...formData, name: e.target.value})}
-                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-1 focus:ring-brand-purple-600/50 text-white"
+                disabled={user?.role === 'Company'}
+                className={`w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-1 focus:ring-brand-purple-600/50 text-white ${user?.role === 'Company' ? 'opacity-50 cursor-not-allowed' : ''}`}
               />
             </div>
             <div className="space-y-2">
@@ -63,10 +64,8 @@ const EditUserModal = ({ isOpen, onClose, user, onSave }) => {
                   onChange={e => setFormData({...formData, role: e.target.value})}
                   className="w-full bg-[#161616] border border-white/10 rounded-xl px-4 py-2.5 text-sm focus:outline-none text-white"
                 >
-                  <option>Candidate</option>
                   <option>Company</option>
                   <option>Stryper Partner</option>
-                  <option>Admin</option>
                 </select>
               </div>
               <div className="space-y-2">
@@ -110,7 +109,16 @@ const AdminUserDetail = () => {
   const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
-    const foundUser = ALL_USERS.find(u => u.id === id);
+    let foundUser = ALL_USERS.find(u => u.id === id);
+    if (!foundUser) {
+      const company = ALL_COMPANIES.find(c => c.id === id);
+      if (company) foundUser = { ...company, email: `${company.name.toLowerCase().replace(/\s+/g, '')}@company.com`, role: 'Company', joined: 'N/A' };
+    }
+    if (!foundUser) {
+      const partner = ALL_STRYPER_PARTNERS.find(p => p.id === id);
+      if (partner) foundUser = { ...partner, email: `${partner.name.toLowerCase().replace(/\s+/g, '')}@partner.com`, role: 'Stryper Partner', joined: 'N/A' };
+    }
+
     if (foundUser) {
       setUser(foundUser);
     } else {
@@ -340,11 +348,10 @@ const AdminUserDetail = () => {
               <div className="absolute left-9 top-10 bottom-10 w-px bg-white/5" />
               
               {[
-                { action: 'Updated profile picture', time: '2 hours ago', detail: 'Changed avatar via Mobile App', type: 'update' },
+                { action: 'Profile updated', time: 'Today, 10:45 AM', detail: 'Changed contact number and address', type: 'update' },
                 { action: 'Password changed', time: 'Yesterday, 4:30 PM', detail: 'Successfully changed from device "MacBook Pro"', type: 'security' },
-                { action: 'New Device Login', time: 'May 20, 2026', detail: 'Logged in from iPhone 15 Pro, Mumbai', type: 'login' },
-                { action: 'Subscribed to Pro Plan', time: 'May 15, 2026', detail: 'Payment confirmed via Stripe', type: 'billing' },
-              ].map((log, idx) => (
+                { action: 'New Device Login', time: 'May 20, 2026', detail: 'Logged in from iPhone 15 Pro, Mumbai', type: 'login' }
+                ].map((log, idx) => (
                 <div key={idx} className="flex gap-6 relative">
                   <div className={`w-6 h-6 rounded-full border-2 border-[#0f0f0f] flex items-center justify-center shrink-0 z-10 ${
                     log.type === 'security' ? 'bg-amber-500 shadow-[0_0_10px_rgba(245,158,11,0.5)]' :
@@ -367,51 +374,6 @@ const AdminUserDetail = () => {
                 </div>
               ))}
             </div>
-          </motion.div>
-
-          <motion.div initial="hidden" animate="visible" variants={fadeInUp} transition={{ delay: 0.4 }}
-            className="bg-[#0f0f0f] border border-white/5 rounded-3xl overflow-hidden"
-          >
-             <div className="p-6 border-b border-white/5 flex items-center gap-3">
-                <div className="p-2 rounded-xl bg-brand-gold-500/10 text-brand-gold-500">
-                  <History size={18} />
-                </div>
-                <h3 className="font-bold">Transaction History</h3>
-              </div>
-              <div className="overflow-x-auto">
-                <table className="w-full text-left">
-                  <thead className="bg-white/[0.02] text-[10px] font-bold text-neutral-500 uppercase tracking-widest">
-                    <tr>
-                      <th className="px-6 py-4">Transaction ID</th>
-                      <th className="px-6 py-4">Service / Product</th>
-                      <th className="px-6 py-4">Amount</th>
-                      <th className="px-6 py-4">Date</th>
-                      <th className="px-6 py-4 text-right">Status</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-white/5 text-xs text-neutral-300">
-                    {[
-                      { id: '#TXN-8942', service: 'Premium Subscription', amount: '₹1,499', date: 'Jun 12, 2026', status: 'Success' },
-                      { id: '#TXN-7731', service: 'Course: UI/UX Masterclass', amount: '₹2,999', date: 'May 28, 2026', status: 'Success' },
-                      { id: '#TXN-6610', service: 'Resume Review Pro', amount: '₹499', date: 'Apr 20, 2026', status: 'Refunded' },
-                    ].map((txn, idx) => (
-                      <tr key={idx} className="hover:bg-white/[0.01] transition-colors">
-                        <td className="px-6 py-4 font-mono text-brand-purple-400">{txn.id}</td>
-                        <td className="px-6 py-4 font-bold">{txn.service}</td>
-                        <td className="px-6 py-4 font-bold text-neutral-100">{txn.amount}</td>
-                        <td className="px-6 py-4 text-neutral-500">{txn.date}</td>
-                        <td className="px-6 py-4 text-right">
-                          <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold uppercase ${
-                            txn.status === 'Success' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-red-500/10 text-red-500'
-                          }`}>
-                            {txn.status}
-                          </span>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
           </motion.div>
 
           <motion.div initial="hidden" animate="visible" variants={fadeInUp} transition={{ delay: 0.5 }}

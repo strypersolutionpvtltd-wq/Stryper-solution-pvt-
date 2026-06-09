@@ -3,76 +3,10 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import AuthModal from '@/components/auth/AuthModal';
+import { PUBLIC_JOBS } from '@/data/adminData';
 import toast from 'react-hot-toast';
 
 // ─── Mock Data ───────────────────────────────────────────────────────────────
-const MOCK_JOBS = [
-  {
-    id: 1, featured: true,
-    title: 'Senior React Developer', company: 'TechCorp India', location: 'Bangalore', locationType: 'Hybrid',
-    experience: '3-6 Years', salary: '₹12 - 20 LPA', type: 'Full-time', industry: 'IT / Software',
-    skills: ['React', 'TypeScript', 'Node.js', 'AWS'], postedDays: 1,
-    desc: 'Build scalable web applications using React and modern frontend tooling. Work with cross-functional teams.',
-    logo: null,
-  },
-  {
-    id: 2, featured: true,
-    title: 'UI/UX Designer', company: 'DesignStudio', location: 'Mumbai', locationType: 'Remote',
-    experience: '2-4 Years', salary: '₹8 - 14 LPA', type: 'Full-time', industry: 'Design',
-    skills: ['Figma', 'Prototyping', 'User Research', 'Tailwind'], postedDays: 2,
-    desc: 'Create beautiful, user-centric designs for web and mobile products. Own the design system.',
-    logo: null,
-  },
-  {
-    id: 3, featured: false,
-    title: 'DevOps Engineer', company: 'CloudBase', location: 'Hyderabad', locationType: 'Onsite',
-    experience: '4-8 Years', salary: '₹15 - 25 LPA', type: 'Full-time', industry: 'IT / Software',
-    skills: ['Docker', 'Kubernetes', 'CI/CD', 'Terraform'], postedDays: 3,
-    desc: 'Manage cloud infrastructure, automate deployments, and ensure system reliability at scale.',
-    logo: null,
-  },
-  {
-    id: 4, featured: false,
-    title: 'Digital Marketing Manager', company: 'GrowthHive', location: 'Delhi', locationType: 'Hybrid',
-    experience: '3-5 Years', salary: '₹7 - 12 LPA', type: 'Full-time', industry: 'Marketing',
-    skills: ['SEO', 'Google Ads', 'Meta Ads', 'Analytics'], postedDays: 5,
-    desc: 'Lead digital campaigns, manage paid media budgets, and drive measurable growth.',
-    logo: null,
-  },
-  {
-    id: 5, featured: false,
-    title: 'Backend Engineer (Python)', company: 'DataFlow', location: 'Pune', locationType: 'Remote',
-    experience: '2-5 Years', salary: '₹10 - 18 LPA', type: 'Full-time', industry: 'IT / Software',
-    skills: ['Python', 'Django', 'PostgreSQL', 'Redis'], postedDays: 7,
-    desc: 'Design and build robust APIs and microservices. Work on high-traffic data pipelines.',
-    logo: null,
-  },
-  {
-    id: 6, featured: false,
-    title: 'Cybersecurity Analyst', company: 'SecureNet', location: 'Chennai', locationType: 'Onsite',
-    experience: '1-3 Years', salary: '₹6 - 10 LPA', type: 'Full-time', industry: 'Cybersecurity',
-    skills: ['SIEM', 'Penetration Testing', 'OWASP', 'Linux'], postedDays: 8,
-    desc: 'Monitor, detect, and respond to security incidents. Conduct vulnerability assessments.',
-    logo: null,
-  },
-  {
-    id: 7, featured: false,
-    title: 'AI/ML Engineer', company: 'NeuralWorks', location: 'Bangalore', locationType: 'Hybrid',
-    experience: '2-5 Years', salary: '₹14 - 24 LPA', type: 'Full-time', industry: 'AI / ML',
-    skills: ['Python', 'TensorFlow', 'PyTorch', 'MLOps'], postedDays: 10,
-    desc: 'Build and deploy machine learning models. Work on NLP and computer vision projects.',
-    logo: null,
-  },
-  {
-    id: 8, featured: false,
-    title: 'HR Business Partner', company: 'PeopleFirst', location: 'Mumbai', locationType: 'Onsite',
-    experience: '4-7 Years', salary: '₹9 - 15 LPA', type: 'Full-time', industry: 'HR',
-    skills: ['Talent Acquisition', 'HRBP', 'Compliance', 'L&D'], postedDays: 12,
-    desc: 'Partner with business leaders to drive HR strategy, talent management, and culture.',
-    logo: null,
-  },
-];
-
 const TOP_COMPANIES = [
   { name: 'TechCorp', jobs: 12 }, { name: 'DesignStudio', jobs: 5 },
   { name: 'CloudBase', jobs: 8 }, { name: 'GrowthHive', jobs: 6 },
@@ -521,7 +455,7 @@ const Jobs = () => {
     setFilters({ date: 'Any time', type: '', mode: '', exp: '', salary: '' });
 
   const filtered = useMemo(() => {
-    return MOCK_JOBS.filter(j => {
+    return PUBLIC_JOBS.filter(j => {
       // Keyword search (Title, Company, Skills) - Fuzzy (includes)
       const kw = search.keyword.toLowerCase();
       if (kw && !j.title.toLowerCase().includes(kw) &&
