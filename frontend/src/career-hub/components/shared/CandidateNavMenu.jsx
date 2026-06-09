@@ -33,8 +33,10 @@ const CandidateNavMenu = () => {
   };
 
   const confirmLogout = () => {
+    setShowLogoutConfirm(false);
     logout();
-    navigate('/');
+    // Force a clean hard-reload to the home page to prevent React layout-shifting glitches
+    window.location.href = '/';
   };
 
   const initials = c.fullName ? c.fullName.split(' ').map(n => n[0]).join('').toUpperCase() : 'U';

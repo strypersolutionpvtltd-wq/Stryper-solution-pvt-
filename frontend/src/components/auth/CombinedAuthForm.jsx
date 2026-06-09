@@ -102,6 +102,7 @@ const CombinedAuthForm = ({ onClose, initialView = 'signin', initialRole = 'cand
     return 'candidate';
   }); 
   const [isLogin, setIsLogin] = useState(initialView !== 'signup');
+  const [isForgotPassword, setIsForgotPassword] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   
@@ -126,6 +127,16 @@ const CombinedAuthForm = ({ onClose, initialView = 'signin', initialRole = 'cand
     resolver: zodResolver(registerSchema),
     defaultValues: { role: activeTab === 'employer' ? 'employer' : 'candidate' }
   });
+
+  const handleForgotPasswordSubmit = (e) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setTimeout(() => {
+      setIsLoading(false);
+      toast.success('Password reset link sent to your email!');
+      setIsForgotPassword(false);
+    }, 1500);
+  };
 
   const onLogin = async (data) => {
     setIsLoading(true);
@@ -233,21 +244,47 @@ const CombinedAuthForm = ({ onClose, initialView = 'signin', initialRole = 'cand
 
         <div className="mb-6">
           <h2 className="text-2xl font-display font-bold text-neutral-800">
-            {isLogin ? 'Welcome Back' : 'Join Stryper'}
+            {isForgotPassword ? 'Reset Password' : (isLogin ? 'Welcome Back' : 'Join Stryper')}
           </h2>
           <p className="text-neutral-500 text-sm mt-1">
-            {isLogin 
-              ? `Sign in to your ${activeTab} account` 
-              : 'Fill in the details to create your account'}
+            {isForgotPassword 
+              ? 'Enter your email to receive a reset link'
+              : (isLogin 
+                  ? `Sign in to your ${activeTab} account` 
+                  : 'Fill in the details to create your account')}
           </p>
         </div>
 
         <form 
-          onSubmit={isLogin ? handleLoginSubmit(onLogin) : handleRegisterSubmit(onRegister)} 
+          onSubmit={isForgotPassword ? handleForgotPasswordSubmit : (isLogin ? handleLoginSubmit(onLogin) : handleRegisterSubmit(onRegister))} 
           className="space-y-4"
         >
           <AnimatePresence mode="wait">
-            {isLogin ? (
+            {isForgotPassword ? (
+              <motion.div
+                key="forgot-password"
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: 10 }}
+                className="space-y-4"
+              >
+                <InputField
+                  label="Email Address"
+                  icon={Mail}
+                  name="email"
+                  placeholder="name@example.com"
+                  register={loginRegister}
+                  error={loginErrors.email}
+                />
+                <button 
+                  type="button" 
+                  onClick={() => setIsForgotPassword(false)}
+                  className="text-xs font-bold text-neutral-500 hover:text-neutral-800 mt-2 block"
+                >
+                  Back to Sign In
+                </button>
+              </motion.div>
+            ) : isLogin ? (
               <motion.div
                 key="login-fields"
                 initial={{ opacity: 0, x: -10 }}
@@ -274,7 +311,11 @@ const CombinedAuthForm = ({ onClose, initialView = 'signin', initialRole = 'cand
                   isPasswordVisible={showPassword}
                   onTogglePassword={() => setShowPassword(!showPassword)}
                 />
-                <button type="button" className="text-xs font-bold text-brand-purple-600 hover:underline">
+                <button 
+                  type="button" 
+                  onClick={() => setIsForgotPassword(true)}
+                  className="text-xs font-bold text-brand-purple-600 hover:underline"
+                >
                   Forgot Password?
                 </button>
               </motion.div>
@@ -359,7 +400,7 @@ const CombinedAuthForm = ({ onClose, initialView = 'signin', initialRole = 'cand
               <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
             ) : (
               <>
-                {isLogin ? 'Sign In' : 'Create Account'}
+                {isForgotPassword ? 'Send Reset Link' : (isLogin ? 'Sign In' : 'Create Account')}
                 <ArrowRight size={18} />
               </>
             )}

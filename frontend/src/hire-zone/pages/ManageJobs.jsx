@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import SectionHeader from '@/hire-zone/components/shared/SectionHeader';
 import JobCard from '@/hire-zone/components/jobs/JobCard';
 import EmptyState from '@/hire-zone/components/shared/EmptyState';
@@ -379,6 +379,7 @@ const ManageJobs = () => {
   const [jobs, setJobs]             = useState(MOCK_JOBS);
   const [search, setSearch]         = useState('');
   const [statusFilter, setStatusFilter] = useState('All');
+  const navigate = useNavigate();
   const [viewingJob, setViewingJob] = useState(null);
   const [editingJob, setEditingJob] = useState(null);
 
@@ -390,6 +391,10 @@ const ManageJobs = () => {
   });
 
   const handleAction = (id, action) => {
+    if (action === 'view') {
+      navigate('/hire-zone/applicants');
+      return;
+    }
     if (action === 'delete') {
       setJobs(prev => prev.filter(j => j.id !== id));
     } else {

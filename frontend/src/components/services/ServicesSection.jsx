@@ -167,7 +167,7 @@ const SERVICES = [
     title: "Industrial Manpower",
     description:
       "Deployment of skilled, semi-skilled, and unskilled workers for manufacturing, production, and plant operations - vetted, trained, and ready to perform.",
-    href: "/services#industrial-manpower",
+    href: "/services/industrial-manpower",
     icon: <ManpowerIcon />,
   },
   {
@@ -175,7 +175,7 @@ const SERVICES = [
     title: "Warehouse & Logistics Staffing",
     description:
       "End-to-end staffing for warehousing, supply chain, and last-mile delivery operations. We ensure your logistics workforce is always at full strength.",
-    href: "/services#warehouse-logistics",
+    href: "/services/logistics-warehouse",
     icon: <LogisticsIcon />,
   },
   {
@@ -183,7 +183,7 @@ const SERVICES = [
     title: "Facility Management",
     description:
       "Comprehensive facility support - housekeeping, security, maintenance, and soft services - delivered through trained, supervised teams.",
-    href: "/services#facility-management",
+    href: "/services/facility-management",
     icon: <FacilityIcon />,
   },
   {
@@ -191,7 +191,7 @@ const SERVICES = [
     title: "Payroll & Compliance Management",
     description:
       "Full-cycle payroll processing with statutory compliance - PF, ESI, PT, TDS - handled accurately and on time so you stay audit-ready.",
-    href: "/services#payroll-compliance",
+    href: "/services/payroll-compliance",
     icon: <PayrollIcon />,
   },
 ];

@@ -49,10 +49,13 @@ const JobCard = ({ job, onAction, onView }) => {
 
         {/* Right: stats + actions */}
         <div className="flex items-center gap-3 shrink-0">
-          <div className="text-center hidden sm:block">
+          <button 
+            onClick={() => onAction?.(job.id, 'view')}
+            className="text-center hidden sm:block hover:bg-neutral-50 p-2 rounded-xl transition-colors"
+          >
             <p className="text-xl font-bold text-neutral-900">{job.applicants}</p>
             <p className="text-[10px] text-neutral-400">Applicants</p>
-          </div>
+          </button>
 
           {/* Action menu */}
           <div className="relative">
@@ -77,16 +80,14 @@ const JobCard = ({ job, onAction, onView }) => {
                   onMouseLeave={() => setMenuOpen(false)}
                 >
                   {[
-                    { label: 'View Details', icon: '👁', action: 'view' },
-                    { label: 'Edit Job', icon: '✏️', action: 'edit' },
-                    { label: job.status === 'Active' ? 'Pause Job' : 'Activate Job', icon: job.status === 'Active' ? '⏸' : '▶️', action: 'toggle' },
-                    { label: 'Close Job', icon: '🔒', action: 'close', danger: true },
-                    { label: 'Delete Job', icon: '🗑', action: 'delete', danger: true },
+                    { label: 'View Applicants', icon: '👥', action: 'view' },
+                    { label: 'View Details', icon: '👁', action: 'view-details' },
+                    { label: job.status === 'Active' ? 'Deactivate Job' : 'Activate Job', icon: job.status === 'Active' ? '⏸' : '▶️', action: 'toggle' },
                   ].map(({ label, icon, action, danger }) => (
                     <button
                       key={action}
                       onClick={() => {
-                        if (action === 'view') {
+                        if (action === 'view-details') {
                           onView?.(job);
                           setMenuOpen(false);
                         } else if (action === 'delete') {
@@ -94,7 +95,7 @@ const JobCard = ({ job, onAction, onView }) => {
                         } else {
                           onAction?.(job.id, action);
                           setMenuOpen(false);
-                          toast.success(label);
+                          if (action !== 'view') toast.success(label);
                         }
                       }}
                       className={`w-full text-left px-4 py-2 text-xs font-medium transition-colors flex items-center gap-2 ${

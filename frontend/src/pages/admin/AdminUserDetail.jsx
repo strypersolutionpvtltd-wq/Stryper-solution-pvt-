@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   ArrowLeft, Mail, Phone, MapPin, Shield, 
@@ -42,16 +42,15 @@ const EditUserModal = ({ isOpen, onClose, user, onSave }) => {
             <div className="space-y-2">
               <label className="text-[10px] font-bold text-neutral-500 uppercase tracking-widest ml-1">{user?.role === 'Company' ? 'Company Name' : 'Full Name'}</label>
               <input 
-                value={formData.name}
+                value={formData.name || ''}
                 onChange={e => setFormData({...formData, name: e.target.value})}
-                disabled={user?.role === 'Company'}
-                className={`w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-1 focus:ring-brand-purple-600/50 text-white ${user?.role === 'Company' ? 'opacity-50 cursor-not-allowed' : ''}`}
+                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-1 focus:ring-brand-purple-600/50 text-white"
               />
             </div>
             <div className="space-y-2">
               <label className="text-[10px] font-bold text-neutral-500 uppercase tracking-widest ml-1">Email Address</label>
               <input 
-                value={formData.email}
+                value={formData.email || ''}
                 onChange={e => setFormData({...formData, email: e.target.value})}
                 className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-1 focus:ring-brand-purple-600/50 text-white"
               />
@@ -60,7 +59,7 @@ const EditUserModal = ({ isOpen, onClose, user, onSave }) => {
               <div className="space-y-2">
                 <label className="text-[10px] font-bold text-neutral-500 uppercase tracking-widest ml-1">Role</label>
                 <select 
-                  value={formData.role}
+                  value={formData.role || ''}
                   onChange={e => setFormData({...formData, role: e.target.value})}
                   className="w-full bg-[#161616] border border-white/10 rounded-xl px-4 py-2.5 text-sm focus:outline-none text-white"
                 >
@@ -71,7 +70,7 @@ const EditUserModal = ({ isOpen, onClose, user, onSave }) => {
               <div className="space-y-2">
                 <label className="text-[10px] font-bold text-neutral-500 uppercase tracking-widest ml-1">Status</label>
                 <select 
-                  value={formData.status}
+                  value={formData.status || ''}
                   onChange={e => setFormData({...formData, status: e.target.value})}
                   className="w-full bg-[#161616] border border-white/10 rounded-xl px-4 py-2.5 text-sm focus:outline-none text-white"
                 >
@@ -103,6 +102,7 @@ const EditUserModal = ({ isOpen, onClose, user, onSave }) => {
 const AdminUserDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const [user, setUser] = useState(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isExporting, setIsExportLoading] = useState(false);
@@ -121,11 +121,15 @@ const AdminUserDetail = () => {
 
     if (foundUser) {
       setUser(foundUser);
+      // Automatically open edit modal if coming from 'Edit Profile' link
+      if (location.state?.openEdit) {
+        setIsEditModalOpen(true);
+      }
     } else {
       toast.error("User not found");
       navigate('/admin/users');
     }
-  }, [id, navigate]);
+  }, [id, navigate, location.state]);
 
   const handleExport = () => {
     setIsExportLoading(true);

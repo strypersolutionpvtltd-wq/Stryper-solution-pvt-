@@ -24,12 +24,12 @@
     -webkit-text-size-adjust: 100%;
     font-feature-settings: 'kern' 1, 'liga' 1, 'calt' 1;
     overscroll-behavior: none;
-    background-color: #0a0a0a;
+    background-color: #ffffff;
   }
 
   body {
     @apply text-neutral-800 font-sans antialiased;
-    background-color: #0a0a0a;
+    background-color: #ffffff;
     font-size: 16px;
     line-height: 1.6;
     min-height: 100vh;

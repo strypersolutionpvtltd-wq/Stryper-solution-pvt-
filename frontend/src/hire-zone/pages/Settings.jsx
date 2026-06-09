@@ -123,12 +123,27 @@ const Settings = () => {
       <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
         <Section title="Danger Zone">
           <SettingRow label="Deactivate Account" desc="Temporarily disable your Hire Zone access">
-            <button className="text-xs font-semibold px-3 py-1.5 rounded-lg border border-orange-200 text-orange-500 hover:bg-orange-50 transition-colors">
+            <button
+              onClick={() => {
+                if (window.confirm('Are you sure you want to deactivate your account? This will temporarily hide your job postings.')) {
+                  alert('Account deactivated. You will be logged out.');
+                }
+              }}
+              className="text-xs font-semibold px-3 py-1.5 rounded-lg border border-orange-200 text-orange-500 hover:bg-orange-50 transition-colors"
+            >
               Deactivate
             </button>
           </SettingRow>
           <SettingRow label="Delete Account" desc="Permanently delete all data — cannot be undone">
-            <button className="text-xs font-semibold px-3 py-1.5 rounded-lg border border-red-200 text-red-500 hover:bg-red-50 transition-colors">
+            <button
+              onClick={() => {
+                const confirmed = window.confirm('CRITICAL: This will permanently delete your account and all associated data. This action CANNOT be undone. Are you absolutely sure?');
+                if (confirmed) {
+                  alert('Account scheduled for permanent deletion.');
+                }
+              }}
+              className="text-xs font-semibold px-3 py-1.5 rounded-lg border border-red-200 text-red-500 hover:bg-red-50 transition-colors"
+            >
               Delete Account
             </button>
           </SettingRow>

@@ -155,16 +155,16 @@ const ScheduleModal = ({ onClose, onSubmit }) => {
                   type="time"
                   value={form._timeRaw || ''}
                   onChange={e => {
+                    const val = e.target.value;
+                    if (!val) return;
                     // Store raw time for input
-                    set('_timeRaw', e.target.value);
+                    set('_timeRaw', val);
                     // Convert 24h to 12h display
-                    if (e.target.value) {
-                      const [h, m] = e.target.value.split(':');
-                      const hr = parseInt(h);
-                      const ampm = hr >= 12 ? 'PM' : 'AM';
-                      const hr12 = hr % 12 || 12;
-                      set('time', `${hr12}:${m} ${ampm}`);
-                    }
+                    const [h, m] = val.split(':');
+                    const hr = parseInt(h);
+                    const ampm = hr >= 12 ? 'PM' : 'AM';
+                    const hr12 = hr % 12 || 12;
+                    set('time', `${hr12}:${m} ${ampm}`);
                   }}
                   className={`${inputCls} ${errors.time ? 'border-red-300 bg-red-50' : ''}`}
                 />
