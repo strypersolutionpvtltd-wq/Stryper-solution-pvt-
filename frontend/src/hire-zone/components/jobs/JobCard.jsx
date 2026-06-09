@@ -1,9 +1,18 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import toast from 'react-hot-toast';
 import StatusBadge from '@/hire-zone/components/shared/StatusBadge';
 
-const JobCard = ({ job, onAction }) => {
+const JobCard = ({ job, onAction, onView }) => {
   const [menuOpen, setMenuOpen] = useState(false);
+
+  const handleDelete = () => {
+    setMenuOpen(false);
+    if (window.confirm(`Are you sure you want to delete "${job.title}"? This action cannot be undone.`)) {
+      onAction?.(job.id, 'delete');
+      toast.success('Job deleted successfully');
+    }
+  };
 
   return (
     <motion.div
@@ -64,18 +73,30 @@ const JobCard = ({ job, onAction }) => {
                   animate={{ opacity: 1, scale: 1, y: 0 }}
                   exit={{ opacity: 0, scale: 0.95, y: -4 }}
                   transition={{ duration: 0.12 }}
-                  className="absolute right-0 top-full mt-1 w-40 bg-white rounded-xl shadow-lg border border-neutral-100 py-1 z-20"
+                  className="absolute right-0 top-full mt-1 w-44 bg-white rounded-xl shadow-lg border border-neutral-100 py-1 z-20"
                   onMouseLeave={() => setMenuOpen(false)}
                 >
                   {[
                     { label: 'View Details', icon: '👁', action: 'view' },
-                    { label: 'Edit Job',     icon: '✏️', action: 'edit' },
-                    { label: job.status === 'Active' ? 'Pause Job' : 'Activate', icon: job.status === 'Active' ? '⏸' : '▶', action: 'toggle' },
-                    { label: 'Close Job',   icon: '🔒', action: 'close', danger: true },
+                    { label: 'Edit Job', icon: '✏️', action: 'edit' },
+                    { label: job.status === 'Active' ? 'Pause Job' : 'Activate Job', icon: job.status === 'Active' ? '⏸' : '▶️', action: 'toggle' },
+                    { label: 'Close Job', icon: '🔒', action: 'close', danger: true },
+                    { label: 'Delete Job', icon: '🗑', action: 'delete', danger: true },
                   ].map(({ label, icon, action, danger }) => (
                     <button
                       key={action}
-                      onClick={() => { onAction?.(job.id, action); setMenuOpen(false); }}
+                      onClick={() => {
+                        if (action === 'view') {
+                          onView?.(job);
+                          setMenuOpen(false);
+                        } else if (action === 'delete') {
+                          handleDelete();
+                        } else {
+                          onAction?.(job.id, action);
+                          setMenuOpen(false);
+                          toast.success(label);
+                        }
+                      }}
                       className={`w-full text-left px-4 py-2 text-xs font-medium transition-colors flex items-center gap-2 ${
                         danger ? 'text-red-500 hover:bg-red-50' : 'text-neutral-700 hover:bg-neutral-50'
                       }`}

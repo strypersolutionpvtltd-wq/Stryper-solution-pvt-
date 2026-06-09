@@ -153,15 +153,18 @@ const ScheduleModal = ({ onClose, onSubmit }) => {
                 </label>
                 <input
                   type="time"
-                  value={form.time}
+                  value={form._timeRaw || ''}
                   onChange={e => {
-                    // Convert 24h to 12h display
-                    const [h, m] = e.target.value.split(':');
-                    const hr = parseInt(h);
-                    const ampm = hr >= 12 ? 'PM' : 'AM';
-                    const hr12 = hr % 12 || 12;
-                    set('time', `${hr12}:${m} ${ampm}`);
+                    // Store raw time for input
                     set('_timeRaw', e.target.value);
+                    // Convert 24h to 12h display
+                    if (e.target.value) {
+                      const [h, m] = e.target.value.split(':');
+                      const hr = parseInt(h);
+                      const ampm = hr >= 12 ? 'PM' : 'AM';
+                      const hr12 = hr % 12 || 12;
+                      set('time', `${hr12}:${m} ${ampm}`);
+                    }
                   }}
                   className={`${inputCls} ${errors.time ? 'border-red-300 bg-red-50' : ''}`}
                 />

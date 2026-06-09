@@ -130,11 +130,30 @@ const ResumeModal = ({ candidate, onClose }) => (
         </div>
 
         <div className="px-8 py-5 border-t border-neutral-100 bg-neutral-50/50 flex gap-3 shrink-0">
-          <button className="flex-1 py-3.5 rounded-2xl text-sm font-bold text-white shadow-lg shadow-purple-200" style={{ background: '#8B3A8F' }}>
-            Download PDF
+          <button 
+            onClick={() => {
+              toast.success(`Downloading ${candidate.name}'s resume...`);
+              setTimeout(() => {
+                const link = document.createElement('a');
+                link.href = candidate.resumeUrl || '#';
+                link.download = `${candidate.name}_Resume.pdf`;
+                link.click();
+              }, 500);
+            }}
+            className="flex-1 py-3.5 rounded-2xl text-sm font-bold text-white shadow-lg shadow-purple-200 hover:opacity-90 transition-opacity" 
+            style={{ background: '#8B3A8F' }}
+          >
+            📥 Download PDF
           </button>
-          <button className="flex-1 py-3.5 rounded-2xl text-sm font-bold border-2 border-neutral-200 text-neutral-600 hover:bg-white transition-all">
-            Share Profile
+          <button 
+            onClick={() => {
+              toast.success(`Profile shared via link!`);
+              const profileLink = `${window.location.origin}/profile/${candidate.id}`;
+              navigator.clipboard.writeText(profileLink);
+            }}
+            className="flex-1 py-3.5 rounded-2xl text-sm font-bold border-2 border-neutral-200 text-neutral-600 hover:bg-white transition-all"
+          >
+            🔗 Share Profile
           </button>
         </div>
       </motion.div>
