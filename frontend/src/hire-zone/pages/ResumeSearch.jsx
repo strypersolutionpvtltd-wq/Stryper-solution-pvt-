@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useSearchParams } from 'react-router-dom';
 import SectionHeader from '@/hire-zone/components/shared/SectionHeader';
+import ResumePreviewModal from '@/hire-zone/components/shared/ResumePreviewModal';
 import { MOCK_APPLICANTS } from '@/hire-zone/data/mockApplicants';
 import toast from 'react-hot-toast';
 
@@ -133,12 +134,16 @@ const ResumeModal = ({ candidate, onClose }) => (
           <button 
             onClick={() => {
               toast.success(`Downloading ${candidate.name}'s resume...`);
-              setTimeout(() => {
-                const link = document.createElement('a');
-                link.href = candidate.resumeUrl || '#';
-                link.download = `${candidate.name}_Resume.pdf`;
-                link.click();
-              }, 500);
+              // Mock download
+              const blob = new Blob(['Resume content for ' + candidate.name], { type: 'text/plain' });
+              const url = window.URL.createObjectURL(blob);
+              const link = document.createElement('a');
+              link.href = url;
+              link.download = `${candidate.name.replace(/\s+/g, '_')}_Resume.pdf`;
+              document.body.appendChild(link);
+              link.click();
+              document.body.removeChild(link);
+              window.URL.revokeObjectURL(url);
             }}
             className="flex-1 py-3.5 rounded-2xl text-sm font-bold text-white shadow-lg shadow-purple-200 hover:opacity-90 transition-opacity" 
             style={{ background: '#8B3A8F' }}
@@ -147,9 +152,12 @@ const ResumeModal = ({ candidate, onClose }) => (
           </button>
           <button 
             onClick={() => {
-              toast.success(`Profile shared via link!`);
-              const profileLink = `${window.location.origin}/profile/${candidate.id}`;
-              navigator.clipboard.writeText(profileLink);
+              const profileLink = `${window.location.origin}/hire-zone/applicants?id=${candidate.id}`;
+              navigator.clipboard.writeText(profileLink).then(() => {
+                toast.success(`Profile link copied to clipboard!`);
+              }).catch(() => {
+                toast.error('Failed to copy link');
+              });
             }}
             className="flex-1 py-3.5 rounded-2xl text-sm font-bold border-2 border-neutral-200 text-neutral-600 hover:bg-white transition-all"
           >
@@ -419,7 +427,7 @@ const ResumeSearch = () => {
 
       {/* Resume Modal */}
       {viewingResume && (
-        <ResumeModal
+        <ResumePreviewModal
           candidate={viewingResume}
           onClose={() => setViewingResume(null)}
         />

@@ -7,6 +7,10 @@ import MainLayout  from '@/layouts/MainLayout';
 import Home        from '@/pages/Home';
 import About       from '@/pages/About';
 import Services    from '@/pages/Services';
+import IndustrialManpower from '@/pages/services/IndustrialManpower';
+import LogisticsWarehouse from '@/pages/services/LogisticsWarehouse';
+import FacilityManagement from '@/pages/services/FacilityManagement';
+import PayrollCompliance from '@/pages/services/PayrollCompliance';
 import Industries  from '@/pages/Industries';
 import Careers     from '@/pages/Careers';
 import Jobs        from '@/pages/Jobs';
@@ -103,6 +107,10 @@ function App() {
         <Route path="/"           element={<Home />} />
         <Route path="/about"      element={<About />} />
         <Route path="/services"   element={<Services />} />
+        <Route path="/services/industrial-manpower"   element={<IndustrialManpower />} />
+        <Route path="/services/logistics-warehouse"   element={<LogisticsWarehouse />} />
+        <Route path="/services/facility-management"   element={<FacilityManagement />} />
+        <Route path="/services/payroll-compliance"    element={<PayrollCompliance />} />
         <Route path="/industries" element={<Industries />} />
         <Route path="/careers"    element={<Careers />} />
         <Route path="/jobs"       element={<Jobs />} />
@@ -122,7 +130,8 @@ function App() {
         </Route>
       </Route>
 
-      {/* ── Hire Zone routes ── */}      <Route path="/hire-zone" element={<HireZoneGuard />}>
+      {/* ── Hire Zone routes ── */}
+      <Route path="/hire-zone" element={<HireZoneGuard />}>
         <Route index element={<Navigate to="/hire-zone/dashboard" replace />} />
         <Route path="dashboard"        element={<Dashboard />} />
         <Route path="post-job"         element={<PostJob />} />

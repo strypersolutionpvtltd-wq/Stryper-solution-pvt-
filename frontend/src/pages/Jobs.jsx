@@ -50,6 +50,7 @@ const CompanyLogo = ({ name }) => {
 
 // ─── Apply Modal ─────────────────────────────────────────────────────────────
 const ApplyModal = ({ job, onClose }) => {
+  const { applyToJob } = useAuth();
   const [form, setForm] = useState({ resume: null, experience: '', expectedSalary: '', noticePeriod: '', currentLocation: '' });
   const [submitted, setSubmitted] = useState(false);
   const [dragOver, setDragOver] = useState(false);
@@ -91,6 +92,7 @@ const ApplyModal = ({ job, onClose }) => {
 
   const handleSubmit = e => { 
     e.preventDefault(); 
+    applyToJob(job);
     setSubmitted(true); 
   };
 
@@ -221,7 +223,7 @@ const ApplyModal = ({ job, onClose }) => {
 };
 
 // ─── Job Card ─────────────────────────────────────────────────────────────────
-const JobCard = ({ job, saved, onSave, onApply }) => (
+const JobCard = ({ job, saved, onSave, onApply, applied }) => (
   <motion.div
     layout
     initial={{ opacity: 0, y: 16 }}
@@ -284,12 +286,14 @@ const JobCard = ({ job, saved, onSave, onApply }) => (
 
     <div className="flex items-center gap-2 mt-4 pt-4 border-t border-neutral-50">
       <motion.button
-        whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
-        onClick={onApply}
-        className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white transition-all"
-        style={{ background: 'linear-gradient(135deg, #8B3A8F 0%, #7a3280 100%)', boxShadow: '0 4px 14px rgba(139,58,143,0.3)' }}
+        whileHover={!applied ? { scale: 1.03 } : {}} whileTap={!applied ? { scale: 0.97 } : {}}
+        onClick={!applied ? onApply : undefined}
+        className={`flex-1 py-2.5 rounded-xl text-sm font-semibold transition-all ${
+          applied ? 'bg-green-50 text-green-600 border border-green-200' : 'text-white'
+        }`}
+        style={!applied ? { background: 'linear-gradient(135deg, #8B3A8F 0%, #7a3280 100%)', boxShadow: '0 4px 14px rgba(139,58,143,0.3)' } : {}}
       >
-        Apply Now
+        {applied ? '✓ Applied' : 'Apply Now'}
       </motion.button>
       <motion.button
         whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.97 }}
@@ -410,7 +414,7 @@ const Pagination = ({ current, total, onChange }) => {
 
 // ─── Main Jobs Page ───────────────────────────────────────────────────────────
 const Jobs = () => {
-  const { isLoggedIn } = useAuth();
+  const { isLoggedIn, appliedJobs } = useAuth();
   const [search, setSearch] = useState({ keyword: '', location: '', experience: '', salary: '' });
   const [filters, setFilters] = useState({ date: 'Any time', type: '', mode: '', exp: '', salary: '' });
   const [savedJobs, setSavedJobs] = useState([]);
@@ -687,7 +691,14 @@ const Jobs = () => {
               <AnimatePresence mode="popLayout">
                 <div className="space-y-4">
                   {paginated.map(job => (
-                    <JobCard key={job.id} job={job} saved={savedJobs.includes(job.id)} onSave={toggleSave} onApply={() => handleApplyClick(job)} />
+                    <JobCard 
+                      key={job.id} 
+                      job={job} 
+                      saved={savedJobs.includes(job.id)} 
+                      applied={!!appliedJobs.find(aj => aj.id === job.id)}
+                      onSave={toggleSave} 
+                      onApply={() => handleApplyClick(job)} 
+                    />
                   ))}
                 </div>
               </AnimatePresence>

@@ -25,6 +25,14 @@ export const AuthProvider = ({ children }) => {
     catch { return null; }
   });
 
+  const [appliedJobs, setAppliedJobs] = useState(() => {
+    try {
+      const saved = sessionStorage.getItem('hz_applied_jobs');
+      return saved ? JSON.parse(saved) : [];
+    }
+    catch { return []; }
+  });
+
   // Persist to sessionStorage whenever auth state changes
   useEffect(() => {
     try {
@@ -33,6 +41,7 @@ export const AuthProvider = ({ children }) => {
       } else {
         sessionStorage.removeItem(SESSION_KEY_LOGGED);
         sessionStorage.removeItem('hz_user_data');
+        sessionStorage.removeItem('hz_applied_jobs');
       }
     } catch { /* private browsing */ }
   }, [isLoggedIn]);
@@ -55,15 +64,39 @@ export const AuthProvider = ({ children }) => {
     } catch { /* private browsing */ }
   }, [userData]);
 
+  useEffect(() => {
+    try {
+      sessionStorage.setItem('hz_applied_jobs', JSON.stringify(appliedJobs));
+    } catch { /* private browsing */ }
+  }, [appliedJobs]);
+
+  const applyToJob = (job) => {
+    setAppliedJobs(prev => {
+      if (prev.find(j => j.id === job.id)) return prev;
+      return [...prev, { 
+        ...job, 
+        appliedDate: new Date().toISOString().split('T')[0],
+        status: 'Under Review'
+      }];
+    });
+  };
+
   const logout = () => {
     setIsLoggedIn(false);
     setUserRole(null);
     setUserData(null);
+    setAppliedJobs([]);
     sessionStorage.clear();
   };
 
   return (
-    <AuthContext.Provider value={{ isLoggedIn, setIsLoggedIn, userRole, setUserRole, userData, setUserData, logout }}>
+    <AuthContext.Provider value={{ 
+      isLoggedIn, setIsLoggedIn, 
+      userRole, setUserRole, 
+      userData, setUserData, 
+      appliedJobs, applyToJob,
+      logout 
+    }}>
       {children}
     </AuthContext.Provider>
   );

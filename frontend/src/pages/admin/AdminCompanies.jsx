@@ -153,7 +153,7 @@ const AdminCompanies = () => {
                                 View Profile
                               </button>
                               <button 
-                                onClick={() => navigate(`/admin/users/${company.id}`)}
+                                onClick={() => navigate(`/admin/users/${company.id}`, { state: { openEdit: true } })}
                                 className="w-full flex items-center gap-2 px-4 py-2.5 text-xs font-medium text-neutral-300 hover:bg-white/5 transition-colors"
                               >
                                 <Edit2 size={14} />

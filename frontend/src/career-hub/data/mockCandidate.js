@@ -142,6 +142,8 @@ export const MOCK_NOTIFICATIONS = [
   {
     id: "n1",
     type: "application",
+    companyName: "Wipro",
+    jobTitle: "Frontend Engineer",
     message: "Your application at Wipro has been shortlisted.",
     time: "2 hours ago",
     read: false,
@@ -149,6 +151,8 @@ export const MOCK_NOTIFICATIONS = [
   {
     id: "n2",
     type: "interview",
+    companyName: "Cognizant",
+    jobTitle: "React.js Developer",
     message: "Interview scheduled with Cognizant on June 2, 2025 at 11:00 AM.",
     time: "5 hours ago",
     read: false,
@@ -156,6 +160,7 @@ export const MOCK_NOTIFICATIONS = [
   {
     id: "n3",
     type: "profile",
+    companyName: "TCS",
     message: "Your profile was viewed by a recruiter from TCS.",
     time: "1 day ago",
     read: true,
@@ -163,6 +168,8 @@ export const MOCK_NOTIFICATIONS = [
   {
     id: "n4",
     type: "application",
+    companyName: "HCL Technologies",
+    jobTitle: "UI Developer",
     message: "HCL Technologies has updated your application status.",
     time: "2 days ago",
     read: true,

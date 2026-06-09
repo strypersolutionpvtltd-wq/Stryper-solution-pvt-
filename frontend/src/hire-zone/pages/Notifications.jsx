@@ -34,6 +34,17 @@ const Notifications = () => {
     markRead(n.id);
     if (n.redirectTo) {
       navigate(n.redirectTo);
+      return;
+    }
+    
+    // Fallback logic
+    if (n.type === 'application') navigate('/hire-zone/applicants');
+    else if (n.type === 'interview') navigate('/hire-zone/interviews');
+    else if (n.type === 'offer') navigate('/hire-zone/applicants');
+    else if (n.type === 'system') {
+      if (n.body.toLowerCase().includes('profile')) navigate('/hire-zone/company-profile');
+      else if (n.body.toLowerCase().includes('job')) navigate('/hire-zone/manage-jobs');
+      else navigate('/hire-zone/dashboard');
     }
   };
 
