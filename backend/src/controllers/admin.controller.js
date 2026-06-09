@@ -563,6 +563,133 @@ const getAllApplications = async (req, res) => {
   }
 };
 
+// ─────────────────────────────────────────────────────────────────────────────
+// @desc    Mark or unmark an existing company as a Stryper Partner
+// @route   PATCH /api/v1/admin/companies/:id/partner
+// @access  Private — ADMIN only
+// ─────────────────────────────────────────────────────────────────────────────
+const markAsPartner = async (req, res) => {
+  try {
+    const { isStryperPartner = true, partnerSpecialty, partnerRating, activeHires } = req.body;
+
+    const updateData = {
+      isStryperPartner,
+      // Set partnerSince to now when promoting, clear it when removing
+      partnerSince:     isStryperPartner ? new Date() : null,
+      partnerSpecialty: partnerSpecialty || "",
+    };
+
+    if (partnerRating !== undefined) updateData.partnerRating = partnerRating;
+    if (activeHires   !== undefined) updateData.activeHires   = activeHires;
+
+    const company = await CompanyProfile.findByIdAndUpdate(
+      req.params.id,
+      updateData,
+      { new: true, runValidators: true }
+    );
+
+    if (!company) {
+      return res.status(404).json({
+        success: false,
+        message: "Company not found.",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: isStryperPartner
+        ? "Company is now a Stryper Partner."
+        : "Company removed from Stryper Partners.",
+      company,
+    });
+  } catch (error) {
+    console.error("Admin Mark Partner Error:", error.message);
+    return res.status(500).json({
+      success: false,
+      message: "Server error while updating partner status.",
+    });
+  }
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// @desc    Add a new partner directly from admin panel
+//          Creates a CompanyProfile entry without requiring a User account.
+//          Used when admin wants to add a recruitment partner that is not
+//          yet registered on the platform.
+// @route   POST /api/v1/admin/partners/add
+// @access  Private — ADMIN only
+// ─────────────────────────────────────────────────────────────────────────────
+const addDirectPartner = async (req, res) => {
+  try {
+    const {
+      companyName,
+      industry,
+      companySize,
+      companyDescription,
+      email,
+      phone,
+      location,
+      website,
+      linkedin,
+      hrName,
+      partnerSpecialty,
+      partnerRating,
+      activeHires,
+    } = req.body;
+
+    // 1. Validate required fields for a partner entry
+    if (!companyName || !industry || !email) {
+      return res.status(400).json({
+        success: false,
+        message: "companyName, industry, and email are required.",
+      });
+    }
+
+    // 2. Prevent duplicate partner by email
+    const existing = await CompanyProfile.findOne({ email: email.toLowerCase().trim() });
+    if (existing) {
+      return res.status(409).json({
+        success: false,
+        message: "A company with this email already exists.",
+      });
+    }
+
+    // 3. Create the partner profile
+    //    userId is null — this partner was added directly by admin, not via registration
+    const partner = await CompanyProfile.create({
+      userId:           null,
+      companyName,
+      industry,
+      companySize:       companySize       || "N/A",
+      companyDescription: companyDescription || "",
+      email:             email.toLowerCase().trim(),
+      phone:             phone             || "",
+      location:          location          || "",
+      website:           website           || "",
+      linkedin:          linkedin          || "",
+      hrName:            hrName            || "",
+      isStryperPartner:  true,
+      isVerifiedCompany: true,
+      partnerSince:      new Date(),
+      partnerSpecialty:  partnerSpecialty  || "",
+      partnerRating:     partnerRating     || 0,
+      activeHires:       activeHires       || 0,
+    });
+
+    return res.status(201).json({
+      success: true,
+      message: "Stryper Partner added successfully.",
+      partner,
+    });
+  } catch (error) {
+    console.error("Add Direct Partner Error:", error.message);
+    return res.status(500).json({
+      success: false,
+      message: "Server error while adding partner.",
+    });
+  }
+};
+
 module.exports = {
   getPlatformStats,
   getAllUsers,
@@ -574,4 +701,6 @@ module.exports = {
   updateJobStatus,
   deleteJob,
   getAllApplications,
+  markAsPartner,
+  addDirectPartner,
 };
