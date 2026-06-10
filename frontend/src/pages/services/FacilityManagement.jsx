@@ -1,60 +1,64 @@
+import React from 'react';
 import { motion } from 'framer-motion';
-import { Link } from 'react-router-dom';
 import PageHero from '@/components/shared/PageHero';
 import { fadeInUp, staggerContainer, viewportOnce } from '@/utils/animations';
-import img6 from '@/assets/image/6.jpeg';
+import img5 from '@/assets/image/5.jpeg';
+
+const PURPLE = "#8B3A8F";
 
 const FacilityManagement = () => {
   return (
-    <>
-      <PageHero
-        title="Facility Management"
-        subtitle="Taking care of your facilities with cleaning, security, maintenance, and other support services."
-        breadcrumb="Facility Management"
-        image={img6}
+    <div className="bg-white">
+      <PageHero 
+        title="Facility Management" 
+        subtitle="Comprehensive support for cleaning, maintenance, and security." 
+        breadcrumb="Services / Facility Management"
+        image={img5}
       />
       
-      <section className="section-padding bg-white">
-        <div className="container-base max-w-4xl">
-          <motion.div variants={staggerContainer(0.1)} initial="hidden" whileInView="visible" viewport={viewportOnce}>
-            <motion.h2 variants={fadeInUp} className="text-3xl font-bold text-neutral-900 mb-6 font-display">
-              Complete Facility Support
+      <section className="section-padding">
+        <div className="container-base">
+          <motion.div 
+            variants={staggerContainer(0.1)} 
+            initial="hidden" 
+            whileInView="visible" 
+            viewport={viewportOnce}
+            className="max-w-4xl mx-auto"
+          >
+            <motion.h2 variants={fadeInUp} className="text-3xl font-bold mb-6" style={{ color: PURPLE }}>
+              Taking Care of Your Facilities
             </motion.h2>
-            <motion.p variants={fadeInUp} className="text-neutral-600 leading-relaxed mb-6 text-lg">
-              We take care of all aspects of facility support, from everyday cleaning to complex technical maintenance. Our supervised teams work in all sorts of places: commercial buildings, corporate offices, hospitals, and industrial sites. We ensure your environment remains clean, safe, and fully operational.
+            <motion.p variants={fadeInUp} className="text-lg text-neutral-600 mb-8 leading-relaxed">
+              We take care of all aspects of facility support, from everyday cleaning to complex technical maintenance. 
+              Our supervised teams work in commercial buildings, corporate offices, hospitals, and industrial sites, 
+              ensuring everything runs smoothly.
             </motion.p>
             
-            <motion.div variants={fadeInUp} className="bg-brand-purple-50 rounded-2xl p-8 mb-8 border border-brand-purple-100">
-              <h3 className="text-xl font-bold text-neutral-900 mb-5">Our Expertise Includes:</h3>
-              <ul className="grid sm:grid-cols-2 gap-4">
-                {[
-                  "Housekeeping Staff",
-                  "Office Support Personnel",
-                  "Deep Cleaning Services",
-                  "Electrical & Plumbing Support",
-                  "Commercial Facility Services",
-                  "Security Personnel"
-                ].map(item => (
-                  <li key={item} className="flex items-center gap-3">
-                    <span className="w-6 h-6 rounded-full bg-brand-purple-200 text-brand-purple-700 flex items-center justify-center text-sm font-bold">✓</span>
-                    <span className="text-neutral-700 font-medium">{item}</span>
-                  </li>
-                ))}
-              </ul>
-            </motion.div>
-
-            <motion.div variants={fadeInUp} className="flex flex-wrap items-center gap-4 pt-6">
-                <Link to="/contact" className="px-8 py-3.5 bg-brand-purple-600 text-white font-bold rounded-xl shadow-lg shadow-brand-purple-600/20 hover:bg-brand-purple-700 transition-colors">
-                  Get a Free Consultation
-                </Link>
-                <Link to="/services" className="px-8 py-3.5 bg-white border border-neutral-200 text-neutral-700 font-bold rounded-xl hover:bg-neutral-50 transition-colors">
-                  View All Services
-                </Link>
-            </motion.div>
+            <div className="grid md:grid-cols-2 gap-8 mb-12">
+              <motion.div variants={fadeInUp} className="bg-neutral-50 p-8 rounded-3xl border border-neutral-100">
+                <h3 className="text-xl font-bold mb-4">Our Services</h3>
+                <ul className="space-y-3">
+                  {["Housekeeping Staff", "Office Support Personnel", "Deep Cleaning Services", "Electrical & Plumbing Support", "Commercial Facility Services"].map((item) => (
+                    <li key={item} className="flex items-center gap-3">
+                      <span className="w-2 h-2 rounded-full" style={{ background: PURPLE }} />
+                      <span className="text-neutral-700">{item}</span>
+                    </li>
+                  ))}
+                </ul>
+              </motion.div>
+              
+              <motion.div variants={fadeInUp} className="bg-neutral-50 p-8 rounded-3xl border border-neutral-100">
+                <h3 className="text-xl font-bold mb-4">Quality & Reliability</h3>
+                <p className="text-neutral-600">
+                  With over 80+ facility clients, we maintain 100% SLA compliance. Our staff are trained, supervised, 
+                  and equipped to deliver top-notch facility management services tailored to your environment.
+                </p>
+              </motion.div>
+            </div>
           </motion.div>
         </div>
       </section>
-    </>
+    </div>
   );
 };
 

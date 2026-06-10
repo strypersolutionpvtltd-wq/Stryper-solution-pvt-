@@ -153,6 +153,7 @@ const Contact = () => (
       title="LET’S TALK ABOUT YOUR WORKFORCE NEEDS"
       subtitle="Stryper Solution Pvt. Ltd. Contact us for staffing solutions, workforce support, operational services and business enquiries."
       breadcrumb="Contact"
+      image="https://images.unsplash.com/photo-1497366754035-f200968a6e72?q=80&w=1920&auto=format&fit=crop"
     />
     <ContactInfoGrid />
     <ContactFormSection />
@@ -318,6 +319,22 @@ const ContactFormSection = () => (
             Fill out the form and we will get back to you within 24 hours with a tailored workforce solution proposal.
           </motion.p>
 
+          {/* New Image Block */}
+          <motion.div
+            variants={fadeInUp}
+            className="relative rounded-3xl overflow-hidden mb-10 aspect-[16/9] shadow-medium border border-white"
+          >
+            <img 
+              src="https://images.unsplash.com/photo-1521737711867-e3b97375f902?q=80&w=1000&auto=format&fit=crop" 
+              alt="Our professional team" 
+              className="w-full h-full object-cover"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
+            <div className="absolute bottom-4 left-5">
+              <p className="text-white text-xs font-semibold uppercase tracking-wider">Expert Support Team</p>
+            </div>
+          </motion.div>
+
           {/* Trust points */}
           <motion.div
             variants={staggerContainer(0.08, 0.1)}
@@ -437,13 +454,42 @@ const ContactForm = () => {
     message: "",
   });
   const [submitted, setSubmitted] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
   const [focused, setFocused] = useState("");
 
-  const handleChange = (e) =>
+  const handleChange = (e) => {
     setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
-  const handleSubmit = (e) => {
+    if (error) setError("");
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    setSubmitted(true);
+    setLoading(true);
+    setError("");
+
+    try {
+      const response = await fetch("http://localhost:8080/api/v1/contact", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(form),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        setSubmitted(true);
+      } else {
+        setError(data.message || "Failed to send message. Please try again.");
+      }
+    } catch (err) {
+      console.error("Submission error:", err);
+      setError("Unable to connect to the server. Please check your internet or try again later.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   if (submitted) {
@@ -500,6 +546,11 @@ const ContactForm = () => {
       noValidate
       className="bg-white rounded-3xl p-7 lg:p-9 border border-neutral-100 shadow-medium space-y-5"
     >
+      {error && (
+        <div className="p-3.5 rounded-xl bg-red-50 border border-red-100 text-red-600 text-xs font-medium animate-in fade-in slide-in-from-top-2 duration-300">
+          {error}
+        </div>
+      )}
       {/* Row 1: Name + Company */}
       <div className="grid sm:grid-cols-2 gap-4">
         <div>
@@ -1035,8 +1086,11 @@ const ContactCTA = () => (
             </a>
           </motion.div>
           <motion.div whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.97 }}>
-            <a
-              href="#form-heading"
+            <button
+              onClick={() => {
+                const el = document.getElementById('form-heading');
+                if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+              }}
               className="inline-flex items-center gap-2.5 px-8 py-4 rounded-xl text-white text-base font-semibold border transition-colors duration-200"
               style={{
                 borderColor: "rgba(255,255,255,0.3)",
@@ -1044,7 +1098,7 @@ const ContactCTA = () => (
               }}
             >
               Send Inquiry
-            </a>
+            </button>
           </motion.div>
         </motion.div>
       </motion.div>

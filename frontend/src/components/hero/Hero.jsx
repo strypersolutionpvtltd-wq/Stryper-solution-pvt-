@@ -125,7 +125,7 @@ const Hero = () => {
               <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-6 mt-4">
                 <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
                   <Link
-                    to="/services"
+                    to="/contact"
                     className="flex items-center justify-center gap-2 px-5 sm:px-10 py-2.5 sm:py-4 rounded-xl font-bold text-white transition-all duration-300"
                     style={{
                       background: "linear-gradient(135deg, #8B3A8F, #6d2b70)",
@@ -133,7 +133,7 @@ const Hero = () => {
                       fontSize: "clamp(0.75rem, 2.5vw, 0.875rem)"
                     }}
                   >
-                    Explore Services
+                    Get Consultation
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="sm:w-[18px] sm:h-[18px]">
                       <line x1="5" y1="12" x2="19" y2="12"></line>
                       <polyline points="12 5 19 12 12 19"></polyline>

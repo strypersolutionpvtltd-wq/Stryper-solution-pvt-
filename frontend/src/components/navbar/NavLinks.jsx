@@ -21,8 +21,8 @@ const NavLinks = () => (
               'relative inline-flex items-center px-4 py-2 text-sm font-medium rounded-lg',
               'transition-colors duration-200 select-none',
               isActive
-                ? 'text-brand-purple-600 font-bold'
-                : 'text-neutral-600 hover:text-brand-purple-500',
+                ? 'text-white font-bold'
+                : 'text-white/70 hover:text-white',
             ].join(' ')}
           >
             {label}

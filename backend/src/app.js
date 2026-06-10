@@ -60,6 +60,9 @@ app.use("/api/v1/admin", adminRoutes);
 const dashboardRoutes = require("./routes/dashboard.routes");
 app.use("/api/v1/dashboard", dashboardRoutes);
 
+const contactRoutes = require("./routes/contact.routes");
+app.use("/api/v1/contact", contactRoutes);
+
 // 404 handler
 app.use((req, res) => {
   res.status(404).json({ success: false, message: "Route not found" });

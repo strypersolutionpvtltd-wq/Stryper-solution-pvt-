@@ -85,8 +85,8 @@ const AboutPreview = () => (
 
           <motion.div variants={fadeInUp}>
             <motion.div className="inline-block" whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
-              <Link to="/about" className="inline-flex items-center gap-2.5 px-7 py-3.5 rounded-xl bg-brand-purple-600 text-white text-sm font-semibold shadow-purple hover:bg-brand-purple-700 transition-all duration-250">
-                Learn More About Us
+              <Link to="/contact" className="inline-flex items-center gap-2.5 px-7 py-3.5 rounded-xl bg-brand-purple-600 text-white text-sm font-semibold shadow-purple hover:bg-brand-purple-700 transition-all duration-250">
+                Talk to Us
                 <svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden="true"><path d="M3 7.5h9M8 3.5l4 4-4 4" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" /></svg>
               </Link>
             </motion.div>

@@ -280,19 +280,46 @@ const PostJobForm = () => {
 
   const handleSubmit = (draft = false) => {
     if (draft) {
-      setIsDraft(true);
-      setSubmitted(true);
-      return;
+      // For draft, we at least need a title
+      if (!form.title.trim()) {
+        setErrors({ title: 'Please enter a job title to save as draft' });
+        const first = document.querySelector('[data-error="true"]');
+        if (first) first.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        return;
+      }
+    } else {
+      const errs = validate();
+      if (Object.keys(errs).length) {
+        setErrors(errs);
+        // Scroll to first error
+        const first = document.querySelector('[data-error="true"]');
+        if (first) first.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        return;
+      }
     }
-    const errs = validate();
-    if (Object.keys(errs).length) {
-      setErrors(errs);
-      // Scroll to first error
-      const first = document.querySelector('[data-error="true"]');
-      if (first) first.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      return;
+
+    // Save to localStorage
+    try {
+      const saved = localStorage.getItem('hz_posted_jobs');
+      const jobs = saved ? JSON.parse(saved) : [];
+      
+      const newJob = {
+        ...form,
+        id: Date.now(),
+        status: draft ? 'Draft' : 'Active',
+        postedDate: new Date().toISOString().split('T')[0],
+        applicants: 0,
+        salary: form.salaryMin && form.salaryMax ? `₹${form.salaryMin}-${form.salaryMax} Monthly` : form.salaryMin ? `₹${form.salaryMin} Monthly` : 'Not Specified',
+        experience: form.experienceLevel,
+        workMode: 'Hybrid', // Default or extract from location if needed
+      };
+
+      localStorage.setItem('hz_posted_jobs', JSON.stringify([newJob, ...jobs]));
+    } catch (e) {
+      console.error('Failed to save job:', e);
     }
-    setIsDraft(false);
+
+    setIsDraft(draft);
     setSubmitted(true);
   };
 

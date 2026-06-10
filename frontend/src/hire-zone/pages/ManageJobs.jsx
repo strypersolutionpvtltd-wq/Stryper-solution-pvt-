@@ -8,7 +8,7 @@ import StatusBadge from '@/hire-zone/components/shared/StatusBadge';
 import { MOCK_JOBS } from '@/hire-zone/data/mockJobs';
 import toast from 'react-hot-toast';
 
-const STATUS_FILTERS = ['All', 'Active', 'Paused', 'Closed'];
+const STATUS_FILTERS = ['All', 'Active', 'Draft', 'Paused', 'Closed'];
 
 // ── Edit Job Modal ──────────────────────────────────────────────────────────
 const EditJobModal = ({ job, onClose, onSave }) => {
@@ -376,7 +376,10 @@ const JobDetailModal = ({ job, onClose, onEdit }) => {
 
 // ── Main Page ─────────────────────────────────────────────────────────────────
 const ManageJobs = () => {
-  const [jobs, setJobs]             = useState(MOCK_JOBS);
+  const [jobs, setJobs] = useState(() => {
+    const saved = localStorage.getItem('hz_posted_jobs');
+    return saved ? JSON.parse(saved) : MOCK_JOBS;
+  });
   const [search, setSearch]         = useState('');
   const [statusFilter, setStatusFilter] = useState('All');
   const navigate = useNavigate();
@@ -391,30 +394,36 @@ const ManageJobs = () => {
   });
 
   const handleAction = (id, action) => {
+    let nextJobs = [...jobs];
     if (action === 'view') {
       navigate('/hire-zone/applicants');
       return;
     }
     if (action === 'delete') {
-      setJobs(prev => prev.filter(j => j.id !== id));
+      nextJobs = jobs.filter(j => j.id !== id);
     } else {
-      setJobs(prev => prev.map(j => {
+      nextJobs = jobs.map(j => {
         if (j.id !== id) return j;
         if (action === 'toggle') return { ...j, status: j.status === 'Active' ? 'Paused' : 'Active' };
         if (action === 'close')  return { ...j, status: 'Closed' };
         return j;
-      }));
+      });
     }
+    setJobs(nextJobs);
+    localStorage.setItem('hz_posted_jobs', JSON.stringify(nextJobs));
   };
 
   const handleSaveJob = (updatedJob) => {
-    setJobs(prev => prev.map(j => j.id === updatedJob.id ? updatedJob : j));
+    const nextJobs = jobs.map(j => j.id === updatedJob.id ? updatedJob : j);
+    setJobs(nextJobs);
+    localStorage.setItem('hz_posted_jobs', JSON.stringify(nextJobs));
     setEditingJob(null);
   };
 
   const counts = {
     All:    jobs.length,
     Active: jobs.filter(j => j.status === 'Active').length,
+    Draft:  jobs.filter(j => j.status === 'Draft').length,
     Paused: jobs.filter(j => j.status === 'Paused').length,
     Closed: jobs.filter(j => j.status === 'Closed').length,
   };
