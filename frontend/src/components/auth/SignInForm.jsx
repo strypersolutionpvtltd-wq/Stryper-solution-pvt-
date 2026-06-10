@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import ReCAPTCHA from "react-google-recaptcha";
+import { useGoogleReCaptcha } from 'react-google-recaptcha-v3';
 import GoogleIcon from './GoogleIcon';
 import { useAuth } from '@/context/AuthContext';
 import logoImg from "@/assets/image/logo.jpeg";
@@ -10,78 +10,49 @@ import toast from 'react-hot-toast';
 const SignInForm = ({ onSwitchToSignUp, onClose, hideHeader }) => {
   const [form, setForm] = useState({ email: '', password: '' });
   const [showPass, setShowPass] = useState(false);
-  const [captchaVerified, setCaptchaVerified] = useState(false);
-  const { setIsLoggedIn, setUserRole, setUserData } = useAuth();
+  const [submitting, setSubmitting] = useState(false);
+  const { login } = useAuth();
   const navigate = useNavigate();
+  const { executeRecaptcha } = useGoogleReCaptcha();
 
   const handleChange = (e) => setForm(p => ({ ...p, [e.target.name]: e.target.value }));
 
-  const onCaptchaChange = (value) => {
-    if (value) setCaptchaVerified(true);
-  };
-
-  const handleGoogleLogin = () => {
-    toast.promise(
-      new Promise((resolve) => setTimeout(resolve, 1500)),
-      {
-        loading: 'Connecting to Google Securely...',
-        success: 'Successfully authenticated with Google!',
-        error: 'Google Auth failed.',
-      }
-    ).then(() => {
-      setUserData({ fullName: 'Google User', email: 'user@gmail.com', title: 'Job Seeker' });
-      setUserRole('candidate');
-      setIsLoggedIn(true);
-      if (onClose) onClose();
-      navigate('/career-hub/profile', { replace: true });
-    });
-  };
-
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const email = form.email.toLowerCase().trim();
-    const password = form.password;
+    if (!form.email || !form.password) {
+      toast.error('Email and password are required.');
+      return;
+    }
 
-    // 1. Admin Logic (Absolute Priority & Strict)
-    if (email === 'admin@stryper.com') {
-      if (password === 'stryperadmin123') {
-        setUserData({ fullName: 'Super Admin', email: 'admin@stryper.com', title: 'System Administrator' });
-        setUserRole('admin');
-        setIsLoggedIn(true);
-        if (onClose) onClose();
-        navigate('/admin/dashboard', { replace: true });
-      } else {
-        alert("Incorrect Admin Password!");
+    setSubmitting(true);
+    try {
+      let captchaToken = null;
+      try {
+        if (executeRecaptcha) {
+          captchaToken = await executeRecaptcha('login');
+        }
+      } catch (captchaErr) {
+        console.warn('reCAPTCHA token fetch failed, proceeding without it:', captchaErr.message);
       }
-      return;
-    }
 
-    // 2. Captcha Check for regular users
-    if (!captchaVerified) {
-      alert("Please verify that you are not a robot.");
-      return;
-    }
+      const result = await login(form.email.toLowerCase().trim(), form.password, captchaToken);
 
-    // 3. Regular Role Logic
-    let role = 'candidate';
-    let name = 'Candidate User';
-    
-    if (email.includes('company')) {
-      role = 'company';
-      name = 'Company Manager';
-    } else {
-      // For any other login, use a generic name instead of hardcoded Rahul
-      name = email.split('@')[0].charAt(0).toUpperCase() + email.split('@')[0].slice(1);
-    }
-
-    setUserData({ fullName: name, email: email, title: role === 'company' ? 'Hiring Manager' : 'Job Seeker' });
-    setUserRole(role);
-    setIsLoggedIn(true);
-    if (onClose) onClose();
-    
-    if (role === 'company') {
-      navigate('/hire-zone/dashboard', { replace: true });
+      if (result.success) {
+        toast.success('Welcome back!');
+        if (onClose) onClose();
+        const role = result.data.role?.toUpperCase();
+        if (role === 'ADMIN') navigate('/admin/dashboard', { replace: true });
+        else if (role === 'COMPANY') navigate('/hire-zone/dashboard', { replace: true });
+        else navigate('/career-hub/profile', { replace: true });
+      } else {
+        toast.error(result.message || 'Login failed.');
+      }
+    } catch (error) {
+      console.error('Login error:', error);
+      toast.error(error?.response?.data?.message || 'An error occurred. Please try again.');
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -173,23 +144,18 @@ const SignInForm = ({ onSwitchToSignUp, onClose, hideHeader }) => {
           </div>
         </div>
 
-        {/* Google ReCAPTCHA */}
-        <div className="flex justify-center py-2">
-          <ReCAPTCHA
-            sitekey="6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI" // Test site key
-            onChange={onCaptchaChange}
-            theme="light"
-          />
-        </div>
 
         <motion.button
           whileHover={{ scale: 1.01 }}
-          whileTap={{ scale: 0.98 }}
+          whileTap={{ scale: submitting ? 1 : 0.98 }}
           type="submit"
-          className="w-full py-3 rounded-xl text-white text-sm font-semibold transition-colors mt-2"
+          disabled={submitting}
+          className="w-full py-3 rounded-xl text-white text-sm font-semibold transition-colors mt-2 disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
           style={{ background: '#8B3A8F' }}
         >
-          Sign In
+          {submitting ? (
+            <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+          ) : 'Sign In'}
         </motion.button>
       </form>
 

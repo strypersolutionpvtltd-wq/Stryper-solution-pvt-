@@ -1,7 +1,9 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import SectionHeader from '@/hire-zone/components/shared/SectionHeader';
+import { notifications as notificationsAPI } from '@/utils/api';
+import toast from 'react-hot-toast';
 
 const MOCK_NOTIFICATIONS = [
   { id: 1,  type: 'application', title: 'New Application Received',       body: 'Priya Sharma applied for Frontend Developer.',       time: '2 min ago',   read: false, color: '#8B3A8F', emoji: '📩', redirectTo: '/hire-zone/applicants' },
@@ -9,11 +11,6 @@ const MOCK_NOTIFICATIONS = [
   { id: 3,  type: 'application', title: '5 New Applications',             body: 'Backend Developer role received 5 new applicants.',  time: '1 hr ago',    read: false, color: '#8B3A8F', emoji: '📩', redirectTo: '/hire-zone/applicants' },
   { id: 4,  type: 'offer',       title: 'Offer Accepted',                 body: 'Sneha Patel accepted the offer for UI/UX Designer.', time: '3 hrs ago',   read: false, color: '#16a34a', emoji: '🎉', redirectTo: '/hire-zone/dashboard' },
   { id: 5,  type: 'interview',   title: 'Interview Completed',            body: 'Anjali Singh\'s interview has been marked done.',    time: '5 hrs ago',   read: true,  color: '#2563eb', emoji: '✅', redirectTo: '/hire-zone/interviews' },
-  { id: 6,  type: 'system',      title: 'Job Posting Expiring Soon',      body: 'DevOps Engineer posting expires in 3 days.',         time: '1 day ago',   read: true,  color: '#d97706', emoji: '⚠️', redirectTo: '/hire-zone/manage-jobs' },
-  { id: 7,  type: 'application', title: 'New Application Received',       body: 'Amit Joshi applied for Data Analyst.',               time: '1 day ago',   read: true,  color: '#8B3A8F', emoji: '📩', redirectTo: '/hire-zone/applicants' },
-  { id: 8,  type: 'system',      title: 'Profile Incomplete',             body: 'Complete your company profile to attract more candidates.', time: '2 days ago', read: true, color: '#ea580c', emoji: '🔔', redirectTo: '/hire-zone/company-profile' },
-  { id: 9,  type: 'offer',       title: 'Offer Declined',                 body: 'Karan Mehta declined the offer for Backend Developer.', time: '2 days ago', read: true, color: '#ea580c', emoji: '❌', redirectTo: '/hire-zone/dashboard' },
-  { id: 10, type: 'system',      title: 'Monthly Report Ready',           body: 'Your January hiring report is now available.',       time: '3 days ago',  read: true,  color: '#0d9488', emoji: '📊', redirectTo: '/hire-zone/analytics' },
 ];
 
 const TYPE_FILTERS = ['All', 'application', 'interview', 'offer', 'system'];
@@ -22,29 +19,71 @@ const Notifications = () => {
   const navigate = useNavigate();
   const [notifications, setNotifications] = useState(MOCK_NOTIFICATIONS);
   const [filter, setFilter] = useState('All');
+  const [loading, setLoading] = useState(true);
+
+  // Fetch notifications
+  useEffect(() => {
+    const fetchNotifications = async () => {
+      try {
+        const res = await notificationsAPI.getAll();
+        const data = (res.data.notifications || []).map(n => ({
+          id: n._id,
+          type: n.type || 'system',
+          title: n.title,
+          body: n.message,
+          time: new Date(n.createdAt).toLocaleString(),
+          read: n.isRead,
+          color: '#8B3A8F',
+          emoji: '🔔',
+          redirectTo: '/hire-zone/dashboard',
+        }));
+        setNotifications(data.length > 0 ? data : MOCK_NOTIFICATIONS);
+      } catch (error) {
+        console.error('Failed to fetch notifications:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchNotifications();
+  }, []);
 
   const filtered = filter === 'All' ? notifications : notifications.filter(n => n.type === filter);
   const unreadCount = notifications.filter(n => !n.read).length;
 
-  const markAllRead = () => setNotifications(p => p.map(n => ({ ...n, read: true })));
-  const markRead = (id) => setNotifications(p => p.map(n => n.id === id ? { ...n, read: true } : n));
-  const dismiss = (id) => setNotifications(p => p.filter(n => n.id !== id));
+  const markAllRead = async () => {
+    try {
+      await notificationsAPI.markAllAsRead();
+      setNotifications(p => p.map(n => ({ ...n, read: true })));
+      toast.success('All notifications marked as read');
+    } catch (error) {
+      console.error('Failed to mark as read:', error);
+    }
+  };
+
+  const markRead = async (id) => {
+    try {
+      await notificationsAPI.markOneAsRead(id);
+      setNotifications(p => p.map(n => n.id === id ? { ...n, read: true } : n));
+    } catch (error) {
+      console.error('Failed to mark as read:', error);
+    }
+  };
+
+  const dismiss = async (id) => {
+    try {
+      await notificationsAPI.delete(id);
+      setNotifications(p => p.filter(n => n.id !== id));
+      toast.success('Notification dismissed');
+    } catch (error) {
+      console.error('Failed to delete notification:', error);
+    }
+  };
 
   const handleNotificationClick = (n) => {
     markRead(n.id);
     if (n.redirectTo) {
       navigate(n.redirectTo);
-      return;
-    }
-    
-    // Fallback logic
-    if (n.type === 'application') navigate('/hire-zone/applicants');
-    else if (n.type === 'interview') navigate('/hire-zone/interviews');
-    else if (n.type === 'offer') navigate('/hire-zone/applicants');
-    else if (n.type === 'system') {
-      if (n.body.toLowerCase().includes('profile')) navigate('/hire-zone/company-profile');
-      else if (n.body.toLowerCase().includes('job')) navigate('/hire-zone/manage-jobs');
-      else navigate('/hire-zone/dashboard');
     }
   };
 

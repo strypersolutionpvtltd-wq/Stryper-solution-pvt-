@@ -1,4 +1,5 @@
 export const CAREER_HUB_NAV = [
+  { label: "Dashboard",     path: "/career-hub/dashboard", icon: "grid"       },
   { label: "My Profile",    path: "/career-hub/profile",     icon: "user"       },
   { label: "Interviews",    path: "/career-hub/interviews",  icon: "video"      },
   { label: "Resume",        path: "/career-hub/resume",      icon: "file-text"  },

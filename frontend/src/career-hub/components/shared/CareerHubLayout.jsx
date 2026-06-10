@@ -31,8 +31,9 @@ export const CareerHubLayout = () => {
  * CareerHubGuard — only allows candidates through.
  */
 const CareerHubGuard = () => {
-  const { isLoggedIn, userRole } = useAuth();
-  if (isLoggedIn && userRole === 'candidate') return <CareerHubLayout />;
+  const { isLoggedIn, userRole, loading } = useAuth();
+  if (loading) return null;
+  if (isLoggedIn && userRole?.toUpperCase() === 'CANDIDATE') return <CareerHubLayout />;
   return <Navigate to="/" replace />;
 };
 

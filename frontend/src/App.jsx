@@ -19,6 +19,7 @@ import NotFound    from '@/pages/NotFound';
 
 // Career Hub layout + pages
 import CareerHubGuard   from '@/career-hub/components/shared/CareerHubLayout';
+import CHDashboard      from '@/career-hub/pages/Dashboard';
 import CHProfile        from '@/career-hub/pages/Profile';
 import CHInterviews     from '@/career-hub/pages/Interviews';
 import CHResume         from '@/career-hub/pages/Resume';
@@ -60,8 +61,9 @@ import RestrictedAccess from '@/pages/RestrictedAccess';
  * Redirects to /restricted-area if not authenticated as admin.
  */
 const AdminGuard = () => {
-  const { isLoggedIn, userRole } = useAuth();
-  if (isLoggedIn && userRole === 'admin') return <AdminLayout />;
+  const { isLoggedIn, userRole, loading } = useAuth();
+  if (loading) return null;
+  if (isLoggedIn && userRole?.toUpperCase() === 'ADMIN') return <AdminLayout />;
   return <Navigate to="/restricted-area" replace />;
 };
 
@@ -70,8 +72,9 @@ const AdminGuard = () => {
  * Renders HireZoneLayout (which contains <Outlet />) when authenticated.
  */
 const HireZoneGuard = () => {
-  const { isLoggedIn, userRole } = useAuth();
-  if (isLoggedIn && userRole === 'company') return <HireZoneLayout />;
+  const { isLoggedIn, userRole, loading } = useAuth();
+  if (loading) return null;
+  if (isLoggedIn && userRole?.toUpperCase() === 'COMPANY') return <HireZoneLayout />;
   return <Navigate to="/" replace />;
 };
 
@@ -80,12 +83,14 @@ const HireZoneGuard = () => {
  * Renders MainLayout (which contains <Outlet />) for everyone else.
  */
 const PublicGuard = () => {
-  const { isLoggedIn, userRole } = useAuth();
+  const { isLoggedIn, userRole, loading } = useAuth();
   const { pathname } = useLocation();
 
+  if (loading) return null;
+
   if (isLoggedIn && pathname === '/') {
-    if (userRole === 'company') return <Navigate to="/hire-zone/dashboard" replace />;
-    if (userRole === 'admin') return <Navigate to="/admin/dashboard" replace />;
+    if (userRole?.toUpperCase() === 'COMPANY') return <Navigate to="/hire-zone/dashboard" replace />;
+    if (userRole?.toUpperCase() === 'ADMIN') return <Navigate to="/admin/dashboard" replace />;
   }
   return <MainLayout />;
 };
@@ -122,6 +127,7 @@ function App() {
         {/* Career Hub — nested inside MainLayout, guarded by role */}
         <Route path="/career-hub" element={<CareerHubGuard />}>
           <Route index element={<Navigate to="/career-hub/profile" replace />} />
+          <Route path="dashboard"     element={<CHDashboard />} />
           <Route path="profile"       element={<CHProfile />} />
           <Route path="interviews"    element={<CHInterviews />} />
           <Route path="resume"        element={<CHResume />} />

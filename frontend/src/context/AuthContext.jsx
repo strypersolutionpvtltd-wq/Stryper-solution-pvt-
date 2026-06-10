@@ -1,112 +1,133 @@
 import { createContext, useContext, useState, useEffect } from 'react';
+import { auth } from '../utils/api';
 
 const AuthContext = createContext(null);
 
-const SESSION_KEY_LOGGED = 'hz_logged_in';
-const SESSION_KEY_ROLE   = 'hz_user_role';
+const STORAGE_KEYS = {
+  token: 'stryper_token',
+  user: 'stryper_user',
+};
 
 export const AuthProvider = ({ children }) => {
-  // Restore session from sessionStorage on mount
-  const [isLoggedIn, setIsLoggedIn] = useState(() => {
-    try { return sessionStorage.getItem(SESSION_KEY_LOGGED) === 'true'; }
-    catch { return false; }
-  });
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [userRole, setUserRole] = useState(null);
+  const [userData, setUserData] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  const [userRole, setUserRole] = useState(() => {
-    try { return sessionStorage.getItem(SESSION_KEY_ROLE) || null; }
-    catch { return null; }
-  });
+  // Restore session from localStorage on mount
+  useEffect(() => {
+    const token = localStorage.getItem(STORAGE_KEYS.token);
+    const user = localStorage.getItem(STORAGE_KEYS.user);
 
-  const [userData, setUserData] = useState(() => {
-    try { 
-      const saved = sessionStorage.getItem('hz_user_data');
-      return saved ? JSON.parse(saved) : null;
+    if (token && user) {
+      try {
+        const parsedUser = JSON.parse(user);
+        setUserData(parsedUser);
+        setUserRole(parsedUser.role);
+        setIsLoggedIn(true);
+      } catch (e) {
+        localStorage.removeItem(STORAGE_KEYS.token);
+        localStorage.removeItem(STORAGE_KEYS.user);
+      }
     }
-    catch { return null; }
-  });
+    setLoading(false);
+  }, []);
 
-  const [appliedJobs, setAppliedJobs] = useState(() => {
+  const register = async (email, password, role, captchaToken) => {
     try {
-      const saved = sessionStorage.getItem('hz_applied_jobs');
-      return saved ? JSON.parse(saved) : [];
+      const response = await auth.register({ email, password, role, captchaToken });
+      const { token, user } = response.data;
+
+      // Auto-login: store token and user just like login does
+      if (token && user) {
+        localStorage.setItem(STORAGE_KEYS.token, token);
+        localStorage.setItem(STORAGE_KEYS.user, JSON.stringify(user));
+        setUserData(user);
+        setUserRole(user.role);
+        setIsLoggedIn(true);
+      }
+
+      return { success: true, data: response.data };
+    } catch (error) {
+      return {
+        success: false,
+        message: error.response?.data?.message || 'Registration failed',
+      };
     }
-    catch { return []; }
-  });
+  };
 
-  // Persist to sessionStorage whenever auth state changes
-  useEffect(() => {
-    try {
-      if (isLoggedIn) {
-        sessionStorage.setItem(SESSION_KEY_LOGGED, 'true');
-      } else {
-        sessionStorage.removeItem(SESSION_KEY_LOGGED);
-        sessionStorage.removeItem('hz_user_data');
-        sessionStorage.removeItem('hz_applied_jobs');
-      }
-    } catch { /* private browsing */ }
-  }, [isLoggedIn]);
-
-  useEffect(() => {
-    try {
-      if (userRole) {
-        sessionStorage.setItem(SESSION_KEY_ROLE, userRole);
-      } else {
-        sessionStorage.removeItem(SESSION_KEY_ROLE);
-      }
-    } catch { /* private browsing */ }
-  }, [userRole]);
-
-  useEffect(() => {
-    try {
-      if (userData) {
-        sessionStorage.setItem('hz_user_data', JSON.stringify(userData));
-      } else {
-        sessionStorage.removeItem('hz_user_data');
-      }
-    } catch { /* private browsing */ }
-  }, [userData]);
-
-  useEffect(() => {
-    try {
-      if (appliedJobs && appliedJobs.length > 0) {
-        sessionStorage.setItem('hz_applied_jobs', JSON.stringify(appliedJobs));
-      } else {
-        sessionStorage.removeItem('hz_applied_jobs');
-      }
-    } catch { /* private browsing */ }
-  }, [appliedJobs]);
-
-  const applyToJob = (job) => {
-    setAppliedJobs(prev => {
-      if (prev.find(j => j.id === job.id)) return prev;
-      return [...prev, { 
-        ...job, 
-        appliedDate: new Date().toISOString().split('T')[0],
-        status: 'Under Review'
-      }];
+  // Update userData in context + localStorage (used after profile fetch)
+  const updateUserData = (updates) => {
+    setUserData(prev => {
+      const updated = { ...prev, ...updates };
+      localStorage.setItem(STORAGE_KEYS.user, JSON.stringify(updated));
+      return updated;
     });
   };
 
-  const logout = () => {
-    // Clear all auth-related states immediately to trigger re-renders and redirects
+  const login = async (email, password) => {
+    try {
+      const response = await auth.login({ email, password });
+      const { token, user } = response.data;
+
+      // Store token and user in localStorage
+      localStorage.setItem(STORAGE_KEYS.token, token);
+      localStorage.setItem(STORAGE_KEYS.user, JSON.stringify(user));
+
+      // Update auth state
+      setUserData(user);
+      setUserRole(user.role);
+      setIsLoggedIn(true);
+
+      return { success: true, data: user };
+    } catch (error) {
+      return {
+        success: false,
+        message: error.response?.data?.message || 'Login failed',
+      };
+    }
+  };
+
+  const logout = async () => {
+    try {
+      await auth.logout();
+    } catch (e) {
+      // Ignore errors on logout
+    }
+
+    // Clear localStorage and state
+    localStorage.removeItem(STORAGE_KEYS.token);
+    localStorage.removeItem(STORAGE_KEYS.user);
     setIsLoggedIn(false);
     setUserRole(null);
     setUserData(null);
-    setAppliedJobs([]);
-    
+  };
+
+  const getMe = async () => {
     try {
-      sessionStorage.clear();
-    } catch (e) {}
+      const response = await auth.getMe();
+      const user = response.data.user;
+      setUserData(user);
+      return user;
+    } catch (error) {
+      return null;
+    }
   };
 
   return (
-    <AuthContext.Provider value={{ 
-      isLoggedIn, setIsLoggedIn, 
-      userRole, setUserRole, 
-      userData, setUserData, 
-      appliedJobs, applyToJob,
-      logout
-    }}>
+    <AuthContext.Provider
+      value={{
+        isLoggedIn,
+        userRole,
+        userData,
+        loading,
+        register,
+        login,
+        logout,
+        getMe,
+        updateUserData,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );

@@ -1,9 +1,12 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import { useAuth } from '@/context/AuthContext';
 import SectionHeader from '@/hire-zone/components/shared/SectionHeader';
 import StatusBadge from '@/hire-zone/components/shared/StatusBadge';
 import ApplicantDetailModal from '@/hire-zone/components/applicants/ApplicantDetailModal';
+import { jobApplications, jobs as jobsAPI } from '@/utils/api';
 import { MOCK_APPLICANTS } from '@/hire-zone/data/mockApplicants';
+import toast from 'react-hot-toast';
 
 const STAGES = ['All', 'Applied', 'Screening', 'Interview', 'Offer', 'Hired', 'Rejected'];
 const AVATAR_COLORS = ['#8B3A8F', '#2563eb', '#0d9488', '#d97706', '#ea580c', '#16a34a'];
@@ -11,10 +14,13 @@ const AVATAR_COLORS = ['#8B3A8F', '#2563eb', '#0d9488', '#d97706', '#ea580c', '#
 const PIPELINE_STAGES = ['Applied', 'Screening', 'Interview', 'Offer', 'Hired'];
 
 const Applicants = () => {
+  const { isLoggedIn } = useAuth();
   const [applicants, setApplicants] = useState(MOCK_APPLICANTS);
   const [stageFilter, setStageFilter] = useState('All');
   const [search, setSearch] = useState('');
   const [selected, setSelected] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [companyJobs, setCompanyJobs] = useState([]);
 
   const filtered = applicants.filter(a => {
     const matchStage  = stageFilter === 'All' || a.stage === stageFilter;

@@ -27,8 +27,13 @@ const Initials = ({ name }) => {
 };
 
 const CareerHubSidebar = () => {
-  const c = MOCK_CANDIDATE;
-  const { logout } = useAuth();
+  const { userData, logout } = useAuth();
+  
+  // Use real data from auth, fallback gracefully
+  const fullName = userData?.fullName || userData?.email?.split('@')[0] || 'Account';
+  const title = userData?.title || 'Job Seeker';
+  const location = userData?.location || '';
+  const profileCompletion = 30; // base score, will increase as profile is filled
 
   return (
     <>
@@ -42,23 +47,23 @@ const CareerHubSidebar = () => {
               className="w-16 h-16 rounded-full flex items-center justify-center text-white text-xl font-bold mb-3"
               style={{ background: 'linear-gradient(135deg, #8B3A8F, #6d2b70)' }}
             >
-              <Initials name={c.fullName} />
+              <Initials name={fullName} />
             </div>
-            <p className="font-semibold text-neutral-800 text-sm leading-tight">{c.fullName}</p>
-            <p className="text-xs text-neutral-500 mt-0.5">{c.title}</p>
-            <p className="text-xs text-neutral-400 mt-0.5">{c.location}</p>
+            <p className="font-semibold text-neutral-800 text-sm leading-tight">{fullName}</p>
+            <p className="text-xs text-neutral-500 mt-0.5">{title}</p>
+            <p className="text-xs text-neutral-400 mt-0.5">{location}</p>
           </div>
 
           {/* Profile completion */}
           <div>
             <div className="flex items-center justify-between mb-1.5">
               <span className="text-xs text-neutral-500 font-medium">Profile Strength</span>
-              <span className="text-xs font-bold" style={{ color: '#8B3A8F' }}>{c.profileCompletion}%</span>
+              <span className="text-xs font-bold" style={{ color: '#8B3A8F' }}>{profileCompletion}%</span>
             </div>
             <div className="w-full h-1.5 bg-neutral-100 rounded-full overflow-hidden">
               <div
                 className="h-full rounded-full transition-all duration-500"
-                style={{ width: `${c.profileCompletion}%`, background: 'linear-gradient(90deg, #8B3A8F, #b05ab5)' }}
+                style={{ width: `${profileCompletion}%`, background: 'linear-gradient(90deg, #8B3A8F, #b05ab5)' }}
               />
             </div>
             <p className="text-[11px] text-neutral-400 mt-1.5">Add experience to reach 100%</p>

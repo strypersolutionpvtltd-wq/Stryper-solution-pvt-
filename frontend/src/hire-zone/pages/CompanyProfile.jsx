@@ -1,16 +1,17 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import { companyProfile } from '@/utils/api';
 import SectionHeader from '@/hire-zone/components/shared/SectionHeader';
 import toast from 'react-hot-toast';
 
 const MOCK_COMPANY = {
-  name:        'Stryper Solution Pvt. Ltd.',
+  companyName: 'Stryper Solution Pvt. Ltd.',
   industry:    'Staffing & Recruitment',
-  size:        '51-200 employees',
+  companySize: '51-200 employees',
   website:     'www.strypersolution.com',
   location:    'Gurugram, Haryana, India',
   founded:     '2018',
-  about:       'Stryper Solution is a leading workforce solutions company specializing in industrial staffing, contract hiring, and HR consulting. We connect businesses with vetted talent across manufacturing, logistics, IT, and more.',
+  companyDescription: 'Stryper Solution is a leading workforce solutions company specializing in industrial staffing, contract hiring, and HR consulting.',
   email:       'hr@strypersolution.com',
   phone:       '+91 98765 43210',
   linkedin:    'linkedin.com/company/stryper-solution',
@@ -28,16 +29,55 @@ const inputCls = 'w-full px-4 py-2.5 rounded-xl border border-neutral-200 text-s
 const CompanyProfile = () => {
   const [editing, setEditing] = useState(false);
   const [form, setForm] = useState(MOCK_COMPANY);
+  const [loading, setLoading] = useState(true);
+
+  // Fetch company profile on mount
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const res = await companyProfile.getMe();
+        const data = res.data.company || res.data.data || MOCK_COMPANY;
+        setForm({
+          companyName: data.companyName || MOCK_COMPANY.companyName,
+          industry: data.industry || '',
+          companySize: data.companySize || '',
+          website: data.website || '',
+          location: data.location || '',
+          founded: data.founded || '',
+          companyDescription: data.companyDescription || '',
+          email: data.email || '',
+          phone: data.phone || '',
+          linkedin: data.linkedin || '',
+        });
+      } catch (error) {
+        console.error('Failed to fetch company profile:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProfile();
+  }, []);
 
   const set = (k, v) => setForm(p => ({ ...p, [k]: v }));
 
-  const handleSave = () => {
-    setEditing(false);
-    toast.success('Company profile updated successfully!');
+  const handleSave = async () => {
+    try {
+      try {
+        await companyProfile.update(form);
+      } catch (e) {
+        await companyProfile.create(form);
+      }
+      setEditing(false);
+      toast.success('Company profile updated successfully!');
+    } catch (error) {
+      console.error('Failed to save company profile:', error);
+      toast.error('Failed to save company profile');
+    }
   };
 
   const handleCancel = () => {
-    setForm(MOCK_COMPANY); // Reset to mock data
+    setForm(MOCK_COMPANY);
     setEditing(false);
   };
 
@@ -75,18 +115,17 @@ const CompanyProfile = () => {
         {/* Header card */}
         <div className="bg-white rounded-2xl border border-neutral-100 p-6 mb-5">
           <div className="flex items-center gap-5">
-            {/* Logo placeholder */}
             <div
               className="w-20 h-20 rounded-2xl flex items-center justify-center text-white text-3xl font-bold shrink-0 shadow-sm"
               style={{ background: 'linear-gradient(135deg, #8B3A8F, #6d2b71)' }}
             >
-              S
+              {form.companyName.charAt(0)}
             </div>
             <div className="flex-1 min-w-0">
               {editing ? (
-                <input value={form.name} onChange={e => set('name', e.target.value)} className={`${inputCls} text-lg font-bold mb-2`} />
+                <input value={form.companyName} onChange={e => set('companyName', e.target.value)} className={`${inputCls} text-lg font-bold mb-2`} />
               ) : (
-                <h2 className="text-xl font-bold text-neutral-900">{form.name}</h2>
+                <h2 className="text-xl font-bold text-neutral-900">{form.companyName}</h2>
               )}
               <div className="flex flex-wrap items-center gap-3 mt-1 text-xs text-neutral-500">
                 <span className="flex items-center gap-1">
@@ -95,7 +134,7 @@ const CompanyProfile = () => {
                 </span>
                 <span className="flex items-center gap-1">
                   <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
-                  {form.size}
+                  {form.companySize}
                 </span>
                 <span className="flex items-center gap-1">
                   <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
@@ -124,7 +163,7 @@ const CompanyProfile = () => {
             <h3 className="text-sm font-bold text-neutral-800">Company Details</h3>
             {[
               { label: 'Industry',  key: 'industry' },
-              { label: 'Company Size', key: 'size' },
+              { label: 'Company Size', key: 'companySize' },
               { label: 'Founded',   key: 'founded' },
               { label: 'Location',  key: 'location' },
               { label: 'Website',   key: 'website' },
@@ -166,12 +205,12 @@ const CompanyProfile = () => {
           {editing ? (
             <textarea
               rows={5}
-              value={form.about}
-              onChange={e => set('about', e.target.value)}
+              value={form.companyDescription}
+              onChange={e => set('companyDescription', e.target.value)}
               className={`${inputCls} resize-none leading-relaxed`}
             />
           ) : (
-            <p className="text-sm text-neutral-600 leading-relaxed">{form.about}</p>
+            <p className="text-sm text-neutral-600 leading-relaxed">{form.companyDescription}</p>
           )}
         </div>
       </motion.div>

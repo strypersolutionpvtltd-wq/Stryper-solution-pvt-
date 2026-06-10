@@ -1,24 +1,71 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { MOCK_SAVED_JOBS } from '@/career-hub/data/mockCandidate';
 import toast from 'react-hot-toast';
 import { useAuth } from '@/context/AuthContext';
+import { savedJobs as savedJobsAPI, jobApplications } from '@/utils/api';
 
 const SavedJobs = () => {
-  const { applyToJob } = useAuth();
+  const { isLoggedIn } = useAuth();
   const [jobs, setJobs] = useState(MOCK_SAVED_JOBS.map(j => ({ ...j, applied: false })));
+  const [loading, setLoading] = useState(true);
 
-  const handleApply = (id) => {
+  // Fetch saved jobs from backend
+  useEffect(() => {
+    const fetchSavedJobs = async () => {
+      if (!isLoggedIn) {
+        setLoading(false);
+        return;
+      }
+
+      try {
+        const res = await savedJobsAPI.getAll();
+        const data = (res.data.savedJobs || []).map(sj => ({
+          id: sj.jobId?._id || sj.jobId,
+          title: sj.jobId?.title || 'Job Position',
+          company: sj.jobId?.companyId?.companyName || 'Company',
+          location: sj.jobId?.location || 'Location',
+          salary: sj.jobId?.salaryMin && sj.jobId?.salaryMax 
+            ? `₹${sj.jobId.salaryMin}-${sj.jobId.salaryMax}` 
+            : 'Not disclosed',
+          type: sj.jobId?.employmentType || 'Full-time',
+          postedDate: new Date(sj.jobId?.createdAt).toLocaleDateString(),
+          applied: false,
+        }));
+        setJobs(data.length > 0 ? data : MOCK_SAVED_JOBS.map(j => ({ ...j, applied: false })));
+      } catch (error) {
+        console.error('Failed to fetch saved jobs:', error);
+        setJobs(MOCK_SAVED_JOBS.map(j => ({ ...j, applied: false })));
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchSavedJobs();
+  }, [isLoggedIn]);
+
+  const handleApply = async (id) => {
     const job = jobs.find(j => j.id === id);
     if (job.applied) return;
 
-    setJobs(prev => prev.map(j => j.id === id ? { ...j, applied: true } : j));
-    applyToJob(job);
-    toast.success(`Applied for ${job.title} at ${job.company}!`);
+    try {
+      await jobApplications.apply({ jobId: id });
+      setJobs(prev => prev.map(j => j.id === id ? { ...j, applied: true } : j));
+      toast.success(`Applied for ${job.title} at ${job.company}!`);
+    } catch (error) {
+      console.error('Failed to apply:', error);
+      toast.error('Failed to apply for job');
+    }
   };
 
-  const handleRemove = (id) => {
-    setJobs(prev => prev.filter(j => j.id !== id));
-    toast.success('Job removed from saved list');
+  const handleRemove = async (id) => {
+    try {
+      await savedJobsAPI.remove(id);
+      setJobs(prev => prev.filter(j => j.id !== id));
+      toast.success('Job removed from saved list');
+    } catch (error) {
+      console.error('Failed to remove:', error);
+      toast.error('Failed to remove job');
+    }
   };
 
   return (

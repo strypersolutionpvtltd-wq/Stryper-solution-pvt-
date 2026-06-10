@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useCallback } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
+import { useGoogleReCaptcha } from 'react-google-recaptcha-v3';
 import { 
   Mail, 
   Lock, 
@@ -105,9 +106,12 @@ const CombinedAuthForm = ({ onClose, initialView = 'signin', initialRole = 'cand
   const [isForgotPassword, setIsForgotPassword] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [captchaToken, setCaptchaToken] = useState(null);
+  const captchaRef = useRef(null);
   
-  const { setIsLoggedIn, setUserRole, setUserData } = useAuth();
+  const { setIsLoggedIn, setUserRole, setUserData, register } = useAuth();
   const navigate = useNavigate();
+  const { executeRecaptcha } = useGoogleReCaptcha();
 
   const {
     register: loginRegister,
@@ -158,19 +162,40 @@ const CombinedAuthForm = ({ onClose, initialView = 'signin', initialRole = 'cand
 
   const onRegister = async (data) => {
     setIsLoading(true);
-    setTimeout(() => {
-      setUserData({ 
-        fullName: data.fullName, 
-        email: data.email,
-        title: data.role === 'candidate' ? 'Job Seeker' : 'Hiring Manager'
-      });
-      setUserRole(data.role);
-      setIsLoggedIn(true);
+    
+    try {
+      let token = null;
+      if (executeRecaptcha) {
+        token = await executeRecaptcha('register');
+      }
+
+      const roleMap = { candidate: 'CANDIDATE', employer: 'COMPANY' };
+      const result = await register(
+        data.email.toLowerCase().trim(), 
+        data.password, 
+        roleMap[data.role], 
+        token
+      );
+
+      if (result.success) {
+        toast.success('Account created successfully!');
+        setUserData({ 
+          fullName: data.fullName, 
+          email: data.email,
+          title: data.role === 'candidate' ? 'Job Seeker' : 'Hiring Manager'
+        });
+        setUserRole(data.role);
+        setIsLoggedIn(true);
+        if (onClose) onClose();
+        navigate(data.role === 'candidate' ? '/career-hub/profile' : '/hire-zone/dashboard', { replace: true });
+      } else {
+        toast.error(result.message || 'Registration failed.');
+      }
+    } catch (error) {
+      toast.error('An error occurred. Please try again.');
+    } finally {
       setIsLoading(false);
-      toast.success('Account created successfully!');
-      if (onClose) onClose();
-      navigate(data.role === 'candidate' ? '/career-hub/profile' : '/hire-zone/dashboard');
-    }, 1500);
+    }
   };
 
   const toggleMode = () => {

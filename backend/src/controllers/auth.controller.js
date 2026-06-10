@@ -1,15 +1,53 @@
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+const axios = require("axios");
 const User = require("../models/user.model");
 const CandidateProfile = require("../models/candidateProfile.model");
 const CompanyProfile = require("../models/companyProfile.model");
+
+// Helper: Verify reCAPTCHA token with Google
+const verifyRecaptcha = async (token) => {
+  try {
+    if (!token) return true; // No token = skip verification (captcha not configured on frontend)
+
+    // If secret key not configured, skip verification
+    if (!process.env.RECAPTCHA_SECRET_KEY || process.env.RECAPTCHA_SECRET_KEY === 'your_recaptcha_secret_key_here') {
+      console.warn("⚠️ RECAPTCHA_SECRET_KEY not set, skipping verification");
+      return true;
+    }
+
+    const response = await axios.post(
+      `https://www.google.com/recaptcha/api/siteverify`,
+      null,
+      {
+        params: {
+          secret: process.env.RECAPTCHA_SECRET_KEY,
+          response: token,
+        },
+      }
+    );
+
+    const { success, score, action } = response.data;
+    console.log("reCAPTCHA result:", { success, score, action });
+
+    // v3: success + score >= 0.3 (lenient threshold)
+    // v2: just success (no score field)
+    if (score !== undefined) {
+      return success && score >= 0.3; // v3
+    }
+    return success; // v2
+  } catch (error) {
+    console.error("reCAPTCHA verification error:", error.message);
+    return true; // On network error, allow registration (fail open)
+  }
+};
 
 // @desc    Register a new user
 // @route   POST /api/v1/auth/register
 // @access  Public
 const registerUser = async (req, res) => {
   try {
-    const { email, password, role } = req.body;
+    const { email, password, role, captchaToken } = req.body;
 
     // 1. Validate required fields
     if (!email || !password || !role) {
@@ -17,6 +55,19 @@ const registerUser = async (req, res) => {
         success: false,
         message: "Email, password, and role are required",
       });
+    }
+
+    // 1.5. Verify reCAPTCHA token (if provided)
+    if (captchaToken) {
+      const isCaptchaValid = await verifyRecaptcha(captchaToken);
+      if (!isCaptchaValid) {
+        return res.status(400).json({
+          success: false,
+          message: "reCAPTCHA verification failed. Please try again.",
+        });
+      }
+    } else {
+      console.warn("⚠️ Registration without captcha verification (captcha not configured)");
     }
 
     // 2. Check if user already exists
@@ -38,10 +89,18 @@ const registerUser = async (req, res) => {
       role,
     });
 
-    // 5. Return response — never send password back
+    // 5. Generate JWT token so frontend can auto-login
+    const token = jwt.sign(
+      { id: newUser._id, role: newUser.role },
+      process.env.JWT_SECRET,
+      { expiresIn: process.env.JWT_EXPIRES_IN || "7d" }
+    );
+
+    // 6. Return response with token — never send password back
     return res.status(201).json({
       success: true,
       message: "Account created successfully",
+      token,
       user: {
         id: newUser._id,
         email: newUser.email,

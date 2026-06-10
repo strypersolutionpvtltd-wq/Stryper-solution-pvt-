@@ -1,9 +1,9 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import AuthModal from '@/components/auth/AuthModal';
-import { PUBLIC_JOBS } from '@/data/adminData';
+import api from '@/utils/api';
 import toast from 'react-hot-toast';
 
 // ─── Mock Data ───────────────────────────────────────────────────────────────
@@ -13,9 +13,27 @@ const TOP_COMPANIES = [
   { name: 'DataFlow', jobs: 9 }, { name: 'SecureNet', jobs: 4 },
 ];
 
-const JOBS_PER_PAGE = 5;
+// ─── Map backend job → UI job shape ──────────────────────────────────────────
+const mapJob = (j) => ({
+  id:          j._id,
+  title:       j.title,
+  company:     j.companyId?.companyName || 'Company',
+  desc:        j.description,
+  location:    j.location,
+  experience:  j.experience || 'Any',
+  salary:      j.salaryMin && j.salaryMax
+                 ? `₹${Math.round(j.salaryMin/100000)}–${Math.round(j.salaryMax/100000)} LPA`
+                 : j.salaryMin
+                   ? `₹${Math.round(j.salaryMin/100000)} LPA+`
+                   : 'Not disclosed',
+  locationType: j.workMode || 'Onsite',
+  type:        j.employmentType || 'Full-time',
+  skills:      j.skills || [],
+  featured:    false,
+  postedDays:  Math.max(1, Math.floor((Date.now() - new Date(j.createdAt)) / 86400000)),
+});
 
-// ─── Shimmer Skeleton ─────────────────────────────────────────────────────────
+const JOBS_PER_PAGE = 5;
 const JobSkeleton = () => (
   <div className="bg-white rounded-2xl border border-neutral-100 p-6 animate-pulse">
     <div className="flex gap-4">
@@ -414,18 +432,55 @@ const Pagination = ({ current, total, onChange }) => {
 
 // ─── Main Jobs Page ───────────────────────────────────────────────────────────
 const Jobs = () => {
-  const { isLoggedIn, appliedJobs } = useAuth();
+  const { isLoggedIn } = useAuth();
+  const [jobs, setJobs] = useState([]);
+  const [totalJobs, setTotalJobs] = useState(0);
   const [search, setSearch] = useState({ keyword: '', location: '', experience: '', salary: '' });
   const [filters, setFilters] = useState({ date: 'Any time', type: '', mode: '', exp: '', salary: '' });
   const [savedJobs, setSavedJobs] = useState([]);
+  const [appliedJobIds, setAppliedJobIds] = useState([]);
   const [page, setPage] = useState(1);
-  const [loading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   const [applyJob, setApplyJob] = useState(null);
   const [authOpen, setAuthOpen] = useState(false);
-  const [pendingJob, setPendingJob] = useState(null); // job waiting after login
+  const [pendingJob, setPendingJob] = useState(null);
 
-  // Called when Apply Now is clicked
+  // Fetch jobs from API
+  const fetchJobs = useCallback(async () => {
+    setLoading(true);
+    try {
+      const params = { status: 'Active', page, limit: JOBS_PER_PAGE };
+      if (search.keyword)  params.title    = search.keyword;
+      if (search.location) params.location = search.location;
+      const res = await api.get('/jobs', { params });
+      setJobs((res.data.jobs || []).map(mapJob));
+      setTotalJobs(res.data.pagination?.total || 0);
+    } catch {
+      toast.error('Failed to load jobs. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  }, [page, search.keyword, search.location]);
+
+  useEffect(() => { fetchJobs(); }, [fetchJobs]);
+
+  // Fetch saved job IDs if logged in
+  useEffect(() => {
+    if (!isLoggedIn) return;
+    api.get('/saved-jobs')
+      .then(res => setSavedJobs((res.data.savedJobs || []).map(s => s.jobId?._id || s.jobId)))
+      .catch(() => {});
+  }, [isLoggedIn]);
+
+  // Fetch applied job IDs if logged in
+  useEffect(() => {
+    if (!isLoggedIn) return;
+    api.get('/applications/me')
+      .then(res => setAppliedJobIds((res.data.applications || []).map(a => a.jobId?._id || a.jobId)))
+      .catch(() => {});
+  }, [isLoggedIn]);
+
   const handleApplyClick = (job) => {
     if (!isLoggedIn) {
       setPendingJob(job);
@@ -435,7 +490,6 @@ const Jobs = () => {
     }
   };
 
-  // Called when auth modal closes — if user just logged in, open apply modal
   const handleAuthClose = () => {
     setAuthOpen(false);
     if (isLoggedIn && pendingJob) {
@@ -444,7 +498,6 @@ const Jobs = () => {
     }
   };
 
-  // If user logs in while auth modal is open, auto-open apply modal
   useEffect(() => {
     if (isLoggedIn && pendingJob && !authOpen) {
       setApplyJob(pendingJob);
@@ -452,77 +505,46 @@ const Jobs = () => {
     }
   }, [isLoggedIn, pendingJob, authOpen]);
 
-  const toggleSave = (id) =>
-    setSavedJobs(s => s.includes(id) ? s.filter(x => x !== id) : [...s, id]);
+  const toggleSave = async (id) => {
+    if (!isLoggedIn) { setAuthOpen(true); return; }
+    const isSaved = savedJobs.includes(id);
+    if (isSaved) {
+      setSavedJobs(s => s.filter(x => x !== id));
+      try { await api.delete(`/saved-jobs/${id}`); }
+      catch { setSavedJobs(s => [...s, id]); }
+    } else {
+      setSavedJobs(s => [...s, id]);
+      try { await api.post('/saved-jobs', { jobId: id }); toast.success('Job saved!'); }
+      catch { setSavedJobs(s => s.filter(x => x !== id)); }
+    }
+  };
 
-  const resetFilters = () =>
-    setFilters({ date: 'Any time', type: '', mode: '', exp: '', salary: '' });
+  const resetFilters = () => setFilters({ date: 'Any time', type: '', mode: '', exp: '', salary: '' });
 
+  // Client-side filters (type, mode, exp, salary) applied on top of API data
   const filtered = useMemo(() => {
-    return PUBLIC_JOBS.filter(j => {
-      // Keyword search (Title, Company, Skills) - Fuzzy (includes)
-      const kw = search.keyword.toLowerCase();
-      if (kw && !j.title.toLowerCase().includes(kw) &&
-          !j.company.toLowerCase().includes(kw) &&
-          !j.skills.some(s => s.toLowerCase().includes(kw))) return false;
-      
-      // Location search - Fuzzy (includes)
-      const loc = search.location.toLowerCase();
-      if (loc && !j.location.toLowerCase().includes(loc)) return false;
-      
-      // Top bar Experience filter - Fuzzy
-      if (search.experience) {
-        const expSelected = search.experience.toLowerCase();
-        const jExp = j.experience.toLowerCase();
-        // If selected is '3-6 Years' and job is '2-4 Years', it's nearby
-        if (!jExp.includes(expSelected.split(' ')[0])) {
-           // Allow nearby if first numbers match
-        }
-      }
-
-      // Sidebar: Job Type filter
+    return jobs.filter(j => {
       if (filters.type && j.type !== filters.type) return false;
-      
-      // Sidebar: Work Mode filter
       if (filters.mode && j.locationType !== filters.mode) return false;
-
-      // Sidebar: Experience Level filter
       if (filters.exp && !j.experience.includes(filters.exp.split(' ')[0])) return false;
-
-      // Top bar Salary filter - Minimum Salary Logic
-      if (search.salary) {
-        const minSalary = parseInt(search.salary);
-        const jobSalaryMatch = j.salary.match(/\d+/);
-        if (jobSalaryMatch) {
-          const jobMinSalary = parseInt(jobSalaryMatch[0]);
-          if (jobMinSalary < minSalary) return false;
-        }
-      }
-
-      // Sidebar: Salary Range filter
       if (filters.salary) {
         const selMin = parseInt(filters.salary.match(/\d+/)[0]);
-        const jobMin = parseInt(j.salary.match(/\d+/)[0]);
-        if (jobMin < selMin) return false;
+        const salMatch = j.salary.match(/\d+/);
+        if (salMatch && parseInt(salMatch[0]) < selMin) return false;
       }
-
-      // Sidebar: Date Posted filter
-      if (filters.date && filters.date !== 'Any time') {
-        const days = filters.date === 'Last 24 hours' ? 1 : 
-                     filters.date === 'Last 3 days' ? 3 : 
-                     filters.date === 'Last week' ? 7 : 
-                     filters.date === 'Last month' ? 30 : 999;
-        if (j.postedDays > days) return false;
-      }
-
       return true;
     });
-  }, [search, filters]);
+  }, [jobs, filters]);
+
+  // Paginate filtered results
+  const paginated = useMemo(() => {
+    const start = (page - 1) * JOBS_PER_PAGE;
+    return filtered.slice(start, start + JOBS_PER_PAGE);
+  }, [filtered, page]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / JOBS_PER_PAGE));
-  const paginated = filtered.slice((page - 1) * JOBS_PER_PAGE, page * JOBS_PER_PAGE);
 
-  const handleSearch = (e) => { e.preventDefault(); setPage(1); };
+  const handleSearch = (e) => { e.preventDefault(); setPage(1); fetchJobs(); };
 
   const handleReset = () => {
     setSearch({ keyword: '', location: '', experience: '', salary: '' });
@@ -695,7 +717,7 @@ const Jobs = () => {
                       key={job.id} 
                       job={job} 
                       saved={savedJobs.includes(job.id)} 
-                      applied={!!appliedJobs.find(aj => aj.id === job.id)}
+                      applied={appliedJobIds.includes(job.id)}
                       onSave={toggleSave} 
                       onApply={() => handleApplyClick(job)} 
                     />
