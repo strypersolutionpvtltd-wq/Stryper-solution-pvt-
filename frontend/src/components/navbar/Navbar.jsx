@@ -73,8 +73,8 @@ const Navbar = () => {
           animate={{ y: 0, opacity: 1 }}
           transition={{ duration: 0.4, ease: 'easeOut' }}
           className={[
-            'bg-white transition-shadow duration-300',
-            isScrolled ? 'shadow-[0_2px_16px_-2px_rgba(0,0,0,0.12)]' : 'border-b border-neutral-100',
+            'bg-black transition-shadow duration-300',
+            isScrolled ? 'shadow-[0_4px_20px_-2px_rgba(0,0,0,0.5)] border-b border-white/5' : 'border-b border-white/10',
           ].join(' ')}
           role="banner"
         >
@@ -113,7 +113,7 @@ const Navbar = () => {
                 </AnimatePresence>
 
                 <button
-                  className="lg:hidden w-10 h-10 rounded-lg flex items-center justify-center text-neutral-700 hover:bg-neutral-100 transition-colors"
+                  className="lg:hidden w-10 h-10 rounded-lg flex items-center justify-center text-white hover:bg-white/10 transition-colors"
                   onClick={() => setMobileOpen(p => !p)}
                   aria-label={isMobileOpen ? 'Close menu' : 'Open menu'}
                   aria-expanded={isMobileOpen}

@@ -101,8 +101,8 @@ const ProcessSection = () => (
               </Link>
             </motion.div>
             <motion.div whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.97 }}>
-              <Link to="/services" className="inline-flex items-center gap-2 px-7 py-3.5 rounded-xl bg-white/10 text-white text-sm font-semibold border border-white/20 hover:bg-white/20 transition-all duration-250">
-                View Services
+              <Link to="/contact" className="inline-flex items-center gap-2 px-7 py-3.5 rounded-xl bg-white/10 text-white text-sm font-semibold border border-white/20 hover:bg-white/20 transition-all duration-250">
+                Talk to Us
               </Link>
             </motion.div>
           </div>

@@ -49,8 +49,8 @@ const IndustriesSection = () => (
       <motion.div initial={{ opacity: 0, y: 14 }} whileInView={{ opacity: 1, y: 0 }} viewport={viewportOnce} transition={{ duration: 0.5, delay: 0.3 }} className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-8 border-t border-neutral-100">
         <p className="text-neutral-500 text-sm text-center">Do not see your industry? We work across many more sectors.</p>
         <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
-          <Link to="/industries" className="inline-flex items-center gap-2 px-6 py-3 rounded-xl border border-brand-purple-200 text-brand-purple-700 text-sm font-semibold hover:bg-brand-purple-50 hover:border-brand-purple-400 transition-all duration-250">
-            View All Industries
+          <Link to="/contact" className="inline-flex items-center gap-2 px-6 py-3 rounded-xl border border-brand-purple-200 text-brand-purple-700 text-sm font-semibold hover:bg-brand-purple-50 hover:border-brand-purple-400 transition-all duration-250">
+            Get Consultation
             <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2.5 7h9M7.5 3l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
           </Link>
         </motion.div>

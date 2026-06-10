@@ -47,8 +47,8 @@ const IndustrialManpower = () => {
                 <Link to="/contact" className="px-8 py-3.5 bg-brand-purple-600 text-white font-bold rounded-xl shadow-lg shadow-brand-purple-600/20 hover:bg-brand-purple-700 transition-colors">
                   Get a Free Consultation
                 </Link>
-                <Link to="/services" className="px-8 py-3.5 bg-white border border-neutral-200 text-neutral-700 font-bold rounded-xl hover:bg-neutral-50 transition-colors">
-                  View All Services
+                <Link to="/contact" className="px-8 py-3.5 bg-white border border-neutral-200 text-neutral-700 font-bold rounded-xl hover:bg-neutral-50 transition-colors">
+                  Talk to Us
                 </Link>
             </motion.div>
           </motion.div>

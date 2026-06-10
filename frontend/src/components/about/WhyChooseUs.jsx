@@ -261,10 +261,10 @@ const WhyChooseUs = () => (
             </motion.div>
             <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
               <Link
-                to="/about"
+                to="/contact"
                 className="inline-flex items-center gap-2.5 px-7 py-3.5 rounded-xl border border-neutral-200 text-neutral-700 text-sm font-semibold hover:border-brand-purple-300 hover:text-brand-purple-700 hover:bg-brand-purple-50/50 transition-all duration-250"
               >
-                Our Story
+                Talk to Us
               </Link>
             </motion.div>
           </motion.div>

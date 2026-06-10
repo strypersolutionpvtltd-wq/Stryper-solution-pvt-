@@ -1,10 +1,8 @@
 import { useState, useRef, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '@/context/AuthContext';
-import { MOCK_CANDIDATE } from '@/career-hub/data/mockCandidate';
 import { CAREER_HUB_NAV } from '@/career-hub/utils/careerHubRoutes';
-import ConfirmModal from '@/components/shared/ConfirmModal';
 
 /**
  * Shown in the Navbar when a candidate is logged in.
@@ -12,13 +10,12 @@ import ConfirmModal from '@/components/shared/ConfirmModal';
  */
 const CandidateNavMenu = () => {
   const [open, setOpen] = useState(false);
-  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const ref = useRef(null);
-  const { logout, userData } = useAuth();
-  const navigate = useNavigate();
+  const { userData, logout } = useAuth();
   
   // Use session data if available, fallback to empty object to prevent crashes
   const c = userData || { fullName: 'User', email: '' };
+
 
   // Close on outside click
   useEffect(() => {
@@ -27,33 +24,10 @@ const CandidateNavMenu = () => {
     return () => document.removeEventListener('mousedown', handler);
   }, []);
 
-  const handleLogoutClick = () => {
-    setShowLogoutConfirm(true);
-    setOpen(false);
-  };
-
-  const confirmLogout = () => {
-    // 1. Close modal state first
-    setShowLogoutConfirm(false);
-    
-    // 2. Perform logout
-    // AuthContext.logout() now includes a delay to allow animations to finish
-    logout();
-  };
-
   const initials = c.fullName ? c.fullName.split(' ').map(n => n[0]).join('').toUpperCase() : 'U';
 
   return (
     <>
-      <ConfirmModal 
-        isOpen={showLogoutConfirm}
-        onClose={() => setShowLogoutConfirm(false)}
-        onConfirm={confirmLogout}
-        title="Sign Out"
-        message="Are you sure you want to sign out? You will need to log back in to manage your profile and applications."
-        confirmText="Sign Out"
-        isDanger={true}
-      />
       <div ref={ref} className="relative">
         <button
           onClick={() => setOpen(p => !p)}
@@ -68,8 +42,8 @@ const CandidateNavMenu = () => {
             {initials}
           </div>
           <div className="hidden xl:block text-left">
-            <p className="text-xs font-semibold text-neutral-800 leading-tight">{c.fullName}</p>
-            <p className="text-[10px] text-neutral-400 leading-tight">Account</p>
+            <p className="text-xs font-semibold text-white leading-tight">{c.fullName}</p>
+            <p className="text-[10px] text-white/60 leading-tight">Account</p>
           </div>
           <svg
             width="12" height="12" viewBox="0 0 12 12" fill="none"
@@ -108,13 +82,21 @@ const CandidateNavMenu = () => {
                 ))}
               </div>
 
-              {/* Logout */}
+              {/* Sign out */}
               <div className="border-t border-neutral-50 py-1">
                 <button
-                  onClick={handleLogoutClick}
-                  className="flex items-center w-full px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition-colors"
+                  onClick={() => {
+                    if (window.confirm('Are you sure you want to sign out?')) {
+                      setOpen(false);
+                      logout();
+                    }
+                  }}
+                  className="flex w-full items-center px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition-colors"
                 >
-                  Sign Out
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-3">
+                    <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9" />
+                  </svg>
+                  Sign out
                 </button>
               </div>
             </motion.div>
