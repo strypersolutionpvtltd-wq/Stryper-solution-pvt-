@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
 import SectionHeader from '@/hire-zone/components/shared/SectionHeader';
@@ -376,15 +376,49 @@ const JobDetailModal = ({ job, onClose, onEdit }) => {
 
 // ── Main Page ─────────────────────────────────────────────────────────────────
 const ManageJobs = () => {
-  const [jobs, setJobs] = useState(() => {
-    const saved = localStorage.getItem('hz_posted_jobs');
-    return saved ? JSON.parse(saved) : MOCK_JOBS;
-  });
+  const [jobs, setJobs] = useState([]);
   const [search, setSearch]         = useState('');
   const [statusFilter, setStatusFilter] = useState('All');
   const navigate = useNavigate();
   const [viewingJob, setViewingJob] = useState(null);
   const [editingJob, setEditingJob] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  // Fetch company's jobs on mount
+  useEffect(() => {
+    const fetchJobs = async () => {
+      try {
+        const { jobs: jobsAPI } = await import('@/utils/api');
+        const res = await jobsAPI.getMyJobs();
+        const fetchedJobs = (res.data.jobs || []).map(j => ({
+          id: j._id,
+          title: j.title,
+          department: j.department || 'Engineering',
+          description: j.description,
+          salary: j.salaryMin && j.salaryMax ? `₹${j.salaryMin}-${j.salaryMax} Monthly` : 'Not Specified',
+          experience: j.experience,
+          location: j.location,
+          type: j.employmentType || 'Full-time',
+          workMode: j.workMode || 'Hybrid',
+          skills: j.skills || [],
+          deadline: j.applicationDeadline,
+          status: j.status || 'Active',
+          postedDate: new Date(j.createdAt).toISOString().split('T')[0],
+          applicants: j.applicantCount || 0,
+        }));
+        setJobs(fetchedJobs);
+      } catch (error) {
+        console.error('Failed to fetch jobs:', error);
+        // Fallback to localStorage
+        const saved = localStorage.getItem('hz_posted_jobs');
+        setJobs(saved ? JSON.parse(saved) : MOCK_JOBS);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchJobs();
+  }, []);
 
   const filtered = jobs.filter(j => {
     const matchSearch = j.title.toLowerCase().includes(search.toLowerCase()) ||
@@ -393,31 +427,45 @@ const ManageJobs = () => {
     return matchSearch && matchStatus;
   });
 
-  const handleAction = (id, action) => {
-    let nextJobs = [...jobs];
-    if (action === 'view') {
-      navigate('/hire-zone/applicants');
-      return;
+  const handleAction = async (id, action) => {
+    try {
+      const { jobs: jobsAPI } = await import('@/utils/api');
+      
+      if (action === 'view') {
+        navigate('/hire-zone/applicants');
+        return;
+      }
+      if (action === 'delete') {
+        await jobsAPI.delete(id);
+        setJobs(jobs.filter(j => j.id !== id));
+        toast.success('Job deleted successfully');
+      } else if (action === 'toggle') {
+        const newStatus = jobs.find(j => j.id === id)?.status === 'Active' ? 'Paused' : 'Active';
+        await jobsAPI.update(id, { status: newStatus });
+        setJobs(jobs.map(j => j.id === id ? { ...j, status: newStatus } : j));
+        toast.success(`Job ${newStatus === 'Active' ? 'resumed' : 'paused'}`);
+      } else if (action === 'close') {
+        await jobsAPI.update(id, { status: 'Closed' });
+        setJobs(jobs.map(j => j.id === id ? { ...j, status: 'Closed' } : j));
+        toast.success('Job closed');
+      }
+    } catch (error) {
+      console.error('Failed to perform action:', error);
+      toast.error('Failed to perform action');
     }
-    if (action === 'delete') {
-      nextJobs = jobs.filter(j => j.id !== id);
-    } else {
-      nextJobs = jobs.map(j => {
-        if (j.id !== id) return j;
-        if (action === 'toggle') return { ...j, status: j.status === 'Active' ? 'Paused' : 'Active' };
-        if (action === 'close')  return { ...j, status: 'Closed' };
-        return j;
-      });
-    }
-    setJobs(nextJobs);
-    localStorage.setItem('hz_posted_jobs', JSON.stringify(nextJobs));
   };
 
-  const handleSaveJob = (updatedJob) => {
-    const nextJobs = jobs.map(j => j.id === updatedJob.id ? updatedJob : j);
-    setJobs(nextJobs);
-    localStorage.setItem('hz_posted_jobs', JSON.stringify(nextJobs));
-    setEditingJob(null);
+  const handleSaveJob = async (updatedJob) => {
+    try {
+      const { jobs: jobsAPI } = await import('@/utils/api');
+      await jobsAPI.update(updatedJob.id, updatedJob);
+      setJobs(jobs.map(j => j.id === updatedJob.id ? updatedJob : j));
+      setEditingJob(null);
+      toast.success('Job updated successfully');
+    } catch (error) {
+      console.error('Failed to update job:', error);
+      toast.error('Failed to update job');
+    }
   };
 
   const counts = {

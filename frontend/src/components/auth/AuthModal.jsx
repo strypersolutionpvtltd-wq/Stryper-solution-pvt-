@@ -107,6 +107,21 @@ const AuthModal = ({ isOpen, onClose, defaultView = 'signin' }) => {
                 ) : (
                   <SlideView key={signUpType}>
                     <div className="px-8 pb-8">
+                      {/* Role selector */}
+                      <div className="flex bg-neutral-100 p-1 rounded-xl mb-5">
+                        <button
+                          onClick={() => setSignUpType('hire-workforce')}
+                          className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${signUpType === 'hire-workforce' ? 'bg-white shadow text-brand-purple-600' : 'text-neutral-500'}`}
+                        >
+                          Employer
+                        </button>
+                        <button
+                          onClick={() => setSignUpType('find-job')}
+                          className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${signUpType === 'find-job' ? 'bg-white shadow text-brand-purple-600' : 'text-neutral-500'}`}
+                        >
+                          Candidate
+                        </button>
+                      </div>
                       <SignUpForm
                         type={signUpType}
                         onBack={() => setView('signin')}

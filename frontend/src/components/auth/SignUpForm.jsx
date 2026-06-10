@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import ReCAPTCHA from "react-google-recaptcha";
+import { useGoogleReCaptcha } from 'react-google-recaptcha-v3';
 import GoogleIcon from './GoogleIcon';
 import { useAuth } from '@/context/AuthContext';
+import { companyProfile, candidateProfile, upload } from '@/utils/api';
 import toast from 'react-hot-toast';
 
 const HIRE_FIELDS = [
@@ -32,78 +33,111 @@ const SignUpForm = ({ type, onBack, onSwitchToSignIn, onClose, hideHeader }) => 
   const [file, setFile] = useState(null);
   const [dragOver, setDragOver] = useState(false);
   const [showPass, setShowPass] = useState(false);
-  const [captchaVerified, setCaptchaVerified] = useState(false);
-  const { setIsLoggedIn, setUserRole, setUserData } = useAuth();
+  const [loading, setLoading] = useState(false);
+  const { register } = useAuth();
   const navigate = useNavigate();
+  const { executeRecaptcha } = useGoogleReCaptcha();
 
   const handleChange = (e) => setForm(p => ({ ...p, [e.target.name]: e.target.value }));
   const handleFile = (e) => setFile(e.target.files[0] || null);
 
-  const onCaptchaChange = (value) => {
-    if (value) setCaptchaVerified(true);
-  };
-
-  const handleGoogleSignup = () => {
-    toast.promise(
-      new Promise((resolve) => setTimeout(resolve, 1500)),
-      {
-        loading: 'Connecting to Google Securely...',
-        success: 'Successfully registered with Google!',
-        error: 'Google Registration failed.',
-      }
-    ).then(() => {
-      const role = isHire ? 'company' : 'candidate';
-      setUserData({ 
-        fullName: 'Google User', 
-        email: 'user@gmail.com', 
-        title: role === 'company' ? 'Hiring Manager' : 'Job Seeker' 
-      });
-      setUserRole(role);
-      setIsLoggedIn(true);
-      if (onClose) onClose();
-      navigate(role === 'company' ? '/hire-zone/dashboard' : '/career-hub/profile', { replace: true });
-    });
-  };
-
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    
-    if (!captchaVerified) {
-      alert("Security Check Required: Please verify that you are not a robot.");
-      return;
+    if (loading) return; // prevent double submit
+
+    // Manual validations (remove required from inputs to avoid duplicate browser toasts)
+    if (!form.email) return toast.error('Email is required.');
+    if (!form.password || form.password.length < 6)
+      return toast.error('Password must be at least 6 characters.');
+    if (!isHire && !file) return toast.error('Please upload your resume.');
+
+    setLoading(true);
+    try {
+      // Step 1: Get reCAPTCHA token (non-blocking — skip if fails)
+      let captchaToken = null;
+      try {
+        if (executeRecaptcha) {
+          captchaToken = await executeRecaptcha('register');
+        }
+      } catch (captchaErr) {
+        console.warn('reCAPTCHA token fetch failed, proceeding without it:', captchaErr.message);
+      }
+
+      // Step 2: Register user account
+      const role = isHire ? 'COMPANY' : 'CANDIDATE';
+      const result = await register(
+        form.email.toLowerCase().trim(),
+        form.password,
+        role,
+        captchaToken
+      );
+
+      if (!result.success) {
+        toast.error(result.message || 'Registration failed.');
+        return;
+      }
+
+      // Step 3: Create role-specific profile
+      if (isHire) {
+        // Company profile — token is now set in localStorage by AuthContext
+        try {
+          await companyProfile.create({
+            companyName: form.companyName || 'My Company',
+            industry: form.industry || 'General',
+            companySize: '1-10',            // default, user can update later
+            companyDescription: `${form.companyName || 'Company'} profile`,
+            hrName: form.fullName || '',
+            email: form.email || '',
+            phone: form.phone || '',
+            website: form.website || '',
+          });
+        } catch (profileErr) {
+          // Profile creation failed — not critical, user can fill it later
+          console.warn('Company profile creation failed:', profileErr?.response?.data?.message);
+        }
+      } else {
+        // Candidate profile — split fullName into firstName/lastName
+        try {
+          const nameParts = (form.fullName || '').trim().split(' ');
+          const firstName = nameParts[0] || 'User';
+          const lastName = nameParts.slice(1).join(' ') || 'Name';
+          await candidateProfile.create({
+            firstName,
+            lastName,
+            phone: form.phone || '',
+            location: form.city || '',
+          });
+        } catch (profileErr) {
+          console.warn('Candidate profile creation failed:', profileErr?.response?.data?.message);
+        }
+
+        // Upload resume to Cloudinary
+        if (file) {
+          try {
+            const formData = new FormData();
+            formData.append('resume', file);
+            await upload.uploadResume(formData);
+          } catch (uploadErr) {
+            console.warn('Resume upload failed:', uploadErr?.response?.data?.message);
+            // Non-critical — user can upload later from profile
+          }
+        }
+      }
+
+      toast.success('Account created successfully!');
+      if (onClose) onClose();
+      navigate(isHire ? '/hire-zone/dashboard' : '/career-hub/profile', { replace: true });
+
+    } catch (error) {
+      console.error('SignUp error:', error);
+      toast.error(error?.response?.data?.message || 'Something went wrong. Please try again.');
+    } finally {
+      setLoading(false);
     }
-
-    if (!isHire && !file) {
-      toast.error("Please upload your resume to continue.");
-      return;
-    }
-
-    // Password strength/security check
-    if (form.password && form.password.length < 6) {
-      alert("Security Requirement: Password must be at least 6 characters long.");
-      return;
-    }
-
-    const role = isHire ? 'company' : 'candidate';
-    const email = form.email ? form.email.toLowerCase().trim() : '';
-    const name = form.fullName || (role === 'company' ? 'Company Manager' : 'Candidate User');
-
-    setUserData({ 
-      fullName: name, 
-      email: email, 
-      title: role === 'company' ? 'Hiring Manager' : 'Job Seeker' 
-    });
-    setUserRole(role);
-    setIsLoggedIn(true);
-    
-    toast.success('Registration successful!');
-    if (onClose) onClose();
-    navigate(role === 'company' ? '/hire-zone/dashboard' : '/career-hub/profile', { replace: true });
   };
 
   return (
     <div className={hideHeader ? '' : 'p-8'}>
-      {/* Back + Header */}
       {!hideHeader && (
         <div className="flex items-center gap-3 mb-6">
           <button
@@ -128,25 +162,23 @@ const SignUpForm = ({ type, onBack, onSwitchToSignIn, onClose, hideHeader }) => 
 
       {/* Google Sign Up */}
       <motion.button
-        onClick={handleGoogleSignup}
         whileHover={{ scale: 1.01 }}
         whileTap={{ scale: 0.98 }}
         type="button"
+        onClick={() => toast('Google signup coming soon!', { icon: '🔜' })}
         className="w-full flex items-center justify-center gap-3 px-4 py-3 rounded-xl border border-neutral-200 hover:border-neutral-300 hover:bg-neutral-50 transition-all text-sm font-medium text-neutral-700 mb-5"
       >
         <GoogleIcon />
         Continue with Google
       </motion.button>
 
-      {/* Divider */}
       <div className="flex items-center gap-3 mb-5">
         <div className="flex-1 h-px bg-neutral-200" />
         <span className="text-xs text-neutral-400 font-medium">or fill in details</span>
         <div className="flex-1 h-px bg-neutral-200" />
       </div>
 
-      {/* Form */}
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form onSubmit={handleSubmit} className="space-y-4" noValidate>
         {fields.map(({ name, label, type: fType, placeholder }) => (
           <div key={name}>
             <label className="block text-xs font-semibold text-neutral-600 mb-1.5" htmlFor={`signup-${name}`}>
@@ -160,9 +192,7 @@ const SignUpForm = ({ type, onBack, onSwitchToSignIn, onClose, hideHeader }) => 
                 placeholder={placeholder}
                 value={form[name] || ''}
                 onChange={handleChange}
-                required
-                className="w-full px-4 py-2.5 rounded-xl border border-neutral-200 text-sm text-neutral-800 placeholder-neutral-400 focus:outline-none focus:ring-2 focus:border-transparent transition-all"
-                style={{ '--tw-ring-color': '#8B3A8F' }}
+                className="w-full px-4 py-2.5 rounded-xl border border-neutral-200 text-sm text-neutral-800 placeholder-neutral-400 focus:outline-none transition-all"
                 onFocus={e => e.target.style.boxShadow = '0 0 0 2px #8B3A8F40'}
                 onBlur={e => e.target.style.boxShadow = ''}
               />
@@ -189,8 +219,8 @@ const SignUpForm = ({ type, onBack, onSwitchToSignIn, onClose, hideHeader }) => 
             <label className="block text-xs font-semibold text-neutral-600 mb-1.5">
               Upload Resume / CV
             </label>
-            <label 
-              htmlFor="signup-resume" 
+            <label
+              htmlFor="signup-resume"
               className={`flex flex-col items-center justify-center w-full py-6 rounded-xl border-2 border-dashed cursor-pointer transition-all ${dragOver ? 'border-brand-purple-500 bg-brand-purple-50' : 'border-neutral-200 hover:border-brand-purple-400 hover:bg-neutral-50'}`}
               onDragOver={e => { e.preventDefault(); setDragOver(true); }}
               onDragLeave={() => setDragOver(false)}
@@ -212,23 +242,19 @@ const SignUpForm = ({ type, onBack, onSwitchToSignIn, onClose, hideHeader }) => 
           </div>
         )}
 
-        {/* Google ReCAPTCHA */}
-        <div className="flex justify-center py-2">
-          <ReCAPTCHA
-            sitekey="6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI" // Test site key
-            onChange={onCaptchaChange}
-            theme="light"
-          />
-        </div>
-
         <motion.button
-          whileHover={{ scale: 1.01 }}
-          whileTap={{ scale: 0.98 }}
+          whileHover={{ scale: loading ? 1 : 1.01 }}
+          whileTap={{ scale: loading ? 1 : 0.98 }}
           type="submit"
-          className="w-full py-3 rounded-xl text-white text-sm font-semibold transition-colors mt-2"
+          disabled={loading}
+          className="w-full py-3 rounded-xl text-white text-sm font-semibold transition-colors mt-2 disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
           style={{ background: '#8B3A8F' }}
         >
-          {isHire ? 'Create Employer Account' : 'Create Candidate Account'}
+          {loading ? (
+            <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+          ) : (
+            isHire ? 'Create Employer Account' : 'Create Candidate Account'
+          )}
         </motion.button>
       </form>
 

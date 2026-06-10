@@ -1,12 +1,55 @@
 const express = require("express");
 const cors = require("cors");
+const multer = require("multer");
+const cloudinary = require("cloudinary").v2;
+const { CloudinaryStorage } = require("multer-storage-cloudinary");
 
 const app = express();
+
+// ── Cloudinary Configuration ───────────────────────────────────────────────
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
+
+// ── Multer Storage Configuration ───────────────────────────────────────────
+const resumeStorage = new CloudinaryStorage({
+  cloudinary: cloudinary,
+  params: {
+    folder: "stryper/resumes",
+    resource_type: "auto",
+    allowed_formats: ["pdf", "doc", "docx"],
+  },
+});
+
+const profilePictureStorage = new CloudinaryStorage({
+  cloudinary: cloudinary,
+  params: {
+    folder: "stryper/profile-pictures",
+    resource_type: "image",
+    allowed_formats: ["jpg", "jpeg", "png", "gif"],
+  },
+});
+
+const uploadResume = multer({
+  storage: resumeStorage,
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
+});
+
+const uploadProfilePicture = multer({
+  storage: profilePictureStorage,
+  limits: { fileSize: 2 * 1024 * 1024 }, // 2MB
+});
 
 // CORS
 app.use(
   cors({
-    origin: process.env.CLIENT_ORIGIN || "http://localhost:5173",
+    origin: [
+      "http://localhost:3000",
+      "http://localhost:5173",
+      process.env.CLIENT_ORIGIN,
+    ].filter(Boolean),
     credentials: true,
   })
 );
@@ -42,8 +85,12 @@ app.use("/api/v1/jobs", jobRoutes);
 const jobApplicationRoutes = require("./routes/jobApplication.routes");
 app.use("/api/v1/applications", jobApplicationRoutes);
 
-const uploadRoutes = require("./routes/upload.routes");
-app.use("/api/v1/upload", uploadRoutes);
+const { protect: authMiddleware } = require("./middleware/auth.middleware");
+const { uploadResume: uploadResumeController, uploadProfilePicture: uploadProfilePictureController } = require("./controllers/upload.controller");
+
+// Upload routes with multer middleware
+app.post("/api/v1/upload/resume", authMiddleware, uploadResume.single("resume"), uploadResumeController);
+app.post("/api/v1/upload/profile-picture", authMiddleware, uploadProfilePicture.single("profilePicture"), uploadProfilePictureController);
 
 const savedJobRoutes = require("./routes/savedJob.routes");
 app.use("/api/v1/saved-jobs", savedJobRoutes);

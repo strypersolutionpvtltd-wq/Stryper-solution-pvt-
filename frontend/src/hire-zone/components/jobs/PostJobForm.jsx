@@ -278,9 +278,8 @@ const PostJobForm = () => {
     return errs;
   };
 
-  const handleSubmit = (draft = false) => {
+  const handleSubmit = async (draft = false) => {
     if (draft) {
-      // For draft, we at least need a title
       if (!form.title.trim()) {
         setErrors({ title: 'Please enter a job title to save as draft' });
         const first = document.querySelector('[data-error="true"]');
@@ -291,36 +290,39 @@ const PostJobForm = () => {
       const errs = validate();
       if (Object.keys(errs).length) {
         setErrors(errs);
-        // Scroll to first error
         const first = document.querySelector('[data-error="true"]');
         if (first) first.scrollIntoView({ behavior: 'smooth', block: 'center' });
         return;
       }
     }
 
-    // Save to localStorage
+    // Submit to backend API
     try {
-      const saved = localStorage.getItem('hz_posted_jobs');
-      const jobs = saved ? JSON.parse(saved) : [];
+      const { jobs: apiJobs } = await import('@/utils/api');
       
-      const newJob = {
-        ...form,
-        id: Date.now(),
-        status: draft ? 'Draft' : 'Active',
-        postedDate: new Date().toISOString().split('T')[0],
-        applicants: 0,
-        salary: form.salaryMin && form.salaryMax ? `₹${form.salaryMin}-${form.salaryMax} Monthly` : form.salaryMin ? `₹${form.salaryMin} Monthly` : 'Not Specified',
+      const jobData = {
+        title: form.title,
+        department: form.department === 'Other' ? form.customDepartment : form.department,
+        description: form.description,
+        location: form.location,
+        employmentType: form.employmentType,
         experience: form.experienceLevel,
-        workMode: 'Hybrid', // Default or extract from location if needed
+        salaryMin: form.salaryMin ? parseInt(form.salaryMin) : null,
+        salaryMax: form.salaryMax ? parseInt(form.salaryMax) : null,
+        skills: form.skills,
+        status: draft ? 'Draft' : 'Active',
+        noOfOpenings: parseInt(form.openings) || 1,
+        applicationDeadline: form.deadline,
       };
 
-      localStorage.setItem('hz_posted_jobs', JSON.stringify([newJob, ...jobs]));
-    } catch (e) {
-      console.error('Failed to save job:', e);
+      await apiJobs.create(jobData);
+      setIsDraft(draft);
+      setSubmitted(true);
+      toast.success(draft ? 'Job saved as draft!' : 'Job posted successfully!');
+    } catch (error) {
+      console.error('Failed to submit job:', error);
+      toast.error(error.response?.data?.message || 'Failed to submit job. Please try again.');
     }
-
-    setIsDraft(draft);
-    setSubmitted(true);
   };
 
   const handleReset = () => {

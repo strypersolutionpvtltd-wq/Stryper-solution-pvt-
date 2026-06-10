@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { COMPANY_INFO } from '@/data/companyInfo';
 import NavLinks from './NavLinks';
@@ -8,6 +8,87 @@ import Logo from '@/components/shared/Logo';
 import AuthModal from '@/components/auth/AuthModal';
 import CandidateNavMenu from '@/career-hub/components/shared/CandidateNavMenu';
 import { useAuth } from '@/context/AuthContext';
+
+// Simple dropdown for company users
+const CompanyNavMenu = () => {
+  const [open, setOpen] = useState(false);
+  const { userData, logout } = useAuth();
+  const navigate = useNavigate();
+  const email = userData?.email || '';
+  const name = email.split('@')[0] || 'Company';
+  const initials = name.slice(0, 2).toUpperCase();
+
+  return (
+    <div className="relative" onBlur={(e) => { if (!e.currentTarget.contains(e.relatedTarget)) setOpen(false); }}>
+      <button onClick={() => setOpen(p => !p)}
+        className="flex items-center gap-2.5 px-3 py-1.5 rounded-xl hover:bg-white/10 transition-colors">
+        <div className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold"
+          style={{ background: 'linear-gradient(135deg, #8B3A8F, #b05ab5)' }}>{initials}</div>
+        <div className="hidden xl:block text-left">
+          <p className="text-xs font-semibold text-white leading-tight">{name}</p>
+          <p className="text-[10px] text-white/60 leading-tight">Employer</p>
+        </div>
+        <svg width="12" height="12" viewBox="0 0 12 12" fill="none" className={`text-neutral-400 transition-transform ${open ? 'rotate-180' : ''}`}>
+          <path d="M2 4l4 4 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+        </svg>
+      </button>
+      <AnimatePresence>
+        {open && (
+          <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 8 }}
+            className="absolute right-0 top-full mt-2 w-48 bg-white rounded-2xl shadow-xl border border-neutral-100 overflow-hidden z-50">
+            <div className="py-1">
+              <button onClick={() => { navigate('/hire-zone/dashboard'); setOpen(false); }}
+                className="flex w-full items-center px-4 py-2.5 text-sm text-neutral-700 hover:bg-neutral-50">Dashboard</button>
+              <button onClick={() => { navigate('/hire-zone/company-profile'); setOpen(false); }}
+                className="flex w-full items-center px-4 py-2.5 text-sm text-neutral-700 hover:bg-neutral-50">Company Profile</button>
+              <button onClick={() => { navigate('/hire-zone/post-job'); setOpen(false); }}
+                className="flex w-full items-center px-4 py-2.5 text-sm text-neutral-700 hover:bg-neutral-50">Post a Job</button>
+            </div>
+            <div className="border-t border-neutral-50 py-1">
+              <button onClick={() => { logout(); setOpen(false); }}
+                className="flex w-full items-center px-4 py-2.5 text-sm text-red-600 hover:bg-red-50">Sign out</button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+};
+
+// Simple dropdown for admin users
+const AdminNavMenu = () => {
+  const { logout } = useAuth();
+  const [open, setOpen] = useState(false);
+  const navigate = useNavigate();
+
+  return (
+    <div className="relative" onBlur={(e) => { if (!e.currentTarget.contains(e.relatedTarget)) setOpen(false); }}>
+      <button onClick={() => setOpen(p => !p)}
+        className="flex items-center gap-2.5 px-3 py-1.5 rounded-xl hover:bg-white/10 transition-colors">
+        <div className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold bg-red-600">AD</div>
+        <div className="hidden xl:block text-left">
+          <p className="text-xs font-semibold text-white leading-tight">Admin</p>
+          <p className="text-[10px] text-white/60 leading-tight">Administrator</p>
+        </div>
+      </button>
+      <AnimatePresence>
+        {open && (
+          <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 8 }}
+            className="absolute right-0 top-full mt-2 w-48 bg-white rounded-2xl shadow-xl border border-neutral-100 overflow-hidden z-50">
+            <div className="py-1">
+              <button onClick={() => { navigate('/admin/dashboard'); setOpen(false); }}
+                className="flex w-full items-center px-4 py-2.5 text-sm text-neutral-700 hover:bg-neutral-50">Admin Dashboard</button>
+            </div>
+            <div className="border-t border-neutral-50 py-1">
+              <button onClick={() => { logout(); setOpen(false); }}
+                className="flex w-full items-center px-4 py-2.5 text-sm text-red-600 hover:bg-red-50">Sign out</button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+};
 
 /**
  * Navbar :
@@ -20,7 +101,9 @@ const Navbar = () => {
   const [authModal, setAuthModal] = useState({ open: false, view: 'signin' });
   const { isLoggedIn, userRole } = useAuth();
 
-  const isCandidate = isLoggedIn && userRole === 'candidate';
+  const isCandidate = isLoggedIn && userRole?.toUpperCase() === 'CANDIDATE';
+  const isCompany = isLoggedIn && userRole?.toUpperCase() === 'COMPANY';
+  const isAdmin = isLoggedIn && userRole?.toUpperCase() === 'ADMIN';
 
   const openSignIn = () => setAuthModal({ open: true, view: 'signin' });
   const openSignUp = () => setAuthModal({ open: true, view: 'signup-choice' });
@@ -99,8 +182,12 @@ const Navbar = () => {
                     whileHover={{ scale: 1.02 }} 
                     whileTap={{ scale: 0.97 }}
                   >
-                    {isCandidate ? (
+                  {isCandidate ? (
                       <CandidateNavMenu />
+                    ) : isCompany ? (
+                      <CompanyNavMenu />
+                    ) : isAdmin ? (
+                      <AdminNavMenu />
                     ) : (
                       <button
                         onClick={openSignIn}
