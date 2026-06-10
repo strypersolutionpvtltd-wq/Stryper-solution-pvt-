@@ -94,10 +94,12 @@ function App() {
   const { pathname } = useLocation();
 
   useEffect(() => {
-    // Prevent smooth scroll jumps for admin and hire-zone dashboards
-    if (!pathname.startsWith('/hire-zone') && !pathname.startsWith('/admin')) {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
+    // ONLY scroll when pathname actually changes
+    // Disable smooth scroll when moving to dashboards to prevent blinking
+    const isDashboard = pathname.startsWith('/hire-zone') || pathname.startsWith('/admin') || pathname.startsWith('/career-hub');
+    const scrollBehavior = isDashboard ? 'auto' : 'smooth';
+
+    window.scrollTo({ top: 0, behavior: scrollBehavior });
   }, [pathname]);
 
   return (

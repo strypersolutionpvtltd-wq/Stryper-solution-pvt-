@@ -128,7 +128,7 @@ const ServiceDetailRow = ({ svc }) => (
                 <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: svc.accent }} />Active
               </span>
             </div>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {[svc.stat1, svc.stat2].map((s) => (
                 <div key={s.lbl} className="rounded-2xl px-4 py-3.5 text-center border" style={{ background: 'white', borderColor: svc.accent + '20' }}>
                   <p className="text-2xl font-bold font-display leading-none mb-1" style={{ color: svc.accent }}>{s.val}</p>

@@ -30,18 +30,18 @@ const Dashboard = () => (
       {/* Decorative circles */}
       <div className="absolute -right-8 -top-8 w-40 h-40 rounded-full bg-white/5" aria-hidden="true" />
       <div className="absolute -right-4 -bottom-10 w-56 h-56 rounded-full bg-white/5" aria-hidden="true" />
-      <div className="hidden md:flex items-center gap-3 relative z-10">
-        <div className="text-center px-5 py-3 rounded-xl bg-white/10 backdrop-blur-sm">
-          <p className="text-2xl font-bold text-white">8</p>
-          <p className="text-xs text-purple-200">Active Jobs</p>
+      <div className="hidden sm:flex items-center gap-2 md:gap-3 relative z-10">
+        <div className="text-center px-3 md:px-5 py-2 md:py-3 rounded-xl bg-white/10 backdrop-blur-sm">
+          <p className="text-xl md:text-2xl font-bold text-white">8</p>
+          <p className="text-[10px] md:text-xs text-purple-200">Active Jobs</p>
         </div>
-        <div className="text-center px-5 py-3 rounded-xl bg-white/10 backdrop-blur-sm">
-          <p className="text-2xl font-bold text-white">142</p>
-          <p className="text-xs text-purple-200">Applicants</p>
+        <div className="text-center px-3 md:px-5 py-2 md:py-3 rounded-xl bg-white/10 backdrop-blur-sm">
+          <p className="text-xl md:text-2xl font-bold text-white">142</p>
+          <p className="text-[10px] md:text-xs text-purple-200">Applicants</p>
         </div>
-        <div className="text-center px-5 py-3 rounded-xl bg-white/10 backdrop-blur-sm">
-          <p className="text-2xl font-bold text-white">4</p>
-          <p className="text-xs text-purple-200">Hired</p>
+        <div className="text-center px-3 md:px-5 py-2 md:py-3 rounded-xl bg-white/10 backdrop-blur-sm">
+          <p className="text-xl md:text-2xl font-bold text-white">4</p>
+          <p className="text-[10px] md:text-xs text-purple-200">Hired</p>
         </div>
       </div>
     </motion.div>

@@ -178,6 +178,7 @@ const ResumeSearch = () => {
   const [skillTag, setSkillTag] = useState('');
   const [shortlisted, setShortlisted] = useState([]);
   const [viewingResume, setViewingResume] = useState(null);
+  const [showMobileFilters, setShowMobileFilters] = useState(false);
 
   // Sync state with URL query param
   useEffect(() => {
@@ -236,25 +237,121 @@ const ResumeSearch = () => {
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
         <SectionHeader title="Resume Search" subtitle="Find the right talent from your candidate pool." />
 
-        {/* Search bar */}
-        <div className="flex items-center gap-3 bg-white border border-neutral-200 rounded-2xl px-5 py-3.5 mb-5 focus-within:border-purple-400 focus-within:ring-2 focus-within:ring-purple-100 transition-all shadow-sm">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8B3A8F" strokeWidth="2" strokeLinecap="round" className="shrink-0">
-            <circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/>
-          </svg>
-          <input
-            type="text"
-            placeholder="Search by name, role, or skill (e.g. React, DevOps, Product Manager)..."
-            value={query}
-            onChange={e => setQuery(e.target.value)}
-            className="flex-1 bg-transparent text-sm text-neutral-700 placeholder-neutral-400 outline-none"
-          />
-          {query && (
-            <button onClick={() => setQuery('')} className="text-neutral-400 hover:text-neutral-600">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
-            </button>
-          )}
-          <span className="text-xs text-neutral-400 shrink-0">{filtered.length} results</span>
+        {/* Search bar row */}
+        <div className="flex flex-col sm:flex-row gap-3 mb-5">
+          <div className="flex-1 flex items-center gap-3 bg-white border border-neutral-200 rounded-2xl px-5 py-3.5 focus-within:border-purple-400 focus-within:ring-2 focus-within:ring-purple-100 transition-all shadow-sm">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8B3A8F" strokeWidth="2" strokeLinecap="round" className="shrink-0">
+              <circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/>
+            </svg>
+            <input
+              type="text"
+              placeholder="Search by name, role, or skill..."
+              value={query}
+              onChange={e => setQuery(e.target.value)}
+              className="flex-1 bg-transparent text-sm text-neutral-700 placeholder-neutral-400 outline-none"
+            />
+            {query && (
+              <button onClick={() => setQuery('')} className="text-neutral-400 hover:text-neutral-600">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+              </button>
+            )}
+            <span className="text-xs text-neutral-400 shrink-0 border-l border-neutral-100 pl-3 ml-1 hidden xs:block">{filtered.length} results</span>
+          </div>
+
+          {/* Mobile filter toggle */}
+          <button
+            onClick={() => setShowMobileFilters(!showMobileFilters)}
+            className="lg:hidden flex items-center justify-center gap-2 px-5 py-3.5 rounded-2xl border border-neutral-200 bg-white text-sm font-bold text-neutral-700 shadow-sm active:scale-95 transition-transform"
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+            Filters
+            {(location !== 'All' || expRange !== 'All' || avail !== 'All' || skillTag) && (
+              <span className="w-2.5 h-2.5 rounded-full bg-purple-600 border-2 border-white" />
+            )}
+          </button>
         </div>
+
+        {/* Mobile Filters Drawer */}
+        <AnimatePresence>
+          {showMobileFilters && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 'auto', opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              className="lg:hidden overflow-hidden mb-6 bg-white rounded-2xl border border-neutral-100 p-5 shadow-sm"
+            >
+              <div className="flex items-center justify-between mb-5">
+                <h3 className="text-sm font-bold text-neutral-800 uppercase tracking-widest">Advanced Filters</h3>
+                <button
+                  onClick={() => { setLocation('All'); setExpRange('All'); setAvail('All'); setSkillTag(''); }}
+                  className="text-[11px] font-bold text-red-500 uppercase tracking-wider"
+                >
+                  Clear All
+                </button>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                <div>
+                  <p className="text-xs font-bold text-neutral-400 uppercase tracking-widest mb-3">Location</p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {LOCATIONS.map(l => (
+                      <button
+                        key={l}
+                        onClick={() => setLocation(l)}
+                        className={`text-[10px] font-bold px-3 py-1.5 rounded-lg border transition-all ${
+                          location === l ? 'bg-purple-600 border-purple-600 text-white shadow-md' : 'bg-white border-neutral-100 text-neutral-500'
+                        }`}
+                      >
+                        {l}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <div>
+                  <p className="text-xs font-bold text-neutral-400 uppercase tracking-widest mb-3">Experience</p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {EXP_RANGES.map(e => (
+                      <button
+                        key={e}
+                        onClick={() => setExpRange(e)}
+                        className={`text-[10px] font-bold px-3 py-1.5 rounded-lg border transition-all ${
+                          expRange === e ? 'bg-purple-600 border-purple-600 text-white shadow-md' : 'bg-white border-neutral-100 text-neutral-500'
+                        }`}
+                      >
+                        {e}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <div>
+                  <p className="text-xs font-bold text-neutral-400 uppercase tracking-widest mb-3">Availability</p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {AVAIL_OPTS.map(a => (
+                      <button
+                        key={a}
+                        onClick={() => setAvail(a)}
+                        className={`text-[10px] font-bold px-3 py-1.5 rounded-lg border transition-all ${
+                          avail === a ? 'bg-purple-600 border-purple-600 text-white shadow-md' : 'bg-white border-neutral-100 text-neutral-500'
+                        }`}
+                      >
+                        {a}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <div>
+                  <p className="text-xs font-bold text-neutral-400 uppercase tracking-widest mb-3">Filter by Skill</p>
+                  <input
+                    type="text"
+                    placeholder="e.g. React"
+                    value={skillTag}
+                    onChange={e => setSkillTag(e.target.value)}
+                    className="w-full px-4 py-2.5 rounded-xl border border-neutral-200 text-sm text-neutral-700 outline-none focus:border-purple-400"
+                  />
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         <div className="flex gap-5">
           {/* Filters sidebar */}

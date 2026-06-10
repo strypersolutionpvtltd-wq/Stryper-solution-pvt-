@@ -39,7 +39,7 @@ const Applicants = () => {
         <SectionHeader title="Applicants" subtitle="Review and manage all candidates in your pipeline." />
 
         {/* Pipeline overview bar */}
-        <div className="grid grid-cols-5 gap-3 mb-6">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 mb-6">
           {PIPELINE_STAGES.map((stage, i) => {
             const count = applicants.filter(a => a.stage === stage).length;
             const colors = ['#6366f1', '#8B3A8F', '#f59e0b', '#10b981', '#0d9488'];
@@ -92,83 +92,85 @@ const Applicants = () => {
         </div>
 
         {/* Table */}
-        <div className="bg-white rounded-2xl border border-neutral-100 overflow-hidden">
-          {/* Table header */}
-          <div className="hidden md:grid grid-cols-12 gap-4 px-6 py-3 bg-neutral-50 text-[10px] font-semibold text-neutral-400 uppercase tracking-wider border-b border-neutral-100">
-            <div className="col-span-3">Candidate</div>
-            <div className="col-span-2">Applied Role</div>
-            <div className="col-span-2">Skills</div>
-            <div className="col-span-1">Experience</div>
-            <div className="col-span-2">Stage</div>
-            <div className="col-span-1">Date</div>
-            <div className="col-span-1">Action</div>
-          </div>
-
-          {filtered.length === 0 ? (
-            <div className="py-16 text-center text-neutral-400 text-sm">No applicants match your filters.</div>
-          ) : (
-            <div className="divide-y divide-neutral-50">
-              {filtered.map((app, i) => (
-                <motion.div
-                  key={app.id}
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: i * 0.04 }}
-                  className="grid grid-cols-12 gap-4 px-6 py-4 items-center hover:bg-neutral-50/60 transition-colors cursor-pointer group"
-                  onClick={() => setSelected(app)}
-                >
-                  {/* Candidate */}
-                  <div className="col-span-12 md:col-span-3 flex items-center gap-3 min-w-0">
-                    <div
-                      className="w-9 h-9 rounded-full flex items-center justify-center text-white text-sm font-bold shrink-0"
-                      style={{ background: AVATAR_COLORS[i % AVATAR_COLORS.length] }}
-                    >
-                      {app.name.charAt(0)}
-                    </div>
-                    <div className="min-w-0">
-                      <p className="text-sm font-semibold text-neutral-800 truncate group-hover:text-purple-700 transition-colors">{app.name}</p>
-                      <p className="text-xs text-neutral-400 truncate">{app.location}</p>
-                    </div>
-                  </div>
-
-                  <div className="hidden md:block col-span-2">
-                    <p className="text-sm text-neutral-700 truncate">{app.appliedRole}</p>
-                  </div>
-
-                  <div className="hidden md:flex col-span-2 flex-wrap gap-1">
-                    {app.skills.slice(0, 2).map(s => (
-                      <span key={s} className="text-[10px] px-1.5 py-0.5 rounded-md bg-purple-50 text-purple-600 font-medium">{s}</span>
-                    ))}
-                    {app.skills.length > 2 && (
-                      <span className="text-[10px] px-1.5 py-0.5 rounded-md bg-neutral-100 text-neutral-500">+{app.skills.length - 2}</span>
-                    )}
-                  </div>
-
-                  <div className="hidden md:block col-span-1">
-                    <span className="text-xs font-medium text-neutral-500 bg-neutral-100 px-2 py-0.5 rounded-md">{app.experience}</span>
-                  </div>
-
-                  <div className="hidden md:block col-span-2">
-                    <StatusBadge status={app.stage} />
-                  </div>
-
-                  <div className="hidden md:block col-span-1">
-                    <p className="text-xs text-neutral-400">{app.appliedDate.slice(5)}</p>
-                  </div>
-
-                  <div className="hidden md:block col-span-1">
-                    <button
-                      onClick={e => { e.stopPropagation(); setSelected(app); }}
-                      className="text-xs font-semibold px-2.5 py-1 rounded-lg transition-colors"
-                      style={{ color: '#8B3A8F', background: '#f3e8f4' }}
-                    >
-                      View
-                    </button>
-                  </div>
-                </motion.div>
-              ))}
+        <div className="bg-white rounded-2xl border border-neutral-100 overflow-hidden overflow-x-auto">
+          <div className="min-w-[700px] md:min-w-0">
+            {/* Table header */}
+            <div className="hidden md:grid grid-cols-12 gap-4 px-6 py-3 bg-neutral-50 text-[10px] font-semibold text-neutral-400 uppercase tracking-wider border-b border-neutral-100">
+              <div className="col-span-3">Candidate</div>
+              <div className="col-span-2">Applied Role</div>
+              <div className="col-span-2">Skills</div>
+              <div className="col-span-1">Experience</div>
+              <div className="col-span-2">Stage</div>
+              <div className="col-span-1">Date</div>
+              <div className="col-span-1">Action</div>
             </div>
-          )}
+
+            {filtered.length === 0 ? (
+              <div className="py-16 text-center text-neutral-400 text-sm">No applicants match your filters.</div>
+            ) : (
+              <div className="divide-y divide-neutral-50">
+                {filtered.map((app, i) => (
+                  <motion.div
+                    key={app.id}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: i * 0.04 }}
+                    className="grid grid-cols-12 gap-4 px-6 py-4 items-center hover:bg-neutral-50/60 transition-colors cursor-pointer group"
+                    onClick={() => setSelected(app)}
+                  >
+                    {/* Candidate */}
+                    <div className="col-span-12 md:col-span-3 flex items-center gap-3 min-w-0">
+                      <div
+                        className="w-9 h-9 rounded-full flex items-center justify-center text-white text-sm font-bold shrink-0"
+                        style={{ background: AVATAR_COLORS[i % AVATAR_COLORS.length] }}
+                      >
+                        {app.name.charAt(0)}
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-sm font-semibold text-neutral-800 truncate group-hover:text-purple-700 transition-colors">{app.name}</p>
+                        <p className="text-xs text-neutral-400 truncate">{app.location}</p>
+                      </div>
+                    </div>
+
+                    <div className="hidden md:block col-span-2">
+                      <p className="text-sm text-neutral-700 truncate">{app.appliedRole}</p>
+                    </div>
+
+                    <div className="hidden md:flex col-span-2 flex-wrap gap-1">
+                      {app.skills.slice(0, 2).map(s => (
+                        <span key={s} className="text-[10px] px-1.5 py-0.5 rounded-md bg-purple-50 text-purple-600 font-medium">{s}</span>
+                      ))}
+                      {app.skills.length > 2 && (
+                        <span className="text-[10px] px-1.5 py-0.5 rounded-md bg-neutral-100 text-neutral-500">+{app.skills.length - 2}</span>
+                      )}
+                    </div>
+
+                    <div className="hidden md:block col-span-1">
+                      <span className="text-xs font-medium text-neutral-500 bg-neutral-100 px-2 py-0.5 rounded-md">{app.experience}</span>
+                    </div>
+
+                    <div className="hidden md:block col-span-2">
+                      <StatusBadge status={app.stage} />
+                    </div>
+
+                    <div className="hidden md:block col-span-1">
+                      <p className="text-xs text-neutral-400">{app.appliedDate.slice(5)}</p>
+                    </div>
+
+                    <div className="hidden md:block col-span-1">
+                      <button
+                        onClick={e => { e.stopPropagation(); setSelected(app); }}
+                        className="text-xs font-semibold px-2.5 py-1 rounded-lg transition-colors"
+                        style={{ color: '#8B3A8F', background: '#f3e8f4' }}
+                      >
+                        View
+                      </button>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
 
         <p className="text-xs text-neutral-400 text-center mt-4">

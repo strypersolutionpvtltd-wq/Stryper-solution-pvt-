@@ -482,7 +482,7 @@ const PostJobForm = () => {
           Compensation
           <span className="text-xs font-normal text-neutral-400 ml-1">(optional)</span>
         </h2>
-        <div className="grid grid-cols-2 gap-5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
           <FormField label="Minimum Salary (₹/month)">
             <input
               type="number" placeholder="e.g. 50000"

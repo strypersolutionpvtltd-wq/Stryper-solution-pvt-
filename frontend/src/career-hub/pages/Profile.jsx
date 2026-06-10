@@ -120,7 +120,7 @@ const Profile = () => {
 
       {/* Career Details */}
       <Section title="Career Details">
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {Object.entries({
             'Preferred Role':    c.careerDetails.preferredRole,
             'Experience':        c.careerDetails.experience,

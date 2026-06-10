@@ -55,7 +55,7 @@ const EditUserModal = ({ isOpen, onClose, user, onSave }) => {
                 className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-1 focus:ring-brand-purple-600/50 text-white"
               />
             </div>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <label className="text-[10px] font-bold text-neutral-500 uppercase tracking-widest ml-1">Role</label>
                 <select 
@@ -281,7 +281,7 @@ const AdminUserDetail = () => {
             className="bg-[#0f0f0f] border border-white/5 rounded-3xl p-6 space-y-6"
           >
             <h3 className="text-xs font-bold text-neutral-500 uppercase tracking-widest">Account Overview</h3>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="p-4 rounded-2xl bg-white/5 border border-white/5">
                 <p className="text-[10px] font-bold text-neutral-500 uppercase mb-1">Total Logs</p>
                 <p className="text-xl font-bold">142</p>

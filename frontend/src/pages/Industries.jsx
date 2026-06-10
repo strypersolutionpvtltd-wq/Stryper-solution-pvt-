@@ -149,7 +149,7 @@ const IndustryDetailRow = ({ ind }) => (
                 <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: ind.accent }} />Active
               </span>
             </div>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {[ind.stat1, ind.stat2].map((s) => (
                 <div key={s.lbl} className="rounded-2xl px-4 py-3.5 text-center border"
                      style={{ background: 'white', borderColor: ind.accent + '20' }}>
@@ -292,7 +292,7 @@ const IndustryBenefits = () => (
               <div className="absolute top-0 right-0 w-56 h-56 rounded-full blur-3xl opacity-20" style={{ background: GOLD }} aria-hidden="true" />
               <div className="relative z-10 p-6 flex flex-col gap-4 h-full">
                 <p className="text-white/50 text-[10px] uppercase tracking-widest font-medium">Industry Impact</p>
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   {[{val:'6+',lbl:'Industries',c:'text-white'},{val:'250+',lbl:'Workers',c:'text-white'},{val:'15+',lbl:'Clients',c:'text-[#F5A623]'},{val:'98%',lbl:'Satisfaction',c:'text-emerald-300'}].map((s) => (
                     <div key={s.lbl} className="bg-white/10 rounded-2xl px-4 py-3.5 text-center border border-white/10">
                       <p className={`text-2xl font-bold font-display leading-none mb-1 ${s.c}`}>{s.val}</p>

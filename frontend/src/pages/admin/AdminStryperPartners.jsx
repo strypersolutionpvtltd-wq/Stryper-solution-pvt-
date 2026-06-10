@@ -39,7 +39,7 @@ const AddPartnerModal = ({ isOpen, onClose, onSave }) => {
                 <label className="text-xs font-bold text-neutral-500 uppercase">Specialty</label>
                 <input value={formData.specialty} onChange={e => setFormData({...formData, specialty: e.target.value})} className="w-full mt-1 bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-sm focus:outline-none" placeholder="e.g. Healthcare, IT" />
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="text-xs font-bold text-neutral-500 uppercase">Experience</label>
                   <input value={formData.experience} onChange={e => setFormData({...formData, experience: e.target.value})} className="w-full mt-1 bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-sm focus:outline-none" placeholder="e.g. 5 years" />

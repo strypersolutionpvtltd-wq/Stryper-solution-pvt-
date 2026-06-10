@@ -33,10 +33,12 @@ const CandidateNavMenu = () => {
   };
 
   const confirmLogout = () => {
+    // 1. Close modal state first
     setShowLogoutConfirm(false);
+    
+    // 2. Perform logout
+    // AuthContext.logout() now includes a delay to allow animations to finish
     logout();
-    // Force a clean hard-reload to the home page to prevent React layout-shifting glitches
-    window.location.href = '/';
   };
 
   const initials = c.fullName ? c.fullName.split(' ').map(n => n[0]).join('').toUpperCase() : 'U';
@@ -66,12 +68,12 @@ const CandidateNavMenu = () => {
             {initials}
           </div>
           <div className="hidden xl:block text-left">
-            <p className="text-xs font-semibold text-white leading-tight">{c.fullName}</p>
-            <p className="text-[10px] text-white/60 leading-tight">Account</p>
+            <p className="text-xs font-semibold text-neutral-800 leading-tight">{c.fullName}</p>
+            <p className="text-[10px] text-neutral-400 leading-tight">Account</p>
           </div>
           <svg
             width="12" height="12" viewBox="0 0 12 12" fill="none"
-            className={`text-white/60 transition-transform duration-200 ${open ? 'rotate-180' : ''}`}
+            className={`text-neutral-400 transition-transform duration-200 ${open ? 'rotate-180' : ''}`}
           >
             <path d="M2 4l4 4 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
           </svg>

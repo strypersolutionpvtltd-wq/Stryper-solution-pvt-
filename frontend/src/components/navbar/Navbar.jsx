@@ -69,12 +69,12 @@ const Navbar = () => {
 
         {/* ── Main navbar ── */}
         <motion.header
-          initial={{ y: -20, opacity: 0 }}
+          initial={false} // Disable entry animation on mount to prevent blinking during route changes
           animate={{ y: 0, opacity: 1 }}
           transition={{ duration: 0.4, ease: 'easeOut' }}
           className={[
-            'bg-black transition-shadow duration-300',
-            isScrolled ? 'shadow-[0_2px_16px_-2px_rgba(0,0,0,0.12)]' : 'border-b border-white-10',
+            'bg-white transition-shadow duration-300',
+            isScrolled ? 'shadow-[0_2px_16px_-2px_rgba(0,0,0,0.12)]' : 'border-b border-neutral-100',
           ].join(' ')}
           role="banner"
         >
@@ -88,21 +88,32 @@ const Navbar = () => {
               </nav>
 
               <div className="flex items-center gap-3">
-                <motion.div className="hidden lg:block" whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}>
-                  {isCandidate ? (
-                    <CandidateNavMenu />
-                  ) : (
-                    <button
-                      onClick={openSignIn}
-                      className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-semibold text-white transition-colors duration-200"
-                      style={{ background: '#8B3A8F' }}>
-                      Company Login
-                    </button>
-                  )}
-                </motion.div>
+                <AnimatePresence mode="wait">
+                  <motion.div 
+                    key={isCandidate ? 'candidate-menu' : 'login-btn'}
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.95 }}
+                    transition={{ duration: 0.2 }}
+                    className="hidden lg:block" 
+                    whileHover={{ scale: 1.02 }} 
+                    whileTap={{ scale: 0.97 }}
+                  >
+                    {isCandidate ? (
+                      <CandidateNavMenu />
+                    ) : (
+                      <button
+                        onClick={openSignIn}
+                        className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-semibold text-white transition-colors duration-200"
+                        style={{ background: '#8B3A8F' }}>
+                        Company Login
+                      </button>
+                    )}
+                  </motion.div>
+                </AnimatePresence>
 
                 <button
-                  className="lg:hidden w-10 h-10 rounded-lg flex items-center justify-center text-white  hover:bg-white-10 transition-colors"
+                  className="lg:hidden w-10 h-10 rounded-lg flex items-center justify-center text-neutral-700 hover:bg-neutral-100 transition-colors"
                   onClick={() => setMobileOpen(p => !p)}
                   aria-label={isMobileOpen ? 'Close menu' : 'Open menu'}
                   aria-expanded={isMobileOpen}

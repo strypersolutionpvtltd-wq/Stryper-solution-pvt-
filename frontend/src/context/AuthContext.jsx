@@ -60,13 +60,19 @@ export const AuthProvider = ({ children }) => {
     try {
       if (userData) {
         sessionStorage.setItem('hz_user_data', JSON.stringify(userData));
+      } else {
+        sessionStorage.removeItem('hz_user_data');
       }
     } catch { /* private browsing */ }
   }, [userData]);
 
   useEffect(() => {
     try {
-      sessionStorage.setItem('hz_applied_jobs', JSON.stringify(appliedJobs));
+      if (appliedJobs && appliedJobs.length > 0) {
+        sessionStorage.setItem('hz_applied_jobs', JSON.stringify(appliedJobs));
+      } else {
+        sessionStorage.removeItem('hz_applied_jobs');
+      }
     } catch { /* private browsing */ }
   }, [appliedJobs]);
 
@@ -82,11 +88,15 @@ export const AuthProvider = ({ children }) => {
   };
 
   const logout = () => {
+    // Clear all auth-related states immediately to trigger re-renders and redirects
     setIsLoggedIn(false);
     setUserRole(null);
     setUserData(null);
     setAppliedJobs([]);
-    sessionStorage.clear();
+    
+    try {
+      sessionStorage.clear();
+    } catch (e) {}
   };
 
   return (
@@ -95,7 +105,7 @@ export const AuthProvider = ({ children }) => {
       userRole, setUserRole, 
       userData, setUserData, 
       appliedJobs, applyToJob,
-      logout 
+      logout
     }}>
       {children}
     </AuthContext.Provider>
