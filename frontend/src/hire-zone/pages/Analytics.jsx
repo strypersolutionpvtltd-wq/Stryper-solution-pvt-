@@ -97,7 +97,7 @@ const Analytics = () => {
       </div>
 
       {/* Top KPIs */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard label="Total Applications" value="142" sub="This quarter"       color="#8B3A8F" delay={0.05} />
         <StatCard label="Hire Rate"          value="12%" sub="Industry avg: 8%"   color="#16a34a" delay={0.10} />
         <StatCard label="Avg. Time to Hire"  value="18d" sub="Days per position"  color="#2563eb" delay={0.15} />

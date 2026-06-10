@@ -9,12 +9,12 @@ const STATUS_STYLES = {
 };
 
 const AppliedJobs = () => {
-  const { appliedJobs } = useAuth();
+  const { appliedJobs = [] } = useAuth();
   
   // Merge mock data with real session data, avoid duplicates by ID
-  const allJobs = [...appliedJobs];
+  const allJobs = Array.isArray(appliedJobs) ? [...appliedJobs] : [];
   MOCK_APPLIED_JOBS.forEach(mock => {
-    if (!allJobs.find(j => j.id === mock.id)) {
+    if (!allJobs.find(j => j?.id === mock.id)) {
       allJobs.push(mock);
     }
   });

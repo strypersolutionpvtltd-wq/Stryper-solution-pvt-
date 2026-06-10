@@ -97,7 +97,7 @@ const AboutDashboard = () => (
           <span className="text-brand-gold-300 text-[10px] font-bold">Est. 2021</span>
         </div>
         {/* Stats grid */}
-        <div className="grid grid-cols-2 gap-2.5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
           {[{ val: '250+', lbl: 'Active Workers', c: 'text-white' }, { val: '15+', lbl: 'Clients', c: 'text-brand-gold-300' }, { val: '10+', lbl: 'Industries', c: 'text-emerald-300' }, { val: '98%', lbl: 'Satisfaction', c: 'text-brand-purple-300' }].map((s) => (
             <div key={s.lbl} className="bg-white/8 rounded-2xl px-3 py-3 border border-white/10 text-center">
               <p className={`text-xl font-bold font-display ${s.c} leading-none`}>{s.val}</p>

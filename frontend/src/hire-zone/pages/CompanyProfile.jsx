@@ -106,7 +106,7 @@ const CompanyProfile = () => {
           </div>
 
           {/* Stats */}
-          <div className="grid grid-cols-4 gap-3 mt-5 pt-5 border-t border-neutral-50">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-5 pt-5 border-t border-neutral-50">
             {STATS.map(({ label, value }) => (
               <div key={label} className="text-center">
                 <p className="text-xl font-bold text-neutral-900">{value}</p>

@@ -26,7 +26,7 @@ const PostJobModal = ({ isOpen, onClose, onSave }) => {
               <button onClick={onClose} className="p-2 hover:bg-white/5 rounded-full"><X size={20}/></button>
             </div>
             <div className="p-8 space-y-4 overflow-y-auto">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="text-xs font-bold text-neutral-500 uppercase">Job Title</label>
                   <input value={formData.title} onChange={e => setFormData({...formData, title: e.target.value})} className="w-full mt-1 bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-sm focus:outline-none" />
@@ -50,7 +50,7 @@ const PostJobModal = ({ isOpen, onClose, onSave }) => {
                   <input value={formData.experience} placeholder="e.g. 3-5 Years" onChange={e => setFormData({...formData, experience: e.target.value})} className="w-full mt-1 bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-sm focus:outline-none" />
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="text-xs font-bold text-neutral-500 uppercase">Job Type</label>
                   <select value={formData.type} onChange={e => setFormData({...formData, type: e.target.value})} className="w-full mt-1 bg-[#161616] border border-white/10 rounded-xl px-4 py-2 text-sm focus:outline-none">
@@ -100,7 +100,7 @@ const ViewJobModal = ({ isOpen, onClose, job }) => {
               <p className="text-neutral-400">{job.company}</p>
             </div>
             
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="bg-white/5 p-4 rounded-xl border border-white/5">
                 <p className="text-[10px] uppercase font-bold text-neutral-500 mb-1">Location</p>
                 <div className="flex items-center gap-2 text-sm">

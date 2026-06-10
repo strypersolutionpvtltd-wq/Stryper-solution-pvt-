@@ -123,7 +123,7 @@
 
   /* Section spacing */
   .section-padding {
-    @apply py-20 lg:py-28;
+    @apply py-14 lg:py-28;
   }
 
   .section-padding-sm {

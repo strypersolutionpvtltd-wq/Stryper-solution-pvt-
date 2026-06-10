@@ -92,7 +92,7 @@ const EditJobModal = ({ job, onClose, onSave }) => {
           {/* Form */}
           <form onSubmit={handleSubmit} className="p-6 space-y-6">
             {/* Title + Department */}
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-xs font-semibold text-neutral-600 mb-1.5">Job Title *</label>
                 <input
@@ -294,18 +294,18 @@ const JobDetailModal = ({ job, onClose, onEdit }) => {
           </div>
 
           {/* Stats row */}
-          <div className="grid grid-cols-3 gap-3 px-6 py-4 bg-neutral-50 border-b border-neutral-100">
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 px-6 py-4 bg-neutral-50 border-b border-neutral-100">
             <div className="text-center">
               <p className="text-2xl font-bold text-neutral-900">{job.applicants}</p>
-              <p className="text-[10px] text-neutral-400 mt-0.5">Applicants</p>
+              <p className="text-[10px] text-neutral-400 mt-0.5 uppercase tracking-wider">Applicants</p>
             </div>
-            <div className="text-center border-x border-neutral-200">
+            <div className="text-center border-l sm:border-x border-neutral-200">
               <p className="text-2xl font-bold text-neutral-900">{job.type}</p>
-              <p className="text-[10px] text-neutral-400 mt-0.5">Type</p>
+              <p className="text-[10px] text-neutral-400 mt-0.5 uppercase tracking-wider">Type</p>
             </div>
-            <div className="text-center">
+            <div className="text-center col-span-2 sm:col-span-1 pt-3 sm:pt-0 border-t sm:border-t-0 border-neutral-200 sm:border-none">
               <p className="text-2xl font-bold" style={{ color: '#8B3A8F' }}>{job.status}</p>
-              <p className="text-[10px] text-neutral-400 mt-0.5">Status</p>
+              <p className="text-[10px] text-neutral-400 mt-0.5 uppercase tracking-wider">Status</p>
             </div>
           </div>
 
@@ -314,7 +314,7 @@ const JobDetailModal = ({ job, onClose, onEdit }) => {
             {/* Basic Info */}
             <div className="space-y-3">
               <h3 className="text-xs font-bold text-neutral-600 uppercase tracking-wider">Basic Information</h3>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <Row label="Location" value={job.location} />
                 <Row label="Work Mode" value={job.workMode} />
                 <Row label="Posted Date" value={job.postedDate} />
@@ -325,7 +325,7 @@ const JobDetailModal = ({ job, onClose, onEdit }) => {
             {/* Compensation */}
             <div className="space-y-3">
               <h3 className="text-xs font-bold text-neutral-600 uppercase tracking-wider">Compensation & Experience</h3>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <Row label="Salary" value={job.salary} />
                 <Row label="Experience" value={job.experience} />
               </div>
