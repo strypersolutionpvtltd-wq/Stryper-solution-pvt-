@@ -84,6 +84,18 @@ const candidateProfileSchema = new mongoose.Schema(
       default: "",
     },
 
+    totalExperience: {
+      type: String,
+      trim: true,
+      default: "",
+    },
+
+    expectedSalary: {
+      type: String,
+      trim: true,
+      default: "",
+    },
+
     preferredLocation: {
       type: String,
       trim: true,
@@ -111,6 +123,36 @@ const candidateProfileSchema = new mongoose.Schema(
       type: String,
       enum: ["Full-time", "Part-time", "Contract", "Freelance", "Internship"],
     }],
+
+    // --- Settings Preferences ---
+    profileVisibility: {
+      type: Boolean,
+      default: true,
+    },
+    resumeVisibility: {
+      type: Boolean,
+      default: true,
+    },
+    showCurrentEmployer: {
+      type: Boolean,
+      default: false,
+    },
+    jobRecommendations: {
+      type: Boolean,
+      default: true,
+    },
+    applicationUpdates: {
+      type: Boolean,
+      default: true,
+    },
+    recruiterMessages: {
+      type: Boolean,
+      default: true,
+    },
+    profileViews: {
+      type: Boolean,
+      default: false,
+    },
   },
   {
     timestamps: true,

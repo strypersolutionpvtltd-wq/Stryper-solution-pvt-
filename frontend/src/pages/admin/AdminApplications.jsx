@@ -1,7 +1,7 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, Eye, FileText, Calendar, Building2, User, Trash2, Briefcase, MapPin, X, CheckCircle } from 'lucide-react';
-import { ALL_APPLICATIONS, STRYPER_APPLICATIONS } from '@/data/adminData';
+import { Search, Eye, FileText, Calendar, Building2, User, Trash2, Briefcase, MapPin, X, CheckCircle, Loader2 } from 'lucide-react';
+import { admin, jobApplications } from '@/utils/api';
 import toast from 'react-hot-toast';
 
 const fadeInUp = {
@@ -42,6 +42,8 @@ const AppViewModal = ({ isOpen, onClose, app, onStatusUpdate, activeTab }) => {
               <div>
                 <h4 className="text-lg font-bold">{app.candidate}</h4>
                 <p className="text-sm text-neutral-400">{app.job}</p>
+                {app.email && <p className="text-xs text-neutral-500 mt-0.5">✉ {app.email}</p>}
+                {app.phone && <p className="text-xs text-neutral-500">📞 {app.phone}</p>}
               </div>
             </div>
 
@@ -55,30 +57,22 @@ const AppViewModal = ({ isOpen, onClose, app, onStatusUpdate, activeTab }) => {
                 <p className="text-[10px] text-neutral-500 uppercase font-bold mb-1">Applied Date</p>
                 <p className="text-sm font-medium">{app.date}</p>
               </div>
-              {app.experience && (
-                <div className="p-4 bg-white/5 rounded-xl border border-white/5">
-                  <p className="text-[10px] text-neutral-500 uppercase font-bold mb-1">Experience</p>
-                  <p className="text-sm font-medium">{app.experience}</p>
-                </div>
-              )}
-              {app.location && (
-                <div className="p-4 bg-white/5 rounded-xl border border-white/5">
-                  <p className="text-[10px] text-neutral-500 uppercase font-bold mb-1">Location</p>
-                  <p className="text-sm font-medium">{app.location}</p>
-                </div>
-              )}
-              {app.expectedSalary && (
-                <div className="p-4 bg-white/5 rounded-xl border border-white/5">
-                  <p className="text-[10px] text-neutral-500 uppercase font-bold mb-1">Expected Salary</p>
-                  <p className="text-sm font-medium">{app.expectedSalary}</p>
-                </div>
-              )}
-              {app.noticePeriod && (
-                <div className="p-4 bg-white/5 rounded-xl border border-white/5">
-                  <p className="text-[10px] text-neutral-500 uppercase font-bold mb-1">Notice Period</p>
-                  <p className="text-sm font-medium">{app.noticePeriod}</p>
-                </div>
-              )}
+              <div className="p-4 bg-white/5 rounded-xl border border-white/5">
+                <p className="text-[10px] text-neutral-500 uppercase font-bold mb-1">Experience</p>
+                <p className="text-sm font-medium">{app.experience || 'Not specified'}</p>
+              </div>
+              <div className="p-4 bg-white/5 rounded-xl border border-white/5">
+                <p className="text-[10px] text-neutral-500 uppercase font-bold mb-1">Location</p>
+                <p className="text-sm font-medium">{app.location || 'Not specified'}</p>
+              </div>
+              <div className="p-4 bg-white/5 rounded-xl border border-white/5">
+                <p className="text-[10px] text-neutral-500 uppercase font-bold mb-1">Expected Salary</p>
+                <p className="text-sm font-medium">{app.expectedSalary || 'Not specified'}</p>
+              </div>
+              <div className="p-4 bg-white/5 rounded-xl border border-white/5">
+                <p className="text-[10px] text-neutral-500 uppercase font-bold mb-1">Notice Period</p>
+                <p className="text-sm font-medium">{app.noticePeriod || 'Not specified'}</p>
+              </div>
             </div>
 
             {/* Skills Section */}
@@ -180,14 +174,64 @@ const AppViewModal = ({ isOpen, onClose, app, onStatusUpdate, activeTab }) => {
 
 const AdminApplications = () => {
   const [activeTab, setActiveTab]   = useState('company');
-  const [companyApps, setCompanyApps]   = useState(ALL_APPLICATIONS.map(a => ({...a, status: a.status === 'Shortlisted' ? 'Screening' : a.status})));
-  const [stryperApps, setStryperApps]   = useState(STRYPER_APPLICATIONS.map(a => ({...a, status: a.status === 'Shortlisted' ? 'Screening' : a.status})));
+  const [applications, setApplications] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchText] = useState('');
   
   const [viewAppId, setViewAppId] = useState(null);
 
-  const apps    = activeTab === 'company' ? companyApps : stryperApps;
-  const setApps = activeTab === 'company' ? setCompanyApps : setStryperApps;
+  const fetchApplications = async () => {
+    setLoading(true);
+    try {
+      const res = await admin.getAllApplications({ limit: 1000 });
+      if (res.data?.success) {
+        const mapped = (res.data.applications || []).map(a => {
+          // Parse guest info from notes field (Stryper job applications)
+          let guestInfo = {};
+          if (a.notes) {
+            try { guestInfo = JSON.parse(a.notes); } catch {}
+          }
+
+          const candidateName = a.candidateId
+            ? `${a.candidateId.firstName} ${a.candidateId.lastName}`.trim()
+            : guestInfo.guestName || 'N/A';
+
+          return {
+            id: a._id,
+            candidate: candidateName,
+            job: a.jobId?.title || 'N/A',
+            company: a.companyId?.companyName || 'Stryper Solution',
+            date: a.appliedDate ? new Date(a.appliedDate).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) : 'N/A',
+            status: a.status || 'Applied',
+            experience: (a.candidateId?.totalExperience || '').trim() || 'Not specified',
+            location: (a.candidateId?.location || '').trim() || (guestInfo.guestPhone ? `Ph: ${guestInfo.guestPhone}` : 'Not specified'),
+            expectedSalary: a.salaryExpectation ? `₹${a.salaryExpectation}` : 'Not specified',
+            noticePeriod: (a.noticePeriod || '').trim() || 'Not specified',
+            skills: a.candidateId?.skills || [],
+            coverLetter: a.coverLetter || '',
+            resumeUrl: a.resume || a.resumeUrl || a.candidateId?.resume || '',
+            email: guestInfo.guestEmail || '',
+            phone: guestInfo.guestPhone || a.candidateId?.phone || '',
+            isStryper: a.isStryperApplication === true || !a.companyId,
+          };
+        });
+        setApplications(mapped);
+      }
+    } catch (error) {
+      console.error("Failed to fetch applications", error);
+      toast.error("Failed to load applications");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchApplications();
+  }, []);
+
+  const apps = useMemo(() => {
+    return applications.filter(a => activeTab === 'stryper' ? a.isStryper : !a.isStryper);
+  }, [applications, activeTab]);
 
   const filtered = useMemo(() => {
     const q = searchTerm.toLowerCase();
@@ -198,12 +242,22 @@ const AdminApplications = () => {
     );
   }, [apps, searchTerm]);
 
-  const handleStatusUpdate = (id, newStatus) => {
-    setApps(prev => prev.map(a => a.id === id ? { ...a, status: newStatus } : a));
-    toast.success(`Application updated to ${newStatus}`);
+  const handleStatusUpdate = async (id, newStatus) => {
+    try {
+      const res = await jobApplications.updateStatus(id, { status: newStatus });
+      if (res.data?.success) {
+        setApplications(prev => prev.map(a => a.id === id ? { ...a, status: newStatus } : a));
+        toast.success(`Application updated to ${newStatus}`);
+      } else {
+        toast.error("Failed to update status");
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error("Error communicating status update to server");
+    }
   };
 
-  const selectedApp = useMemo(() => apps.find(a => a.id === viewAppId), [apps, viewAppId]);
+  const selectedApp = useMemo(() => applications.find(a => a.id === viewAppId), [applications, viewAppId]);
 
   return (
     <motion.div
@@ -292,7 +346,16 @@ const AdminApplications = () => {
             </thead>
             <tbody className="divide-y divide-white/5">
               <AnimatePresence>
-                {filtered.length === 0 ? (
+                {loading ? (
+                  <tr>
+                    <td colSpan={6} className="px-6 py-20 text-center">
+                      <div className="flex flex-col items-center justify-center gap-3">
+                        <Loader2 size={24} className="animate-spin text-brand-purple-500" />
+                        <p className="text-xs font-bold text-neutral-400 uppercase tracking-widest">Loading Applications...</p>
+                      </div>
+                    </td>
+                  </tr>
+                ) : filtered.length === 0 ? (
                   <tr>
                     <td colSpan={6} className="px-6 py-20 text-center text-neutral-500 text-sm">
                       No applications found.

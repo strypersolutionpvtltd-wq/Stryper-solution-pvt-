@@ -1,8 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Bell, CheckCircle2, AlertTriangle, Info, XCircle, Trash2 } from 'lucide-react';
-import { ADMIN_NOTIFICATIONS } from '@/data/adminData';
+import { Bell, CheckCircle2, AlertTriangle, Info, XCircle, Trash2, Loader2 } from 'lucide-react';
+import { notifications as apiNotifications } from '@/utils/api';
 import toast from 'react-hot-toast';
 
 const fadeInUp = {
@@ -10,17 +10,75 @@ const fadeInUp = {
   visible: { opacity: 1, y: 0 }
 };
 
+const getRelativeTime = (dateString) => {
+  if (!dateString) return 'N/A';
+  const now = new Date();
+  const past = new Date(dateString);
+  const diffMs = now - past;
+  const diffMins = Math.floor(diffMs / (1000 * 60));
+  if (diffMins < 1) return 'Just now';
+  if (diffMins < 60) return `${diffMins} min${diffMins > 1 ? 's' : ''} ago`;
+  const diffHrs = Math.floor(diffMins / 60);
+  if (diffHrs < 24) return `${diffHrs} hour${diffHrs > 1 ? 's' : ''} ago`;
+  const diffDays = Math.floor(diffHrs / 24);
+  return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`;
+};
+
 const AdminNotifications = () => {
   const navigate = useNavigate();
-  const [notifications, setNotifications] = useState(ADMIN_NOTIFICATIONS);
+  const [notifications, setNotifications] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const handleMarkAllRead = () => {
-    setNotifications(notifications.map(n => ({ ...n, read: true })));
-    toast.success('All notifications marked as read.');
+  const fetchNotifications = async () => {
+    try {
+      setLoading(true);
+      const res = await apiNotifications.getAll();
+      if (res.data?.success) {
+        const mapped = (res.data.notifications || []).map(n => ({
+          id: n._id,
+          title: n.title,
+          message: n.message,
+          type: n.type?.toLowerCase() || 'info',
+          read: n.isRead,
+          link: n.actionUrl || '',
+          time: getRelativeTime(n.createdAt)
+        }));
+        setNotifications(mapped);
+      }
+    } catch (error) {
+      console.error("Failed to load notifications:", error);
+      toast.error("Failed to load notifications");
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleNotificationClick = (notif) => {
-    setNotifications(notifications.map(n => n.id === notif.id ? { ...n, read: true } : n));
+  useEffect(() => {
+    fetchNotifications();
+  }, []);
+
+  const handleMarkAllRead = async () => {
+    try {
+      const res = await apiNotifications.markAllAsRead();
+      if (res.data?.success) {
+        setNotifications(notifications.map(n => ({ ...n, read: true })));
+        toast.success('All notifications marked as read.');
+      }
+    } catch (error) {
+      console.error("Failed to mark all as read:", error);
+      toast.error("Failed to update notifications");
+    }
+  };
+
+  const handleNotificationClick = async (notif) => {
+    try {
+      if (!notif.read) {
+        await apiNotifications.markOneAsRead(notif.id);
+        setNotifications(notifications.map(n => n.id === notif.id ? { ...n, read: true } : n));
+      }
+    } catch (error) {
+      console.error("Failed to mark notification as read:", error);
+    }
     
     if (notif.link) {
       navigate(notif.link);
@@ -37,25 +95,46 @@ const AdminNotifications = () => {
       navigate('/admin/jobs');
     } else if (title.includes('candidate') || title.includes('user') || msg.includes('candidate')) {
       navigate('/admin/users');
-    } else {
-      // Default info toast if no redirect needed
-      toast.success('Notification read.');
     }
   };
 
-  const handleMarkRead = (id) => {
-    setNotifications(notifications.map(n => n.id === id ? { ...n, read: true } : n));
+  const handleMarkRead = async (id) => {
+    try {
+      const res = await apiNotifications.markOneAsRead(id);
+      if (res.data?.success) {
+        setNotifications(notifications.map(n => n.id === id ? { ...n, read: true } : n));
+      }
+    } catch (error) {
+      console.error("Failed to mark notification as read:", error);
+    }
   };
 
-  const handleDelete = (id, e) => {
+  const handleDelete = async (id, e) => {
     e.stopPropagation();
-    setNotifications(notifications.filter(n => n.id !== id));
-    toast.success('Notification deleted.');
+    try {
+      const res = await apiNotifications.delete(id);
+      if (res.data?.success) {
+        setNotifications(notifications.filter(n => n.id !== id));
+        toast.success('Notification deleted.');
+      }
+    } catch (error) {
+      console.error("Failed to delete notification:", error);
+      toast.error("Failed to delete notification");
+    }
   };
 
   const loadOlder = () => {
-    toast('Loading older notifications...', { icon: '⏳' });
+    toast('All loaded.', { icon: 'ℹ️' });
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-[400px] flex flex-col items-center justify-center gap-3 text-white">
+        <Loader2 size={40} className="animate-spin text-brand-purple-600" />
+        <p className="text-sm font-bold uppercase tracking-widest animate-pulse">Loading Notifications...</p>
+      </div>
+    );
+  }
 
   return (
     <motion.div 

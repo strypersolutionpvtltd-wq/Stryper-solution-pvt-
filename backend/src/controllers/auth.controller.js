@@ -4,6 +4,7 @@ const axios = require("axios");
 const User = require("../models/user.model");
 const CandidateProfile = require("../models/candidateProfile.model");
 const CompanyProfile = require("../models/companyProfile.model");
+const SystemSettings = require("../models/systemSettings.model");
 
 // Helper: Verify reCAPTCHA token with Google
 const verifyRecaptcha = async (token) => {
@@ -57,6 +58,15 @@ const registerUser = async (req, res) => {
       });
     }
 
+    // 1.2. Check if public registration is closed
+    const systemSettings = await SystemSettings.findOne({});
+    if (systemSettings && systemSettings.publicRegistration === false) {
+      return res.status(403).json({
+        success: false,
+        message: "Registration is currently closed by the administrator.",
+      });
+    }
+
     // 1.5. Verify reCAPTCHA token (if provided)
     if (captchaToken) {
       const isCaptchaValid = await verifyRecaptcha(captchaToken);
@@ -87,6 +97,7 @@ const registerUser = async (req, res) => {
       email,
       password: hashedPassword,
       role,
+      passwordChangedAt: new Date(),
     });
 
     // 5. Generate JWT token so frontend can auto-login
@@ -172,6 +183,13 @@ async function loginUser(req, res) {
       });
     }
 
+    if (user.accountStatus === "Suspended") {
+      return res.status(403).json({
+        success: false,
+        message: "Your account has been suspended. Please contact admin.",
+      });
+    }
+
     // 3. Compare password with hashed password in DB
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) {
@@ -179,6 +197,12 @@ async function loginUser(req, res) {
         success: false,
         message: "Invalid email or password",
       });
+    }
+
+    // Auto-reactivate deactivated account on login
+    if (user.accountStatus === "Inactive") {
+      user.accountStatus = "Active";
+      await user.save();
     }
 
     // 4. Generate JWT token
@@ -240,15 +264,16 @@ const changePassword = async (req, res) => {
     if (!isPasswordMatched) {
       return res.status(401).json({
         success: false,
-        message: "urrent password is incorrecCt",
+        message: "Current password is incorrect",
       });
     }
 
     // Hash new password
     const hashedPassword = await bcrypt.hash(newPassword, 10);
 
-    // Update password
+    // Update password and track change time
     user.password = hashedPassword;
+    user.passwordChangedAt = new Date();
 
     await user.save();
 

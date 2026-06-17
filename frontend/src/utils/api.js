@@ -27,6 +27,11 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
+      // Skip auto-logout for password change — wrong password returns 401 intentionally
+      const url = error.config?.url || '';
+      if (url.includes('/auth/change-password')) {
+        return Promise.reject(error);
+      }
       // Token expired or invalid — logout user
       localStorage.removeItem('stryper_token');
       localStorage.removeItem('stryper_user');
@@ -51,6 +56,7 @@ export const candidateProfile = {
   get: () => api.get('/candidate'),
   create: (data) => api.post('/candidate/create', data),
   update: (data) => api.put('/candidate', data),
+  search: (params) => api.get('/candidate/search', { params }),
 };
 
 // Candidate Experience endpoints
@@ -85,12 +91,16 @@ export const jobs = {
   getMyJobs: () => api.get('/jobs/company/mine'),
   update: (id, data) => api.put(`/jobs/${id}`, data),
   delete: (id) => api.delete(`/jobs/${id}`),
+  // Stryper internal jobs — public, no auth
+  getStryperJobs: () => api.get('/jobs/stryper'),
+  applyStryperJob: (data) => api.post('/jobs/stryper/apply', data),
 };
 
 // Job Applications endpoints
 export const jobApplications = {
   apply: (data) => api.post('/applications', data),
   getMyApplications: () => api.get('/applications/me'),
+  getCompanyApplicants: () => api.get('/applications/company'),
   getJobApplicants: (jobId) => api.get(`/applications/job/${jobId}`),
   updateStatus: (id, data) => api.patch(`/applications/${id}/status`, data),
   withdraw: (id) => api.delete(`/applications/${id}`),
@@ -124,15 +134,28 @@ export const notifications = {
 export const dashboard = {
   getCandidate: () => api.get('/dashboard/candidate'),
   getCompany: () => api.get('/dashboard/company'),
+  getCompanyAnalytics: () => api.get('/dashboard/company/analytics'),
 };
 
 // Admin endpoints
 export const admin = {
   getStats: () => api.get('/admin/stats'),
   getAllUsers: (params) => api.get('/admin/users', { params }),
+  getUserById: (id) => api.get('/admin/users', { params: { limit: 1000 } }).then(res => {
+    const found = res.data?.users?.find(u => u._id === id);
+    if (!found) throw new Error('User not found');
+    return { data: { success: true, user: found } };
+  }),
   getAllJobs: (params) => api.get('/admin/jobs', { params }),
   getAllApplications: (params) => api.get('/admin/applications', { params }),
   updateUserStatus: (id, data) => api.patch(`/admin/users/${id}/status`, data),
+  verifyCompany: (id) => api.patch(`/admin/companies/${id}/verify`),
+  deleteUser: (id) => api.delete(`/admin/users/${id}`),
+  // Partner management
+  getPartners: (params) => api.get('/admin/partners', { params }),
+  addPartner: (data) => api.post('/admin/partners', data),
+  updatePartnerStatus: (id) => api.patch(`/admin/partners/${id}/status`),
+  removePartner: (id) => api.delete(`/admin/partners/${id}`),
 };
 
 // Upload endpoints
@@ -148,6 +171,18 @@ export const upload = {
 // Contact endpoint
 export const contact = {
   send: (data) => api.post('/contact', data),
+};
+
+// Analytics endpoints
+export const analytics = {
+  logVisit: () => api.post('/analytics/visit'),
+};
+
+// Settings endpoints
+export const settings = {
+  get: () => api.get('/settings'),
+  update: (data) => api.put('/settings', data),
+  deactivate: () => api.post('/settings/deactivate'),
 };
 
 export default api;

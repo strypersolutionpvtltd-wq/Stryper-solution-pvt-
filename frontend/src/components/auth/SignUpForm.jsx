@@ -1,10 +1,11 @@
 import { useState } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { useGoogleReCaptcha } from 'react-google-recaptcha-v3';
 import GoogleIcon from './GoogleIcon';
 import { useAuth } from '@/context/AuthContext';
 import { companyProfile, candidateProfile, upload } from '@/utils/api';
+import { validateField, filterInput } from '@/utils/validation';
 import toast from 'react-hot-toast';
 
 const HIRE_FIELDS = [
@@ -30,7 +31,9 @@ const SignUpForm = ({ type, onBack, onSwitchToSignIn, onClose, hideHeader }) => 
   const isHire = type === 'hire-workforce';
   const fields = isHire ? HIRE_FIELDS : JOB_FIELDS;
   const [form, setForm] = useState({});
+  const [errors, setErrors] = useState({});
   const [file, setFile] = useState(null);
+  const [fileError, setFileError] = useState('');
   const [dragOver, setDragOver] = useState(false);
   const [showPass, setShowPass] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -38,22 +41,57 @@ const SignUpForm = ({ type, onBack, onSwitchToSignIn, onClose, hideHeader }) => 
   const navigate = useNavigate();
   const { executeRecaptcha } = useGoogleReCaptcha();
 
-  const handleChange = (e) => setForm(p => ({ ...p, [e.target.name]: e.target.value }));
-  const handleFile = (e) => setFile(e.target.files[0] || null);
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    const filteredValue = filterInput(name, value);
+    setForm(p => ({ ...p, [name]: filteredValue }));
+    // Clear error on field change
+    if (errors[name]) setErrors(p => ({ ...p, [name]: '' }));
+  };
+
+  const handleFile = (e) => {
+    const file = e.target.files[0] || null;
+    setFile(file);
+    if (file) setFileError('');
+  };
+
+  const handleFileDropped = (droppedFile) => {
+    setFile(droppedFile);
+    if (droppedFile) setFileError('');
+  };
+
+  const validateForm = () => {
+    const newErrors = {};
+    
+    // Validate all fields
+    fields.forEach(({ name }) => {
+      const error = validateField(name, form[name] || '');
+      if (error) newErrors[name] = error;
+    });
+
+    // Validate resume for candidates
+    if (!isHire) {
+      if (!file) {
+        newErrors.resume = 'Please upload your resume';
+      }
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (loading) return; // prevent double submit
+    if (loading) return;
 
-    // Manual validations (remove required from inputs to avoid duplicate browser toasts)
-    if (!form.email) return toast.error('Email is required.');
-    if (!form.password || form.password.length < 6)
-      return toast.error('Password must be at least 6 characters.');
-    if (!isHire && !file) return toast.error('Please upload your resume.');
+    // Validate form
+    if (!validateForm()) {
+      toast.error('Please fix the errors above');
+      return;
+    }
 
     setLoading(true);
     try {
-      // Step 1: Get reCAPTCHA token (non-blocking — skip if fails)
       let captchaToken = null;
       try {
         if (executeRecaptcha) {
@@ -63,7 +101,6 @@ const SignUpForm = ({ type, onBack, onSwitchToSignIn, onClose, hideHeader }) => 
         console.warn('reCAPTCHA token fetch failed, proceeding without it:', captchaErr.message);
       }
 
-      // Step 2: Register user account
       const role = isHire ? 'COMPANY' : 'CANDIDATE';
       const result = await register(
         form.email.toLowerCase().trim(),
@@ -77,14 +114,12 @@ const SignUpForm = ({ type, onBack, onSwitchToSignIn, onClose, hideHeader }) => 
         return;
       }
 
-      // Step 3: Create role-specific profile
       if (isHire) {
-        // Company profile — token is now set in localStorage by AuthContext
         try {
           await companyProfile.create({
             companyName: form.companyName || 'My Company',
             industry: form.industry || 'General',
-            companySize: '1-10',            // default, user can update later
+            companySize: '1-10',
             companyDescription: `${form.companyName || 'Company'} profile`,
             hrName: form.fullName || '',
             email: form.email || '',
@@ -92,11 +127,9 @@ const SignUpForm = ({ type, onBack, onSwitchToSignIn, onClose, hideHeader }) => 
             website: form.website || '',
           });
         } catch (profileErr) {
-          // Profile creation failed — not critical, user can fill it later
           console.warn('Company profile creation failed:', profileErr?.response?.data?.message);
         }
       } else {
-        // Candidate profile — split fullName into firstName/lastName
         try {
           const nameParts = (form.fullName || '').trim().split(' ');
           const firstName = nameParts[0] || 'User';
@@ -111,7 +144,6 @@ const SignUpForm = ({ type, onBack, onSwitchToSignIn, onClose, hideHeader }) => 
           console.warn('Candidate profile creation failed:', profileErr?.response?.data?.message);
         }
 
-        // Upload resume to Cloudinary
         if (file) {
           try {
             const formData = new FormData();
@@ -119,7 +151,6 @@ const SignUpForm = ({ type, onBack, onSwitchToSignIn, onClose, hideHeader }) => 
             await upload.uploadResume(formData);
           } catch (uploadErr) {
             console.warn('Resume upload failed:', uploadErr?.response?.data?.message);
-            // Non-critical — user can upload later from profile
           }
         }
       }
@@ -192,8 +223,14 @@ const SignUpForm = ({ type, onBack, onSwitchToSignIn, onClose, hideHeader }) => 
                 placeholder={placeholder}
                 value={form[name] || ''}
                 onChange={handleChange}
-                className="w-full px-4 py-2.5 rounded-xl border border-neutral-200 text-sm text-neutral-800 placeholder-neutral-400 focus:outline-none transition-all"
-                onFocus={e => e.target.style.boxShadow = '0 0 0 2px #8B3A8F40'}
+                className={`w-full px-4 py-2.5 rounded-xl border text-sm text-neutral-800 placeholder-neutral-400 focus:outline-none transition-all ${
+                  errors[name] ? 'border-red-300 bg-red-50' : 'border-neutral-200 focus:border-purple-400'
+                }`}
+                onFocus={e => {
+                  if (!errors[name]) {
+                    e.target.style.boxShadow = '0 0 0 2px #8B3A8F40';
+                  }
+                }}
                 onBlur={e => e.target.style.boxShadow = ''}
               />
               {fType === 'password' && (
@@ -211,6 +248,17 @@ const SignUpForm = ({ type, onBack, onSwitchToSignIn, onClose, hideHeader }) => 
                 </button>
               )}
             </div>
+            <AnimatePresence>
+              {errors[name] && (
+                <motion.p
+                  initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
+                  className="text-xs text-red-500 mt-1 flex items-center gap-1"
+                >
+                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>
+                  {errors[name]}
+                </motion.p>
+              )}
+            </AnimatePresence>
           </div>
         ))}
 
@@ -221,10 +269,21 @@ const SignUpForm = ({ type, onBack, onSwitchToSignIn, onClose, hideHeader }) => 
             </label>
             <label
               htmlFor="signup-resume"
-              className={`flex flex-col items-center justify-center w-full py-6 rounded-xl border-2 border-dashed cursor-pointer transition-all ${dragOver ? 'border-brand-purple-500 bg-brand-purple-50' : 'border-neutral-200 hover:border-brand-purple-400 hover:bg-neutral-50'}`}
+              className={`flex flex-col items-center justify-center w-full py-6 rounded-xl border-2 border-dashed cursor-pointer transition-all ${
+                dragOver ? 'border-brand-purple-500 bg-brand-purple-50' : 
+                fileError ? 'border-red-300 bg-red-50' :
+                'border-neutral-200 hover:border-brand-purple-400 hover:bg-neutral-50'
+              }`}
               onDragOver={e => { e.preventDefault(); setDragOver(true); }}
               onDragLeave={() => setDragOver(false)}
-              onDrop={e => { e.preventDefault(); setDragOver(false); setFile(e.dataTransfer.files[0] || null); }}
+              onDrop={e => { 
+                e.preventDefault(); 
+                setDragOver(false); 
+                const droppedFile = e.dataTransfer.files[0];
+                if (droppedFile) {
+                  handleFileDropped(droppedFile);
+                }
+              }}
             >
               <input id="signup-resume" type="file" accept=".pdf,.doc,.docx" className="hidden" onChange={handleFile} />
               {file ? (
@@ -239,6 +298,17 @@ const SignUpForm = ({ type, onBack, onSwitchToSignIn, onClose, hideHeader }) => 
                 </>
               )}
             </label>
+            <AnimatePresence>
+              {fileError && (
+                <motion.p
+                  initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
+                  className="text-xs text-red-500 mt-1 flex items-center gap-1"
+                >
+                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>
+                  {fileError}
+                </motion.p>
+              )}
+            </AnimatePresence>
           </div>
         )}
 

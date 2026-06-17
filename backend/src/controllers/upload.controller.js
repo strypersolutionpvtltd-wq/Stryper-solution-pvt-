@@ -1,4 +1,5 @@
 const CandidateProfile = require("../models/candidateProfile.model");
+const User = require("../models/user.model");
 
 // @desc    Upload resume
 // @route   POST /api/v1/upload/resume
@@ -8,28 +9,26 @@ const uploadResume = async (req, res) => {
     const userId = req.user?.id;
 
     if (!userId) {
-      return res.status(401).json({
-        success: false,
-        message: "Unauthorized",
-      });
+      return res.status(401).json({ success: false, message: "Unauthorized" });
     }
 
     if (!req.file) {
-      return res.status(400).json({
-        success: false,
-        message: "No file uploaded",
-      });
+      return res.status(400).json({ success: false, message: "No file uploaded" });
     }
 
-    const candidateProfile = await CandidateProfile.findOne({ userId });
+    // Auto-create minimal profile if it doesn't exist
+    let candidateProfile = await CandidateProfile.findOne({ userId });
     if (!candidateProfile) {
-      return res.status(404).json({
-        success: false,
-        message: "Candidate profile not found",
+      const user = await User.findById(userId).select("email");
+      const namePart = (user?.email || 'candidate').split('@')[0];
+      const parts = namePart.split('.');
+      candidateProfile = await CandidateProfile.create({
+        userId,
+        firstName: parts[0] || 'Candidate',
+        lastName:  parts[1] || '',
       });
     }
 
-    // Get Cloudinary URL from req.file (set by multer-storage-cloudinary)
     const resumeUrl = req.file.path;
 
     const updatedProfile = await CandidateProfile.findByIdAndUpdate(

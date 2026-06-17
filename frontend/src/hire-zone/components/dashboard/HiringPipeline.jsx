@@ -1,30 +1,40 @@
 import { motion } from 'framer-motion';
 import { useState, useEffect } from 'react';
-import { jobApplications } from '@/utils/api';
-import { PIPELINE_STATS } from '@/hire-zone/data/mockDashboard';
+import { dashboard } from '@/utils/api';
+
+const STAGE_COLORS = { Applied:'#6366f1', Shortlisted:'#8B3A8F', Interview:'#f59e0b', Offer:'#10b981', Hired:'#0d9488', Rejected:'#ef4444' };
 
 const HiringPipeline = () => {
-  const [stats, setStats] = useState(PIPELINE_STATS);
+  const [stats, setStats] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchPipelineData = async () => {
+    (async () => {
       try {
-        // Fetch all company applications to calculate pipeline stats
-        // Note: This may need backend aggregation support
-        setStats(PIPELINE_STATS);
-      } catch (error) {
-        console.error('Failed to fetch pipeline data:', error);
-        setStats(PIPELINE_STATS);
+        const res = await dashboard.getCompany();
+        const pipeline = res.data?.dashboard?.pipeline || {};
+        const stages = ['Applied','Shortlisted','Interview','Offer','Hired'];
+        const data = stages
+          .filter(s => pipeline[s] !== undefined)
+          .map(s => ({ stage: s, count: pipeline[s] || 0, color: STAGE_COLORS[s] || '#8B3A8F' }));
+        setStats(data.length ? data : []);
+      } catch (err) {
+        console.error('Pipeline fetch error:', err);
+        setStats([]);
       } finally {
         setLoading(false);
       }
-    };
-
-    fetchPipelineData();
+    })();
   }, []);
 
   const total = stats[0]?.count || 1;
+
+  if (!loading && stats.length === 0) return (
+    <div className="bg-white rounded-2xl border border-neutral-100 p-5">
+      <h3 className="text-sm font-semibold text-neutral-800 mb-2">Hiring Pipeline</h3>
+      <p className="text-xs text-neutral-400 text-center py-6">No application data yet.</p>
+    </div>
+  );
 
   return (
     <div className="bg-white rounded-2xl border border-neutral-100 p-5">

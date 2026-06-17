@@ -4,10 +4,13 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 
 const TopBar = ({ onMenuToggle }) => {
-  const { logout } = useAuth();
+  const { logout, userData } = useAuth();
   const navigate = useNavigate();
   const [profileOpen, setProfileOpen] = useState(false);
   const [search, setSearch] = useState('');
+
+  const companyName = userData?.companyName || userData?.name || 'Company';
+  const companyInitial = companyName.charAt(0).toUpperCase();
 
   const handleLogout = () => {
     logout();
@@ -83,9 +86,9 @@ const TopBar = ({ onMenuToggle }) => {
           >
             <div className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold shrink-0"
               style={{ background: '#8B3A8F' }}>
-              C
+              {companyInitial}
             </div>
-            <span className="hidden sm:block text-sm font-medium text-white">Company</span>
+            <span className="hidden sm:block text-sm font-medium text-white">{companyName}</span>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" className="text-white/50">
               <path d="M6 9l6 6 6-6"/>
             </svg>

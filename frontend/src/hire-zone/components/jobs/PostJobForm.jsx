@@ -1,9 +1,13 @@
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
+import { jobs } from '@/utils/api';
+import toast from 'react-hot-toast';
 
-const REQUIRED = ['title', 'department', 'location', 'employmentType', 'experienceLevel', 'description'];
+const REQUIRED = ['title', 'department', 'location', 'employmentType', 'workMode', 'experienceLevel', 'description'];
 
 const EMPLOYMENT_TYPES = ['Full-time', 'Part-time', 'Contract', 'Internship', 'Freelance'];
+const WORK_MODES = ['On-site', 'Remote', 'Hybrid'];
 const EXPERIENCE_LEVELS = ['0-1 yr', '1-3 yrs', '3-5 yrs', '5-8 yrs', '8+ yrs'];
 const DEPARTMENTS = ['Engineering', 'Design', 'Product', 'Marketing', 'Sales', 'Human Resources', 'Finance', 'Operations', 'Analytics', 'Customer Support', 'Other'];
 
@@ -114,7 +118,7 @@ const SKILL_SUGGESTIONS = [
 
 const INITIAL = {
   title: '', department: '', customDepartment: '', location: '', employmentType: '',
-  experienceLevel: '', salaryMin: '', salaryMax: '',
+  workMode: '', experienceLevel: '', salaryMin: '', salaryMax: '',
   description: '', openings: '1', deadline: '', skills: [],
 };
 
@@ -149,6 +153,9 @@ const PostJobForm = () => {
   const [skillInput, setSkillInput] = useState('');
   const [submitted, setSubmitted] = useState(false);
   const [isDraft, setIsDraft] = useState(false);
+  const [submitError, setSubmitError] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const navigate = useNavigate();
 
   // Location autocomplete
   const [locationSuggestions, setLocationSuggestions] = useState([]);
@@ -279,6 +286,9 @@ const PostJobForm = () => {
   };
 
   const handleSubmit = async (draft = false) => {
+    setSubmitError('');
+    
+    // For draft: only title required
     if (draft) {
       if (!form.title.trim()) {
         setErrors({ title: 'Please enter a job title to save as draft' });
@@ -287,6 +297,7 @@ const PostJobForm = () => {
         return;
       }
     } else {
+      // For publish: validate all required fields
       const errs = validate();
       if (Object.keys(errs).length) {
         setErrors(errs);
@@ -296,32 +307,49 @@ const PostJobForm = () => {
       }
     }
 
-    // Submit to backend API
+    setIsSubmitting(true);
     try {
-      const { jobs: apiJobs } = await import('@/utils/api');
-      
       const jobData = {
         title: form.title,
         department: form.department === 'Other' ? form.customDepartment : form.department,
-        description: form.description,
-        location: form.location,
-        employmentType: form.employmentType,
-        experience: form.experienceLevel,
+        description: form.description || '',
+        location: form.location || '',
+        employmentType: form.employmentType || 'Full-time',
+        workMode: form.workMode || 'On-site',
+        experience: form.experienceLevel || '',
         salaryMin: form.salaryMin ? parseInt(form.salaryMin) : null,
         salaryMax: form.salaryMax ? parseInt(form.salaryMax) : null,
-        skills: form.skills,
+        salaryCurrency: 'INR',
+        skills: form.skills || [],
         status: draft ? 'Draft' : 'Active',
-        noOfOpenings: parseInt(form.openings) || 1,
-        applicationDeadline: form.deadline,
+        deadline: form.deadline || null,
+        openings: form.openings ? parseInt(form.openings) : 1,
+        requirements: [],
+        responsibilities: [],
       };
 
-      await apiJobs.create(jobData);
+      console.log('Submitting job data:', jobData);
+      const response = await jobs.create(jobData);
+      console.log('Job created successfully:', response);
+      
       setIsDraft(draft);
       setSubmitted(true);
-      toast.success(draft ? 'Job saved as draft!' : 'Job posted successfully!');
+      
+      // Show success toast
+      toast.success(draft ? 'Job draft saved successfully!' : 'Job published successfully!');
+      
+      // Redirect after 2 seconds
+      setTimeout(() => {
+        navigate('/hire-zone/manage-jobs', { replace: true });
+      }, 1500);
+      
     } catch (error) {
       console.error('Failed to submit job:', error);
-      toast.error(error.response?.data?.message || 'Failed to submit job. Please try again.');
+      const errorMsg = error.response?.data?.message || error.message || 'Failed to submit job. Please try again.';
+      setSubmitError(errorMsg);
+      toast.error(errorMsg);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -471,6 +499,15 @@ const PostJobForm = () => {
               <select value={form.employmentType} onChange={e => set('employmentType', e.target.value)} className={inputCls(errors.employmentType)}>
                 <option value="">Select type</option>
                 {EMPLOYMENT_TYPES.map(t => <option key={t}>{t}</option>)}
+              </select>
+            </FormField>
+          </div>
+
+          <div data-error={!!errors.workMode}>
+            <FormField label="Work Mode" required error={errors.workMode}>
+              <select value={form.workMode} onChange={e => set('workMode', e.target.value)} className={inputCls(errors.workMode)}>
+                <option value="">Select work mode</option>
+                {WORK_MODES.map(m => <option key={m}>{m}</option>)}
               </select>
             </FormField>
           </div>

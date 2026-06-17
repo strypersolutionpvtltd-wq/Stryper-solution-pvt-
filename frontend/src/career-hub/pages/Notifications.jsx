@@ -1,9 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { MOCK_NOTIFICATIONS } from '@/career-hub/data/mockCandidate';
 import { notifications as notificationsAPI } from '@/utils/api';
-import { useAuth } from '@/context/AuthContext';
 import toast from 'react-hot-toast';
 
 const TYPE_ICONS = {
@@ -76,42 +74,34 @@ const NotificationDetailModal = ({ item, onClose }) => {
 };
 
 const Notifications = () => {
-  const { isLoggedIn } = useAuth();
-  const [items, setItems] = useState(MOCK_NOTIFICATIONS);
+  const [items, setItems]     = useState([]);
   const [selected, setSelected] = useState(null);
   const [loading, setLoading] = useState(true);
   const unread = items.filter(n => !n.read).length;
 
-  // Fetch notifications
   useEffect(() => {
-    const fetchNotifications = async () => {
-      if (!isLoggedIn) {
-        setLoading(false);
-        return;
-      }
-
+    (async () => {
       try {
         const res = await notificationsAPI.getAll();
-        const data = (res.data.notifications || []).map(n => ({
-          id: n._id,
-          type: n.type || 'profile',
-          companyName: n.companyName || 'Notification',
-          jobTitle: n.jobTitle || '',
-          message: n.message || n.title,
-          time: new Date(n.createdAt).toLocaleString(),
-          read: n.isRead,
+        const data = (res.data?.notifications || []).map(n => ({
+          id:          n._id,
+          type:        (n.type || 'profile').toLowerCase(),
+          companyName: n.companyName || '',
+          jobTitle:    n.jobTitle || '',
+          message:     n.message || n.title || 'New notification',
+          time:        n.createdAt ? new Date(n.createdAt).toLocaleString('en-IN', { day:'numeric', month:'short', hour:'2-digit', minute:'2-digit' }) : '',
+          read:        n.isRead || false,
+          actionUrl:   n.actionUrl || '',
         }));
-        setItems(data.length > 0 ? data : MOCK_NOTIFICATIONS);
-      } catch (error) {
-        console.error('Failed to fetch notifications:', error);
-        setItems(MOCK_NOTIFICATIONS);
+        setItems(data);
+      } catch (err) {
+        console.error('Failed to fetch notifications:', err);
+        setItems([]);
       } finally {
         setLoading(false);
       }
-    };
-
-    fetchNotifications();
-  }, [isLoggedIn]);
+    })();
+  }, []);
 
   const markAllRead = async () => {
     try {

@@ -1,6 +1,7 @@
 const Interview = require("../models/interview.model");
 const JobApplication = require("../models/jobApplication.model");
 const Notification = require("../models/notification.model");
+const CandidateProfile = require("../models/candidateProfile.model");
 
 // @desc    Schedule interview
 // @route   POST /api/v1/interviews
@@ -49,15 +50,18 @@ const scheduleInterview = async (req, res) => {
     });
 
     // Create notification for candidate
-    await Notification.create({
-      userId: application.userId,
-      title: "Interview Scheduled",
-      message: `You have an interview scheduled for ${interviewDate}`,
-      type: "Interview",
-      relatedId: interview._id,
-      relatedModel: "Interview",
-      actionUrl: `/career-hub/interviews`,
-    });
+    const candidateProfileObj = await CandidateProfile.findOne({ userId: application.userId });
+    if (!candidateProfileObj || candidateProfileObj.recruiterMessages !== false) {
+      await Notification.create({
+        userId: application.userId,
+        title: "Interview Scheduled",
+        message: `You have an interview scheduled for ${interviewDate}`,
+        type: "Interview",
+        relatedId: interview._id,
+        relatedModel: "Interview",
+        actionUrl: `/career-hub/interviews`,
+      });
+    }
 
     // Update application status
     await JobApplication.findByIdAndUpdate(applicationId, { status: "Shortlisted" });
@@ -91,9 +95,10 @@ const getCompanyInterviews = async (req, res) => {
     }
 
     const interviews = await Interview.find({ createdBy: userId })
-      .populate("candidateId", "firstName lastName headline")
+      .populate("candidateId", "firstName lastName headline profilePicture")
       .populate("jobId", "title")
-      .sort({ interviewDate: -1 });
+      .populate("applicationId", "status")
+      .sort({ interviewDate: 1 });
 
     return res.status(200).json({
       success: true,
@@ -146,7 +151,7 @@ const getCandidateInterviews = async (req, res) => {
 const updateInterview = async (req, res) => {
   try {
     const { id } = req.params;
-    const { status, feedback, rating, notes } = req.body;
+    const { status, feedback, rating, notes, interviewLink } = req.body;
     const userId = req.user?.id;
 
     if (!userId) {
@@ -178,6 +183,7 @@ const updateInterview = async (req, res) => {
         feedback: feedback || interview.feedback,
         rating: rating !== undefined ? rating : interview.rating,
         notes: notes || interview.notes,
+        interviewLink: interviewLink !== undefined ? interviewLink : interview.interviewLink,
       },
       { new: true }
     );
@@ -229,14 +235,17 @@ const cancelInterview = async (req, res) => {
     await Interview.findByIdAndUpdate(id, { status: "Cancelled" });
 
     // Notify candidate
-    await Notification.create({
-      userId: interview.candidateUserId,
-      title: "Interview Cancelled",
-      message: "Your scheduled interview has been cancelled",
-      type: "Interview",
-      relatedId: interview._id,
-      actionUrl: `/career-hub/interviews`,
-    });
+    const candidateProfileObj = await CandidateProfile.findOne({ userId: interview.candidateUserId });
+    if (!candidateProfileObj || candidateProfileObj.recruiterMessages !== false) {
+      await Notification.create({
+        userId: interview.candidateUserId,
+        title: "Interview Cancelled",
+        message: "Your scheduled interview has been cancelled",
+        type: "Interview",
+        relatedId: interview._id,
+        actionUrl: `/career-hub/interviews`,
+      });
+    }
 
     return res.status(200).json({
       success: true,

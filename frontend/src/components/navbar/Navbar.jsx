@@ -15,7 +15,7 @@ const CompanyNavMenu = () => {
   const { userData, logout } = useAuth();
   const navigate = useNavigate();
   const email = userData?.email || '';
-  const name = email.split('@')[0] || 'Company';
+  const name = userData?.companyName || userData?.name || email.split('@')[0] || 'Company';
   const initials = name.slice(0, 2).toUpperCase();
 
   return (

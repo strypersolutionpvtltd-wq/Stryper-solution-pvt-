@@ -1,10 +1,12 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import StatusBadge from '@/hire-zone/components/shared/StatusBadge';
 
 const JobCard = ({ job, onAction, onView }) => {
   const [menuOpen, setMenuOpen] = useState(false);
+  const navigate = useNavigate();
 
   const handleDelete = () => {
     setMenuOpen(false);
@@ -49,12 +51,21 @@ const JobCard = ({ job, onAction, onView }) => {
 
         {/* Right: stats + actions */}
         <div className="flex items-center gap-3 shrink-0">
-          <button 
-            onClick={() => onAction?.(job.id, 'view')}
-            className="text-center hidden sm:block hover:bg-neutral-50 p-2 rounded-xl transition-colors"
-          >
+          <div className="text-center hidden sm:block p-2 rounded-xl">
             <p className="text-xl font-bold text-neutral-900">{job.applicants}</p>
             <p className="text-[10px] text-neutral-400">Applicants</p>
+          </div>
+
+          {/* View button */}
+          <button
+            onClick={() => onView?.(job)}
+            className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors"
+            style={{ color: '#8B3A8F', background: '#f3e8f4' }}
+          >
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
+            </svg>
+            View
           </button>
 
           {/* Action menu */}
@@ -80,15 +91,20 @@ const JobCard = ({ job, onAction, onView }) => {
                   onMouseLeave={() => setMenuOpen(false)}
                 >
                   {[
+                    { label: 'View Details',  icon: '👁',  action: 'view-details' },
                     { label: 'View Applicants', icon: '👥', action: 'view' },
-                    { label: 'View Details', icon: '👁', action: 'view-details' },
                     { label: job.status === 'Active' ? 'Deactivate Job' : 'Activate Job', icon: job.status === 'Active' ? '⏸' : '▶️', action: 'toggle' },
+                    { label: 'Close Job', icon: '🔒', action: 'close' },
+                    { label: 'Delete Job', icon: '🗑', action: 'delete', danger: true },
                   ].map(({ label, icon, action, danger }) => (
                     <button
                       key={action}
                       onClick={() => {
                         if (action === 'view-details') {
                           onView?.(job);
+                          setMenuOpen(false);
+                        } else if (action === 'view') {
+                          navigate('/hire-zone/applicants');
                           setMenuOpen(false);
                         } else if (action === 'delete') {
                           handleDelete();

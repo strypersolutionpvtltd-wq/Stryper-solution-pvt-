@@ -3,11 +3,11 @@ import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   ArrowLeft, Mail, Phone, MapPin, Shield, 
-  Clock, Activity, History, CheckCircle2, 
-  AlertCircle, Edit2, Trash2, ExternalLink,
-  User, Briefcase, Building2, Download, X, Save, Loader2
+  Clock, Activity, CheckCircle2, 
+  AlertCircle, Edit2, Trash2,
+  User, Briefcase, Download, X, Save, Loader2
 } from 'lucide-react';
-import { ALL_USERS, ALL_COMPANIES, ALL_STRYPER_PARTNERS } from '@/data/adminData';
+import { admin } from '@/utils/api';
 import toast from 'react-hot-toast';
 
 // ── Edit Modal Component ──────────────────────────────────────
@@ -109,26 +109,30 @@ const AdminUserDetail = () => {
   const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
-    let foundUser = ALL_USERS.find(u => u.id === id);
-    if (!foundUser) {
-      const company = ALL_COMPANIES.find(c => c.id === id);
-      if (company) foundUser = { ...company, email: `${company.name.toLowerCase().replace(/\s+/g, '')}@company.com`, role: 'Company', joined: 'N/A' };
-    }
-    if (!foundUser) {
-      const partner = ALL_STRYPER_PARTNERS.find(p => p.id === id);
-      if (partner) foundUser = { ...partner, email: `${partner.name.toLowerCase().replace(/\s+/g, '')}@partner.com`, role: 'Stryper Partner', joined: 'N/A' };
-    }
-
-    if (foundUser) {
-      setUser(foundUser);
-      // Automatically open edit modal if coming from 'Edit Profile' link
-      if (location.state?.openEdit) {
-        setIsEditModalOpen(true);
+    const fetchUser = async () => {
+      try {
+        const res = await admin.getUserById(id);
+        if (res.data?.success) {
+          const u = res.data.user;
+          const mapped = {
+            id: u._id,
+            name: u.name || 'N/A',
+            email: u.email,
+            role: u.role === 'CANDIDATE' ? 'Candidate' : u.role === 'COMPANY' ? 'Company' : 'Admin',
+            status: u.accountStatus || 'Active',
+            joined: u.createdAt ? new Date(u.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) : 'N/A',
+            createdAt: u.createdAt,
+            profileDetails: u.profileDetails || {},
+          };
+          setUser(mapped);
+          if (location.state?.openEdit) setIsEditModalOpen(true);
+        }
+      } catch (err) {
+        toast.error('User not found');
+        navigate('/admin/users');
       }
-    } else {
-      toast.error("User not found");
-      navigate('/admin/users');
-    }
+    };
+    fetchUser();
   }, [id, navigate, location.state]);
 
   const handleExport = () => {
@@ -254,10 +258,12 @@ const AdminUserDetail = () => {
                 <Briefcase size={14} className="text-brand-purple-500" />
                 {user.role}
               </div>
-              <div className="flex items-center gap-1.5 border-l border-white/10 pl-4">
-                <MapPin size={14} className="text-brand-purple-500" />
-                Mumbai, India
-              </div>
+              {(user.profileDetails?.location || user.profileDetails?.city) && (
+                <div className="flex items-center gap-1.5 border-l border-white/10 pl-4">
+                  <MapPin size={14} className="text-brand-purple-500" />
+                  {user.profileDetails?.location || user.profileDetails?.city}
+                </div>
+              )}
             </div>
           </div>
 
@@ -311,9 +317,8 @@ const AdminUserDetail = () => {
             <div className="space-y-5">
               {[
                 { label: 'Email', value: user.email, icon: Mail },
-                { label: 'Phone', value: '+91 98765-43210', icon: Phone },
-                { label: 'Address', value: '402, Elite Hub, Andheri East, Mumbai', icon: MapPin },
-                { label: 'Registration IP', value: '192.168.1.1', icon: Shield },
+                { label: 'Phone', value: user.profileDetails?.phone || 'N/A', icon: Phone },
+                { label: 'Address', value: user.profileDetails?.location || user.profileDetails?.city || 'N/A', icon: MapPin },
               ].map((item, idx) => (
                 <div key={idx} className="flex gap-4">
                   <div className="p-2.5 rounded-xl bg-brand-purple-600/10 text-brand-purple-500 shrink-0 h-fit">
@@ -352,10 +357,19 @@ const AdminUserDetail = () => {
               <div className="absolute left-9 top-10 bottom-10 w-px bg-white/5" />
               
               {[
-                { action: 'Profile updated', time: 'Today, 10:45 AM', detail: 'Changed contact number and address', type: 'update' },
-                { action: 'Password changed', time: 'Yesterday, 4:30 PM', detail: 'Successfully changed from device "MacBook Pro"', type: 'security' },
-                { action: 'New Device Login', time: 'May 20, 2026', detail: 'Logged in from iPhone 15 Pro, Mumbai', type: 'login' }
-                ].map((log, idx) => (
+                user.profileDetails?.updatedAt && {
+                  action: 'Profile last updated',
+                  time: new Date(user.profileDetails.updatedAt).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }),
+                  detail: 'Profile information was updated',
+                  type: 'update'
+                },
+                user.createdAt && {
+                  action: 'Account created / First login',
+                  time: new Date(user.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }),
+                  detail: `Account registered as ${user.role}`,
+                  type: 'login'
+                },
+              ].filter(Boolean).map((log, idx) => (
                 <div key={idx} className="flex gap-6 relative">
                   <div className={`w-6 h-6 rounded-full border-2 border-[#0f0f0f] flex items-center justify-center shrink-0 z-10 ${
                     log.type === 'security' ? 'bg-amber-500 shadow-[0_0_10px_rgba(245,158,11,0.5)]' :
