@@ -7,11 +7,7 @@ import api from '@/utils/api';
 import toast from 'react-hot-toast';
 
 // ─── Mock Data ───────────────────────────────────────────────────────────────
-const TOP_COMPANIES = [
-  { name: 'TechCorp', jobs: 12 }, { name: 'DesignStudio', jobs: 5 },
-  { name: 'CloudBase', jobs: 8 }, { name: 'GrowthHive', jobs: 6 },
-  { name: 'DataFlow', jobs: 9 }, { name: 'SecureNet', jobs: 4 },
-];
+// TOP_COMPANIES loaded from API in Jobs component
 
 // ─── Map backend job → UI job shape ──────────────────────────────────────────
 const mapJob = (j) => ({
@@ -33,7 +29,7 @@ const mapJob = (j) => ({
   postedDays:  Math.max(1, Math.floor((Date.now() - new Date(j.createdAt)) / 86400000)),
 });
 
-const JOBS_PER_PAGE = 5;
+const JOBS_PER_PAGE = 10;
 const JobSkeleton = () => (
   <div className="bg-white rounded-2xl border border-neutral-100 p-6 animate-pulse">
     <div className="flex gap-4">
@@ -67,12 +63,11 @@ const CompanyLogo = ({ name }) => {
 };
 
 // ─── Apply Modal ─────────────────────────────────────────────────────────────
-const ApplyModal = ({ job, onClose }) => {
-  const { applyToJob } = useAuth();
+const ApplyModal = ({ job, onClose, onApplied }) => {
   const [form, setForm] = useState({ resume: null, experience: '', expectedSalary: '', noticePeriod: '', currentLocation: '' });
   const [submitted, setSubmitted] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
   const [dragOver, setDragOver] = useState(false);
-  const [isParsing, setIsParsing] = useState(false);
 
   const handleChange = e => setForm(p => ({ ...p, [e.target.name]: e.target.value }));
   
@@ -90,28 +85,46 @@ const ApplyModal = ({ job, onClose }) => {
 
   const simulateParsing = (file) => {
     setForm(p => ({ ...p, resume: file }));
-    setIsParsing(true);
-    // Simulate AI parsing
-    setTimeout(() => {
-      setIsParsing(false);
-      setForm(p => ({ 
-        ...p, 
-        experience: '3–5 Years', 
-        currentLocation: 'Delhi NCR',
-        expectedSalary: '₹10–15 LPA',
-        noticePeriod: '1 Month'
-      }));
-      toast.success('AI has extracted details from your resume!', {
-        icon: '🤖',
-        style: { borderRadius: '12px', background: '#333', color: '#fff' }
-      });
-    }, 2000);
+    toast.success('Resume uploaded! Fill in the details below.', {
+      icon: '📄',
+      style: { borderRadius: '12px', background: '#333', color: '#fff' }
+    });
   };
 
-  const handleSubmit = e => { 
-    e.preventDefault(); 
-    applyToJob(job);
-    setSubmitted(true); 
+  const handleSubmit = async e => { 
+    e.preventDefault();
+    if (!form.resume) { toast.error('Please upload your resume'); return; }
+    setSubmitting(true);
+    try {
+      // 1. Upload resume to Cloudinary
+      const formData = new FormData();
+      formData.append('resume', form.resume);
+      const uploadRes = await api.post('/upload/resume', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+      // Controller returns { resume: url }
+      const resumeUrl = uploadRes.data.resume || '';
+
+      // 2. Submit application
+      await api.post('/applications', {
+        jobId: job.id,
+        resume: resumeUrl,
+        noticePeriod: form.noticePeriod,
+      });
+
+      onApplied?.(job.id);
+      setSubmitted(true);
+    } catch (err) {
+      const msg = err.response?.data?.message || 'Failed to submit application';
+      // If profile not found, guide the user
+      if (err.response?.status === 404) {
+        toast.error('Please complete your Career Hub profile before applying.', { duration: 5000 });
+      } else {
+        toast.error(msg);
+      }
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -135,13 +148,6 @@ const ApplyModal = ({ job, onClose }) => {
             </div>
           ) : (
             <div className="p-6 md:p-8 relative">
-              {isParsing && (
-                <div className="absolute inset-0 bg-white/80 backdrop-blur-[2px] z-20 flex flex-col items-center justify-center rounded-2xl">
-                  <div className="w-12 h-12 border-4 border-brand-purple-200 border-t-brand-purple-600 rounded-full animate-spin mb-4" />
-                  <p className="text-sm font-bold text-neutral-800 uppercase tracking-widest">AI Extracting Data...</p>
-                  <p className="text-xs text-neutral-500 mt-1">Reading your resume profile</p>
-                </div>
-              )}
               {/* Header */}
               <div className="flex items-start justify-between mb-6">
                 <div>
@@ -180,7 +186,7 @@ const ApplyModal = ({ job, onClose }) => {
                   </label>
                 </div>
 
-                {/* 2. Experience */}
+                {/*{ 2. Experience }
                 <div>
                   <label className="block text-xs font-semibold text-neutral-600 uppercase tracking-wide mb-1.5">
                     Total Experience <span style={{ color: '#8B3A8F' }}>*</span>
@@ -190,7 +196,7 @@ const ApplyModal = ({ job, onClose }) => {
                     <option value="" disabled>Select experience</option>
                     {['Fresher (0 yrs)', '0–1 Year', '1–2 Years', '2–3 Years', '3–5 Years', '5–8 Years', '8–10 Years', '10+ Years'].map(v => <option key={v}>{v}</option>)}
                   </select>
-                </div>
+                </div>*/}
 
                 {/* 3. Expected Salary */}
                 <div>
@@ -204,7 +210,7 @@ const ApplyModal = ({ job, onClose }) => {
                   </select>
                 </div>
 
-                {/* 4. Notice Period */}
+                {/* 4. Notice Period 
                 <div>
                   <label className="block text-xs font-semibold text-neutral-600 uppercase tracking-wide mb-1.5">
                     Notice Period <span style={{ color: '#8B3A8F' }}>*</span>
@@ -216,7 +222,7 @@ const ApplyModal = ({ job, onClose }) => {
                   </select>
                 </div>
 
-                {/* 5. Current Location */}
+                {/* 5. Current Location 
                 <div>
                   <label className="block text-xs font-semibold text-neutral-600 uppercase tracking-wide mb-1.5">
                     Current Location <span style={{ color: '#8B3A8F' }}>*</span>
@@ -225,11 +231,12 @@ const ApplyModal = ({ job, onClose }) => {
                     value={form.currentLocation} onChange={handleChange}
                     className="w-full px-4 py-3 rounded-xl border border-neutral-200 text-sm text-neutral-700 placeholder-neutral-400 outline-none focus:border-[#8B3A8F] focus:shadow-[0_0_0_3px_rgba(139,58,143,0.1)] transition-all" />
                 </div>
+                */}
 
-                <motion.button type="submit" whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}
-                  className="w-full py-3.5 rounded-xl text-sm font-semibold text-white mt-2"
+                <motion.button type="submit" disabled={submitting} whileHover={{ scale: submitting ? 1 : 1.02 }} whileTap={{ scale: submitting ? 1 : 0.97 }}
+                  className="w-full py-3.5 rounded-xl text-sm font-semibold text-white mt-2 disabled:opacity-70"
                   style={{ background: 'linear-gradient(135deg, #8B3A8F, #7a3280)', boxShadow: '0 4px 16px rgba(139,58,143,0.35)' }}>
-                  Submit Application
+                  {submitting ? 'Submitting...' : 'Submit Application'}
                 </motion.button>
               </form>
             </div>
@@ -240,8 +247,123 @@ const ApplyModal = ({ job, onClose }) => {
   );
 };
 
-// ─── Job Card ─────────────────────────────────────────────────────────────────
-const JobCard = ({ job, saved, onSave, onApply, applied }) => (
+// ─── Job Detail Panel (slide-in from right) ──────────────────────────────────
+const JobDetailPanel = ({ job, onClose, onApply, applied }) => {
+  if (!job) return null;
+
+  const InfoRow = ({ label, value }) => (
+    <div>
+      <p className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest mb-0.5">{label}</p>
+      <p className="text-sm text-neutral-800 font-medium">{value || '—'}</p>
+    </div>
+  );
+
+  return (
+    <AnimatePresence>
+      <motion.div className="fixed inset-0 z-[150] flex" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+        <motion.div className="absolute inset-0 bg-neutral-900/30 backdrop-blur-sm" onClick={onClose} />
+        <motion.div
+          initial={{ x: '100%' }} animate={{ x: 0 }} exit={{ x: '100%' }}
+          transition={{ type: 'spring', stiffness: 320, damping: 32 }}
+          className="absolute right-0 top-0 bottom-0 bg-white shadow-2xl flex flex-col"
+          style={{ width: 'min(640px, 100vw)' }}
+        >
+          {/* Header */}
+          <div className="flex items-start justify-between px-7 py-5 border-b border-neutral-100 shrink-0">
+            <div className="flex items-start gap-3 flex-1 min-w-0 pr-4">
+              <CompanyLogo name={job.company} />
+              <div className="min-w-0">
+                <h2 className="text-lg font-bold text-neutral-900 truncate">{job.title}</h2>
+                <p className="text-sm text-neutral-500">{job.company}</p>
+                <div className="flex items-center gap-2 mt-1 flex-wrap">
+                  <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${
+                    job.locationType === 'Remote' ? 'bg-green-50 text-green-700' :
+                    job.locationType === 'Hybrid' ? 'bg-blue-50 text-blue-700' : 'bg-orange-50 text-orange-700'
+                  }`}>{job.locationType}</span>
+                  <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-neutral-100 text-neutral-600">{job.type}</span>
+                </div>
+              </div>
+            </div>
+            <button onClick={onClose} className="w-8 h-8 rounded-lg flex items-center justify-center text-neutral-400 hover:bg-neutral-100 transition-colors shrink-0">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+            </button>
+          </div>
+
+          {/* KPI strip */}
+          <div className="grid grid-cols-3 divide-x divide-neutral-100 bg-neutral-50 border-b border-neutral-100 shrink-0">
+            {[
+              { label: 'Location',   value: job.location },
+              { label: 'Salary',     value: job.salary },
+              { label: 'Experience', value: job.experience },
+            ].map(({ label, value }) => (
+              <div key={label} className="py-3 px-4 text-center">
+                <p className="text-xs font-semibold text-neutral-800 truncate">{value || '—'}</p>
+                <p className="text-[10px] text-neutral-400 uppercase tracking-wider mt-0.5">{label}</p>
+              </div>
+            ))}
+          </div>
+
+          {/* Scrollable body */}
+          <div className="flex-1 overflow-y-auto px-7 py-6 space-y-6">
+            {/* Details grid */}
+            <section>
+              <h3 className="text-xs font-bold text-neutral-500 uppercase tracking-widest mb-3">Job Details</h3>
+              <div className="grid grid-cols-2 gap-x-8 gap-y-4">
+                <InfoRow label="Location"    value={job.location} />
+                <InfoRow label="Work Mode"   value={job.locationType} />
+                <InfoRow label="Job Type"    value={job.type} />
+                <InfoRow label="Experience"  value={job.experience} />
+                <InfoRow label="Salary"      value={job.salary} />
+                <InfoRow label="Posted"      value={job.postedDays === 1 ? '1 day ago' : `${job.postedDays} days ago`} />
+              </div>
+            </section>
+
+            <div className="border-t border-neutral-100" />
+
+            {/* Description */}
+            <section>
+              <h3 className="text-xs font-bold text-neutral-500 uppercase tracking-widest mb-3">Job Description</h3>
+              <div className="bg-neutral-50 rounded-xl border border-neutral-100 px-5 py-4 text-sm text-neutral-700 leading-relaxed whitespace-pre-wrap">
+                {job.desc || '—'}
+              </div>
+            </section>
+
+            {/* Skills */}
+            {job.skills?.length > 0 && (
+              <>
+                <div className="border-t border-neutral-100" />
+                <section>
+                  <h3 className="text-xs font-bold text-neutral-500 uppercase tracking-widest mb-3">Required Skills</h3>
+                  <div className="flex flex-wrap gap-2">
+                    {job.skills.map(s => (
+                      <span key={s} className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-purple-100 text-purple-700 border border-purple-200">{s}</span>
+                    ))}
+                  </div>
+                </section>
+              </>
+            )}
+          </div>
+
+          {/* Footer */}
+          <div className="px-7 py-4 border-t border-neutral-100 flex gap-3 shrink-0">
+            <button onClick={onClose} className="flex-1 py-2.5 rounded-xl text-sm font-semibold border border-neutral-200 text-neutral-600 hover:bg-neutral-50 transition-colors">
+              Close
+            </button>
+            <motion.button
+              whileHover={!applied ? { scale: 1.02 } : {}} whileTap={!applied ? { scale: 0.97 } : {}}
+              onClick={!applied ? () => { onClose(); onApply(); } : undefined}
+              className={`flex-1 py-2.5 rounded-xl text-sm font-semibold transition-all ${applied ? 'bg-green-50 text-green-600 border border-green-200' : 'text-white'}`}
+              style={!applied ? { background: 'linear-gradient(135deg, #8B3A8F, #7a3280)' } : {}}
+            >
+              {applied ? '✓ Applied' : 'Apply Now'}
+            </motion.button>
+          </div>
+        </motion.div>
+      </motion.div>
+    </AnimatePresence>
+  );
+};
+const JobCard = ({ job, saved, onSave, onApply, applied, onView }) => (
   <motion.div
     layout
     initial={{ opacity: 0, y: 16 }}
@@ -312,6 +434,14 @@ const JobCard = ({ job, saved, onSave, onApply, applied }) => (
         style={!applied ? { background: 'linear-gradient(135deg, #8B3A8F 0%, #7a3280 100%)', boxShadow: '0 4px 14px rgba(139,58,143,0.3)' } : {}}
       >
         {applied ? '✓ Applied' : 'Apply Now'}
+      </motion.button>
+      <motion.button
+        whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.97 }}
+        onClick={() => onView?.(job)}
+        className="px-3 py-2.5 rounded-xl border border-neutral-200 text-xs font-semibold text-neutral-600 hover:border-purple-300 hover:text-purple-700 hover:bg-purple-50 transition-all"
+        aria-label="View job details"
+      >
+        View
       </motion.button>
       <motion.button
         whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.97 }}
@@ -404,24 +534,52 @@ const FilterSidebar = ({ filters, setFilters, onReset }) => {
 
 // ─── Pagination ───────────────────────────────────────────────────────────────
 const Pagination = ({ current, total, onChange }) => {
-  const pages = Array.from({ length: total }, (_, i) => i + 1);
+  if (total <= 1) return null;
+
+  // Smart page range — show first, last, current ±2, with ellipsis
+  const getPages = () => {
+    const pages = [];
+    const delta = 2;
+    const left = current - delta;
+    const right = current + delta;
+
+    for (let i = 1; i <= total; i++) {
+      if (i === 1 || i === total || (i >= left && i <= right)) {
+        pages.push(i);
+      }
+    }
+
+    const result = [];
+    let prev = null;
+    for (const p of pages) {
+      if (prev && p - prev > 1) result.push('...');
+      result.push(p);
+      prev = p;
+    }
+    return result;
+  };
+
   return (
     <div className="flex items-center justify-center gap-1.5 mt-8">
       <button onClick={() => onChange(Math.max(1, current - 1))} disabled={current === 1}
         className="px-3 py-2 rounded-xl text-sm font-medium border border-neutral-200 text-neutral-600 hover:border-brand-purple-300 hover:text-brand-purple-600 disabled:opacity-40 transition-all">
         ← Prev
       </button>
-      {pages.map(p => (
-        <button key={p} onClick={() => onChange(p)}
-          className={`w-9 h-9 rounded-xl text-sm font-semibold transition-all ${
-            p === current
-              ? 'text-white shadow-purple'
-              : 'border border-neutral-200 text-neutral-600 hover:border-brand-purple-300 hover:text-brand-purple-600'
-          }`}
-          style={p === current ? { background: '#8B3A8F' } : {}}>
-          {p}
-        </button>
-      ))}
+      {getPages().map((p, i) =>
+        p === '...' ? (
+          <span key={`ellipsis-${i}`} className="w-9 h-9 flex items-center justify-center text-neutral-400 text-sm">…</span>
+        ) : (
+          <button key={p} onClick={() => onChange(p)}
+            className={`w-9 h-9 rounded-xl text-sm font-semibold transition-all ${
+              p === current
+                ? 'text-white shadow-purple'
+                : 'border border-neutral-200 text-neutral-600 hover:border-brand-purple-300 hover:text-brand-purple-600'
+            }`}
+            style={p === current ? { background: '#8B3A8F' } : {}}>
+            {p}
+          </button>
+        )
+      )}
       <button onClick={() => onChange(Math.min(total, current + 1))} disabled={current === total}
         className="px-3 py-2 rounded-xl text-sm font-medium border border-neutral-200 text-neutral-600 hover:border-brand-purple-300 hover:text-brand-purple-600 disabled:opacity-40 transition-all">
         Next →
@@ -435,6 +593,7 @@ const Jobs = () => {
   const { isLoggedIn } = useAuth();
   const [jobs, setJobs] = useState([]);
   const [totalJobs, setTotalJobs] = useState(0);
+  const [topCompanies, setTopCompanies] = useState([]);
   const [search, setSearch] = useState({ keyword: '', location: '', experience: '', salary: '' });
   const [filters, setFilters] = useState({ date: 'Any time', type: '', mode: '', exp: '', salary: '' });
   const [savedJobs, setSavedJobs] = useState([]);
@@ -443,6 +602,7 @@ const Jobs = () => {
   const [loading, setLoading] = useState(true);
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   const [applyJob, setApplyJob] = useState(null);
+  const [viewJob, setViewJob]   = useState(null);
   const [authOpen, setAuthOpen] = useState(false);
   const [pendingJob, setPendingJob] = useState(null);
 
@@ -450,7 +610,7 @@ const Jobs = () => {
   const fetchJobs = useCallback(async () => {
     setLoading(true);
     try {
-      const params = { status: 'Active', page, limit: JOBS_PER_PAGE };
+      const params = { status: 'Active', page: 1, limit: 200 };
       if (search.keyword)  params.title    = search.keyword;
       if (search.location) params.location = search.location;
       const res = await api.get('/jobs', { params });
@@ -461,9 +621,29 @@ const Jobs = () => {
     } finally {
       setLoading(false);
     }
-  }, [page, search.keyword, search.location]);
+  }, [search.keyword, search.location]);
 
   useEffect(() => { fetchJobs(); }, [fetchJobs]);
+
+  // Fetch top hiring companies — group jobs by company
+  useEffect(() => {
+    api.get('/jobs', { params: { status: 'Active', limit: 100 } })
+      .then(res => {
+        const jobs = res.data.jobs || [];
+        const companyMap = {};
+        jobs.forEach(j => {
+          const name = j.companyId?.companyName;
+          if (!name) return;
+          companyMap[name] = (companyMap[name] || 0) + 1;
+        });
+        const sorted = Object.entries(companyMap)
+          .sort((a, b) => b[1] - a[1])
+          .slice(0, 6)
+          .map(([name, count]) => ({ name, jobs: count }));
+        setTopCompanies(sorted);
+      })
+      .catch(() => {});
+  }, []);
 
   // Fetch saved job IDs if logged in
   useEffect(() => {
@@ -477,7 +657,10 @@ const Jobs = () => {
   useEffect(() => {
     if (!isLoggedIn) return;
     api.get('/applications/me')
-      .then(res => setAppliedJobIds((res.data.applications || []).map(a => a.jobId?._id || a.jobId)))
+      .then(res => setAppliedJobIds((res.data.applications || []).map(a => {
+        const jid = a.jobId;
+        return (typeof jid === 'object' && jid !== null) ? (jid._id || String(jid)) : String(jid);
+      })))
       .catch(() => {});
   }, [isLoggedIn]);
 
@@ -505,6 +688,9 @@ const Jobs = () => {
     }
   }, [isLoggedIn, pendingJob, authOpen]);
 
+  // Reset page when filters change
+  useEffect(() => { setPage(1); }, [filters]);
+
   const toggleSave = async (id) => {
     if (!isLoggedIn) { setAuthOpen(true); return; }
     const isSaved = savedJobs.includes(id);
@@ -519,19 +705,87 @@ const Jobs = () => {
     }
   };
 
-  const resetFilters = () => setFilters({ date: 'Any time', type: '', mode: '', exp: '', salary: '' });
+  const resetFilters = () => {
+    setFilters({ date: 'Any time', type: '', mode: '', exp: '', salary: '' });
+    setPage(1);
+  };
 
-  // Client-side filters (type, mode, exp, salary) applied on top of API data
+  // ── Helper: parse experience string to number range ──────────────────────
+  const parseExpRange = (expStr) => {
+    if (!expStr) return null;
+    const nums = expStr.match(/\d+/g);
+    if (!nums) return null;
+    return { min: parseInt(nums[0]), max: nums[1] ? parseInt(nums[1]) : 99 };
+  };
+
+  // ── Helper: parse salary string (LPA) to number ──────────────────────────
+  const parseSalaryLPA = (salaryStr) => {
+    if (!salaryStr || salaryStr === 'Not disclosed') return null;
+    const nums = salaryStr.match(/[\d.]+/g);
+    if (!nums) return null;
+    return parseFloat(nums[0]);
+  };
+
+  // Client-side filters applied on top of API data
   const filtered = useMemo(() => {
     return jobs.filter(j => {
-      if (filters.type && j.type !== filters.type) return false;
-      if (filters.mode && j.locationType !== filters.mode) return false;
-      if (filters.exp && !j.experience.includes(filters.exp.split(' ')[0])) return false;
-      if (filters.salary) {
-        const selMin = parseInt(filters.salary.match(/\d+/)[0]);
-        const salMatch = j.salary.match(/\d+/);
-        if (salMatch && parseInt(salMatch[0]) < selMin) return false;
+
+      // ── Date Posted ──────────────────────────────────────────────────────
+      if (filters.date && filters.date !== 'Any time') {
+        const cutoffs = {
+          'Last 24 hours': 1,
+          'Last 3 days': 3,
+          'Last week': 7,
+          'Last month': 30,
+        };
+        const days = cutoffs[filters.date];
+        if (days) {
+          const diff = (Date.now() - new Date(j.postedDays ? Date.now() - j.postedDays * 86400000 : 0)) / 86400000;
+          if (j.postedDays > days) return false;
+        }
       }
+
+      // ── Job Type ─────────────────────────────────────────────────────────
+      if (filters.type) {
+        const jType = (j.type || '').toLowerCase();
+        const fType = filters.type.toLowerCase();
+        if (!jType.includes(fType) && !fType.includes(jType)) return false;
+      }
+
+      // ── Work Mode ────────────────────────────────────────────────────────
+      if (filters.mode) {
+        const jMode = (j.locationType || '').toLowerCase();
+        const fMode = filters.mode.toLowerCase();
+        // "Onsite" in filter maps to "On-site" in data
+        const normalised = fMode === 'onsite' ? 'on-site' : fMode;
+        if (!jMode.includes(normalised) && jMode !== normalised) return false;
+      }
+
+      // ── Experience Level ─────────────────────────────────────────────────
+      if (filters.exp) {
+        const jobExpRange = parseExpRange(j.experience);
+        const filterExpRange = parseExpRange(filters.exp);
+        if (jobExpRange && filterExpRange) {
+          // Job exp range must overlap with filter range
+          const overlaps = jobExpRange.min <= filterExpRange.max && jobExpRange.max >= filterExpRange.min;
+          if (!overlaps) return false;
+        } else if (!jobExpRange) {
+          // If we can't parse the job's experience, don't filter it out
+          return true;
+        }
+      }
+
+      // ── Salary Range ─────────────────────────────────────────────────────
+      if (filters.salary) {
+        const jobSalaryLPA = parseSalaryLPA(j.salary);
+        const [rangeMin, rangeMaxRaw] = filters.salary.replace(' LPA', '').split('-');
+        const fMin = parseFloat(rangeMin);
+        const fMax = rangeMaxRaw ? parseFloat(rangeMaxRaw) : Infinity;
+        if (jobSalaryLPA !== null) {
+          if (jobSalaryLPA < fMin || jobSalaryLPA > fMax) return false;
+        }
+      }
+
       return true;
     });
   }, [jobs, filters]);
@@ -636,15 +890,27 @@ const Jobs = () => {
         <div className="container mx-auto px-4 max-w-6xl">
           <div className="flex items-center gap-6 overflow-x-auto scrollbar-hide">
             <span className="text-xs font-semibold text-neutral-400 uppercase tracking-wide shrink-0">Top Hiring:</span>
-            {TOP_COMPANIES.map(c => (
-              <div key={c.name} className="flex items-center gap-2 shrink-0 cursor-pointer group">
-                <CompanyLogo name={c.name} />
-                <div>
-                  <p className="text-xs font-semibold text-neutral-700 group-hover:text-brand-purple-600 transition-colors">{c.name}</p>
-                  <p className="text-[10px] text-neutral-400">{c.jobs} openings</p>
+            {topCompanies.length === 0 ? (
+              Array.from({ length: 4 }).map((_, i) => (
+                <div key={i} className="flex items-center gap-2 shrink-0 animate-pulse">
+                  <div className="w-10 h-10 rounded-xl bg-neutral-100" />
+                  <div className="space-y-1">
+                    <div className="h-3 w-20 bg-neutral-100 rounded" />
+                    <div className="h-2 w-14 bg-neutral-100 rounded" />
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))
+            ) : (
+              topCompanies.map(c => (
+                <div key={c.name} className="flex items-center gap-2 shrink-0 cursor-pointer group">
+                  <CompanyLogo name={c.name} />
+                  <div>
+                    <p className="text-xs font-semibold text-neutral-700 group-hover:text-brand-purple-600 transition-colors">{c.name}</p>
+                    <p className="text-[10px] text-neutral-400">{c.jobs} opening{c.jobs !== 1 ? 's' : ''}</p>
+                  </div>
+                </div>
+              ))
+            )}
           </div>
         </div>
       </section>
@@ -717,9 +983,10 @@ const Jobs = () => {
                       key={job.id} 
                       job={job} 
                       saved={savedJobs.includes(job.id)} 
-                      applied={appliedJobIds.includes(job.id)}
+                      applied={appliedJobIds.includes(String(job.id))}
                       onSave={toggleSave} 
-                      onApply={() => handleApplyClick(job)} 
+                      onApply={() => handleApplyClick(job)}
+                      onView={(j) => setViewJob(j)}
                     />
                   ))}
                 </div>
@@ -738,7 +1005,17 @@ const Jobs = () => {
     </div>
 
     {/* Apply Modal */}
-    {applyJob && <ApplyModal job={applyJob} onClose={() => setApplyJob(null)} />}
+    {applyJob && <ApplyModal job={applyJob} onClose={() => setApplyJob(null)} onApplied={(id) => { setAppliedJobIds(p => [...p, String(id)]); setApplyJob(null); }} />}
+
+    {/* Job Detail Panel */}
+    {viewJob && (
+      <JobDetailPanel
+        job={viewJob}
+        onClose={() => setViewJob(null)}
+        applied={appliedJobIds.includes(String(viewJob.id))}
+        onApply={() => { setViewJob(null); handleApplyClick(viewJob); }}
+      />
+    )}
 
     {/* Auth Modal — shown when unauthenticated user clicks Apply */}
     <AuthModal

@@ -32,13 +32,25 @@ const userSchema = new mongoose.Schema(
         default: "local",
         },
 
+        fullName: {
+            type: String,
+            default: "",
+        },
+
         // Account status — managed by ADMIN only
         // Active    → normal access
         // Suspended → login blocked, user cannot access platform
+        // Inactive  → deactivated by user, auto-reactivated on login
         accountStatus: {
-        type: String,
-        enum: ["Active", "Suspended"],
-        default: "Active",
+            type: String,
+            enum: ["Active", "Suspended", "Inactive"],
+            default: "Active",
+        },
+
+        // Tracks last password change — set on register and on every password update
+        passwordChangedAt: {
+        type: Date,
+        default: null,
         },
     },
     {

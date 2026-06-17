@@ -71,11 +71,11 @@ const UserProfileModal = ({ isOpen, onClose, user }) => {
                       </div>
                       <div className="flex items-center gap-3 text-neutral-300">
                         <Phone size={16} className="text-brand-purple-500" />
-                        <span className="text-sm">+91 98765-43210</span>
+                        <span className="text-sm">{user.profileDetails?.phone || user.phone || 'N/A'}</span>
                       </div>
                       <div className="flex items-center gap-3 text-neutral-300">
                         <MapPin size={16} className="text-brand-purple-500" />
-                        <span className="text-sm">Mumbai, Maharashtra</span>
+                        <span className="text-sm">{user.profileDetails?.location || user.location || 'N/A'}</span>
                       </div>
                     </div>
                   </div>
@@ -115,21 +115,52 @@ const UserProfileModal = ({ isOpen, onClose, user }) => {
                     <button onClick={handleFullDetail} className="text-[10px] font-bold text-brand-purple-400 hover:underline">View All Logs</button>
                   </div>
                   <div className="space-y-3">
-                    {[
-                      { action: 'Updated profile picture', time: '2 hours ago', icon: User },
-                      { action: 'Changed account password', time: 'Yesterday', icon: Shield },
-                      { action: 'Logged in from New Device', time: 'May 20, 2026', icon: Activity },
-                    ].map((log, i) => (
-                      <div key={i} className="flex items-center justify-between p-3 rounded-xl bg-white/5 border border-white/5">
+                    {/* Profile last updated */}
+                    {user.profileDetails?.updatedAt && (
+                      <div className="flex items-center justify-between p-3 rounded-xl bg-white/5 border border-white/5">
                         <div className="flex items-center gap-3">
                           <div className="p-1.5 rounded-lg bg-brand-purple-600/10 text-brand-purple-500">
-                            <log.icon size={12} />
+                            <User size={12} />
                           </div>
-                          <span className="text-xs text-neutral-300 font-medium">{log.action}</span>
+                          <span className="text-xs text-neutral-300 font-medium">Last profile update</span>
                         </div>
-                        <span className="text-[10px] text-neutral-500">{log.time}</span>
+                        <span className="text-[10px] text-neutral-500">
+                          {new Date(user.profileDetails.updatedAt).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}
+                        </span>
                       </div>
-                    ))}
+                    )}
+                    {/* Password changed / set */}
+                    {(user.passwordChangedAt || user.createdAt) && (
+                      <div className="flex items-center justify-between p-3 rounded-xl bg-white/5 border border-white/5">
+                        <div className="flex items-center gap-3">
+                          <div className="p-1.5 rounded-lg bg-brand-purple-600/10 text-brand-purple-500">
+                            <Shield size={12} />
+                          </div>
+                          <span className="text-xs text-neutral-300 font-medium">Changed account password</span>
+                        </div>
+                        <span className="text-[10px] text-neutral-500">
+                          {new Date(user.passwordChangedAt || user.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}
+                        </span>
+                      </div>
+                    )}
+                    {/* Account created */}
+                    {user.createdAt && (
+                      <div className="flex items-center justify-between p-3 rounded-xl bg-white/5 border border-white/5">
+                        <div className="flex items-center gap-3">
+                          <div className="p-1.5 rounded-lg bg-brand-purple-600/10 text-brand-purple-500">
+                            <Activity size={12} />
+                          </div>
+                          <span className="text-xs text-neutral-300 font-medium">First login / Account created</span>
+                        </div>
+                        <span className="text-[10px] text-neutral-500">
+                          {new Date(user.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}
+                        </span>
+                      </div>
+                    )}
+                    {/* Fallback if neither date available */}
+                    {!user.profileDetails?.updatedAt && !user.createdAt && (
+                      <p className="text-xs text-neutral-600 text-center py-2">No activity data available</p>
+                    )}
                   </div>
                 </div>
               </div>

@@ -97,10 +97,12 @@ const ApplicantDetailModal = ({ applicant, onClose, onStageChange }) => {
               {/* Details */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {[
-                  { label: 'Experience', value: applicant.experience },
+                  { label: 'Experience', value: applicant.experience || '—' },
                   { label: 'Applied Date', value: applicant.appliedDate },
                   { label: 'Applied Role', value: applicant.appliedRole },
-                  { label: 'Location', value: applicant.location },
+                  { label: 'Location', value: applicant.location || '—' },
+                  { label: 'Expected Salary', value: applicant.expectedSalary || '—' },
+                  { label: 'Notice Period', value: applicant.noticePeriod || '—' },
                 ].map(({ label, value }) => (
                   <div key={label} className="bg-neutral-50 rounded-xl p-3">
                     <p className="text-[10px] font-semibold text-neutral-400 uppercase tracking-wider mb-1">{label}</p>

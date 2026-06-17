@@ -61,6 +61,12 @@ const jobApplicationSchema = new mongoose.Schema(
       default: "",
     },
 
+    // true = application submitted via /careers Stryper internal job
+    isStryperApplication: {
+      type: Boolean,
+      default: false,
+    },
+
     salaryExpectation: {
       type: Number,
       default: null,

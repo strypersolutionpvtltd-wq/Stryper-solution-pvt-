@@ -1,111 +1,170 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Download, ExternalLink, FileText, User, Mail, Phone } from 'lucide-react';
 
 const ResumePreviewModal = ({ candidate, onClose }) => {
+  const [iframeError, setIframeError] = useState(false);
   if (!candidate) return null;
+
+  // candidate.resume is the Cloudinary URL (could be PDF, doc, etc.)
+  const resumeUrl = candidate.resume || candidate.resumeUrl || '';
+
+  // Build Google Docs viewer URL for PDFs/docs so they render in-browser
+  const viewerUrl = resumeUrl
+    ? `https://docs.google.com/viewer?url=${encodeURIComponent(resumeUrl)}&embedded=true`
+    : '';
+
+  const handleDownload = async () => {
+    if (!resumeUrl) return;
+    try {
+      const response = await fetch(resumeUrl);
+      const blob = await response.blob();
+      const ext = resumeUrl.split('.').pop().split('?')[0] || 'pdf';
+      const filename = `${candidate.name?.replace(/\s+/g, '_') || 'resume'}_resume.${ext}`;
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch {
+      // Fallback: open in new tab if fetch fails
+      window.open(resumeUrl, '_blank');
+    }
+  };
 
   return (
     <AnimatePresence>
       <div className="fixed inset-0 z-[110] flex items-center justify-center p-4">
         {/* Backdrop */}
         <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
+          initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
           onClick={onClose}
-          className="absolute inset-0 bg-neutral-900/40 backdrop-blur-sm"
+          className="absolute inset-0 bg-neutral-900/50 backdrop-blur-sm"
         />
 
-        {/* Modal Content */}
+        {/* Modal */}
         <motion.div
-          initial={{ opacity: 0, scale: 0.9, y: 20 }}
+          initial={{ opacity: 0, scale: 0.95, y: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
-          exit={{ opacity: 0, scale: 0.9, y: 20 }}
-          className="relative bg-white w-full max-w-4xl h-[90vh] rounded-[2.5rem] shadow-[0_32px_64px_-16px_rgba(0,0,0,0.2)] overflow-hidden flex flex-col"
+          exit={{ opacity: 0, scale: 0.95, y: 20 }}
+          transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
+          className="relative bg-white w-full max-w-4xl h-[90vh] rounded-3xl shadow-2xl overflow-hidden flex flex-col"
         >
           {/* Header */}
-          <div className="px-8 py-6 border-b border-neutral-100 flex items-center justify-between bg-white/80 backdrop-blur-md sticky top-0 z-10">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-2xl bg-brand-purple-50 flex items-center justify-center text-brand-purple-600">
-                <FileText size={24} />
+          <div className="px-7 py-5 border-b border-neutral-100 flex items-center justify-between shrink-0">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-purple-50 flex items-center justify-center text-purple-600">
+                <FileText size={20} />
               </div>
               <div>
-                <h3 className="text-xl font-bold text-neutral-900 leading-tight">
-                  {candidate.name}'s Resume
-                </h3>
-                <p className="text-sm text-neutral-500 font-medium">
-                  {candidate.role || candidate.position || 'Candidate'}
-                </p>
+                <h3 className="text-base font-bold text-neutral-900 leading-tight">{candidate.name}'s Resume</h3>
+                <p className="text-xs text-neutral-500">{candidate.role || candidate.headline || 'Candidate'}</p>
               </div>
             </div>
-            
-            <div className="flex items-center gap-3">
-              <button className="flex items-center gap-2 px-4 py-2 rounded-xl bg-neutral-50 text-neutral-600 text-sm font-semibold hover:bg-neutral-100 transition-colors">
-                <Download size={18} />
-                Download
-              </button>
-              <button 
+            <div className="flex items-center gap-2">
+              {resumeUrl && (
+                <>
+                  <button
+                    onClick={handleDownload}
+                    className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-neutral-50 text-neutral-600 text-xs font-semibold hover:bg-neutral-100 transition-colors"
+                  >
+                    <Download size={15} />
+                    Download
+                  </button>
+                  <a
+                    href={resumeUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-neutral-50 text-neutral-600 text-xs font-semibold hover:bg-neutral-100 transition-colors"
+                  >
+                    <ExternalLink size={15} />
+                    Open
+                  </a>
+                </>
+              )}
+              <button
                 onClick={onClose}
-                className="w-10 h-10 flex items-center justify-center rounded-xl bg-neutral-50 text-neutral-400 hover:bg-neutral-100 hover:text-neutral-600 transition-all"
+                className="w-9 h-9 flex items-center justify-center rounded-xl bg-neutral-50 text-neutral-400 hover:bg-neutral-100 hover:text-neutral-600 transition-all"
               >
-                <X size={20} />
+                <X size={18} />
               </button>
             </div>
           </div>
 
-          {/* Content Area */}
-          <div className="flex-1 overflow-y-auto p-8 bg-neutral-50/50">
-            <div className="max-w-3xl mx-auto">
-              {/* Info Bar */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-                <div className="bg-white p-4 rounded-2xl border border-neutral-100 shadow-sm">
-                  <div className="flex items-center gap-3 text-neutral-400 mb-2">
-                    <User size={16} />
-                    <span className="text-xs font-bold uppercase tracking-wider">Experience</span>
-                  </div>
-                  <p className="font-bold text-neutral-900">{candidate.experience || 'Not specified'}</p>
-                </div>
-                <div className="bg-white p-4 rounded-2xl border border-neutral-100 shadow-sm">
-                  <div className="flex items-center gap-3 text-neutral-400 mb-2">
-                    <Mail size={16} />
-                    <span className="text-xs font-bold uppercase tracking-wider">Email</span>
-                  </div>
-                  <p className="font-bold text-neutral-900 truncate">{candidate.email || 'Not provided'}</p>
-                </div>
-                <div className="bg-white p-4 rounded-2xl border border-neutral-100 shadow-sm">
-                  <div className="flex items-center gap-3 text-neutral-400 mb-2">
-                    <Phone size={16} />
-                    <span className="text-xs font-bold uppercase tracking-wider">Phone</span>
-                  </div>
-                  <p className="font-bold text-neutral-900">{candidate.phone || 'Not provided'}</p>
+          {/* Info strip */}
+          <div className="grid grid-cols-3 divide-x divide-neutral-100 border-b border-neutral-100 shrink-0">
+            {[
+              { icon: <User size={14} />, label: 'Experience', value: candidate.experience || 'Not specified' },
+              { icon: <Mail size={14} />, label: 'Email',      value: candidate.email || 'Not provided' },
+              { icon: <Phone size={14} />, label: 'Phone',     value: candidate.phone || 'Not provided' },
+            ].map(({ icon, label, value }) => (
+              <div key={label} className="px-6 py-3 flex items-center gap-3">
+                <span className="text-neutral-400 shrink-0">{icon}</span>
+                <div className="min-w-0">
+                  <p className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider">{label}</p>
+                  <p className="text-sm font-semibold text-neutral-800 truncate">{value}</p>
                 </div>
               </div>
+            ))}
+          </div>
 
-              {/* Resume Preview Placeholder */}
-              <div className="bg-white rounded-[2rem] border border-neutral-100 shadow-sm overflow-hidden min-h-[600px] flex flex-col items-center justify-center text-center p-12">
-                <div className="w-24 h-24 rounded-3xl bg-neutral-50 flex items-center justify-center text-neutral-300 mb-6">
-                  <FileText size={48} />
+          {/* Resume content area */}
+          <div className="flex-1 overflow-hidden bg-neutral-100">
+            {!resumeUrl ? (
+              /* No resume uploaded */
+              <div className="h-full flex flex-col items-center justify-center text-center p-12">
+                <div className="w-20 h-20 rounded-2xl bg-neutral-200 flex items-center justify-center text-neutral-400 mb-5">
+                  <FileText size={40} />
                 </div>
-                <h4 className="text-2xl font-bold text-neutral-900 mb-3">Resume Preview</h4>
-                <p className="text-neutral-500 max-w-sm mb-8">
-                  The visual resume preview for {candidate.name} is currently being processed. You can download the original file in the meantime.
+                <h4 className="text-lg font-bold text-neutral-700 mb-2">No Resume Uploaded</h4>
+                <p className="text-sm text-neutral-400 max-w-xs">
+                  This candidate hasn't uploaded a resume yet.
                 </p>
-                <div className="flex flex-wrap justify-center gap-4">
-                   {candidate.resumeUrl && (
-                      <a 
-                        href={candidate.resumeUrl} 
-                        target="_blank" 
-                        rel="noopener noreferrer"
-                        className="flex items-center gap-2 px-6 py-3 rounded-2xl bg-brand-purple-600 text-white font-bold shadow-lg shadow-brand-purple-200 hover:bg-brand-purple-700 transition-all active:scale-95"
-                      >
-                        <ExternalLink size={20} />
-                        Open Original File
-                      </a>
-                   )}
+              </div>
+            ) : iframeError ? (
+              /* iframe failed — show direct open fallback */
+              <div className="h-full flex flex-col items-center justify-center text-center p-12">
+                <div className="w-20 h-20 rounded-2xl bg-purple-50 flex items-center justify-center text-purple-400 mb-5">
+                  <FileText size={40} />
+                </div>
+                <h4 className="text-lg font-bold text-neutral-700 mb-2">Preview Unavailable</h4>
+                <p className="text-sm text-neutral-400 max-w-xs mb-6">
+                  The resume can't be previewed inline. Open it directly.
+                </p>
+                <div className="flex gap-3">
+                  <a
+                    href={resumeUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold text-white"
+                    style={{ background: '#8B3A8F' }}
+                  >
+                    <ExternalLink size={16} />
+                    Open Resume
+                  </a>
+                  <button
+                    onClick={handleDownload}
+                    className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold border border-neutral-200 text-neutral-600 hover:bg-neutral-50"
+                  >
+                    <Download size={16} />
+                    Download
+                  </button>
                 </div>
               </div>
-            </div>
+            ) : (
+              /* Render resume via Google Docs viewer (handles PDF, DOC, DOCX) */
+              <iframe
+                key={viewerUrl}
+                src={viewerUrl}
+                title={`${candidate.name} Resume`}
+                className="w-full h-full border-0"
+                onError={() => setIframeError(true)}
+                allow="fullscreen"
+              />
+            )}
           </div>
         </motion.div>
       </div>

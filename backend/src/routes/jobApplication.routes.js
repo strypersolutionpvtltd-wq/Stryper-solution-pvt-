@@ -1,5 +1,6 @@
 const express = require("express");
 const {
+  getCompanyApplicants,
   applyForJob,
   getMyApplications,
   getJobApplicants,
@@ -10,7 +11,7 @@ const { protect: authMiddleware } = require("../middleware/auth.middleware");
 
 const router = express.Router();
 
-// Private routes (authenticated)
+router.get("/company", authMiddleware, getCompanyApplicants);
 router.post("/", authMiddleware, applyForJob);
 router.get("/me", authMiddleware, getMyApplications);
 router.get("/job/:jobId", authMiddleware, getJobApplicants);

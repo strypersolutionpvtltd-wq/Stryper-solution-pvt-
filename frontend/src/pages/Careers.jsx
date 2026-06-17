@@ -1,35 +1,19 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import PageHero from '@/components/shared/PageHero';
 import img4 from '@/assets/image/4.jpeg';
 import { fadeInUp, staggerContainer, viewportOnce } from '@/utils/animations';
+import { jobs as jobsApi, upload } from '@/utils/api';
+import toast from 'react-hot-toast';
 
 const P = '#8B3A8F';
 const G = '#F5A623';
 
-const INTERNAL_JOBS = [
-  { id: 1, title: 'Business Development Manager', location: 'Gurugram / Remote', type: 'Full-Time', exp: '2-5 yrs' },
-  { id: 2, title: 'HR Operations Executive', location: 'Gurugram, HR', type: 'Full-Time', exp: '1-3 yrs' },
-  { id: 3, title: 'Regional Operations Head', location: 'Pune / Mumbai', type: 'Full-Time', exp: '5-8 yrs' },
-];
-
 const STRATEGY = [
-  { 
-    title: 'Career Advancement', 
-    desc: 'We map out your career path with our partner industries for long-term growth.',
-    icon: '🚀' 
-  },
-  { 
-    title: 'Deployment & Support', 
-    desc: 'From document verification to site onboarding, we handle the heavy lifting.',
-    icon: '🤝' 
-  },
-  { 
-    title: 'Skill Development', 
-    desc: 'Regular training sessions to keep you relevant in the changing job market.',
-    icon: '📚' 
-  }
+  { title: 'Career Advancement', desc: 'We map out your career path with our partner industries for long-term growth.', icon: '🚀' },
+  { title: 'Deployment & Support', desc: 'From document verification to site onboarding, we handle the heavy lifting.', icon: '🤝' },
+  { title: 'Skill Development', desc: 'Regular training sessions to keep you relevant in the changing job market.', icon: '📚' }
 ];
 
 const STEPS = [
@@ -39,57 +23,157 @@ const STEPS = [
   { s: 4, t: 'Deployment', d: 'Get placed with full legal and salary support.' },
 ];
 
+/* ── Apply Modal ── */
+const ApplyModal = ({ job, onClose }) => {
+  const [form, setForm] = useState({ name: '', phone: '', email: '', coverLetter: '' });
+  const [resumeFile, setResumeFile] = useState(null);
+  const [uploading, setUploading] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [done, setDone] = useState(false);
+
+  const handleFile = (e) => setResumeFile(e.target.files[0] || null);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!form.name || !form.email || !form.phone) {
+      toast.error('Please fill all required fields');
+      return;
+    }
+    setSubmitting(true);
+    try {
+      let resumeUrl = '';
+      if (resumeFile) {
+        setUploading(true);
+        const fd = new FormData();
+        fd.append('resume', resumeFile);
+        const upRes = await upload.uploadResume(fd);
+        resumeUrl = upRes.data?.url || upRes.data?.resume || '';
+        setUploading(false);
+      }
+      await jobsApi.applyStryperJob({
+        jobId: job._id,
+        name: form.name,
+        email: form.email,
+        phone: form.phone,
+        coverLetter: form.coverLetter,
+        resumeUrl,
+      });
+      setDone(true);
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to submit application');
+    } finally {
+      setSubmitting(false);
+      setUploading(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute inset-0 bg-neutral-900/70 backdrop-blur-sm" onClick={onClose} />
+      <motion.div initial={{ opacity: 0, scale: 0.9, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.9, y: 20 }} className="relative bg-white rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden z-10 max-h-[90vh] flex flex-col">
+        <div className="p-6 border-b border-neutral-100 flex justify-between items-center">
+          <div>
+            <h3 className="text-lg font-bold text-neutral-900">Apply for this Role</h3>
+            <p className="text-sm text-neutral-500 mt-0.5">{job.title}</p>
+          </div>
+          <button onClick={onClose} className="text-neutral-400 hover:text-neutral-700 transition-colors p-1">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
+          </button>
+        </div>
+
+        <div className="overflow-y-auto flex-1">
+          {done ? (
+            <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="text-center py-14 px-8">
+              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl text-green-600">✓</div>
+              <h3 className="text-xl font-bold text-neutral-900 mb-2">Application Sent!</h3>
+              <p className="text-sm text-neutral-500">Our HR team will review your profile and reach out soon.</p>
+              <button onClick={onClose} className="mt-6 px-6 py-2.5 rounded-xl text-sm font-bold text-white" style={{ background: P }}>Close</button>
+            </motion.div>
+          ) : (
+            <form onSubmit={handleSubmit} className="p-8 space-y-4">
+              <div className="grid sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="text-xs font-bold text-neutral-500 uppercase tracking-wide mb-1 block">Full Name *</label>
+                  <input required value={form.name} onChange={e => setForm(p => ({...p, name: e.target.value}))} placeholder="Your full name" className="w-full px-4 py-3 rounded-xl bg-neutral-50 text-sm outline-none focus:ring-2 focus:ring-purple-200 transition-all" />
+                </div>
+                <div>
+                  <label className="text-xs font-bold text-neutral-500 uppercase tracking-wide mb-1 block">Phone *</label>
+                  <input required value={form.phone} onChange={e => setForm(p => ({...p, phone: e.target.value}))} placeholder="+91 98765 43210" className="w-full px-4 py-3 rounded-xl bg-neutral-50 text-sm outline-none focus:ring-2 focus:ring-purple-200 transition-all" />
+                </div>
+              </div>
+              <div>
+                <label className="text-xs font-bold text-neutral-500 uppercase tracking-wide mb-1 block">Email Address *</label>
+                <input required type="email" value={form.email} onChange={e => setForm(p => ({...p, email: e.target.value}))} placeholder="you@email.com" className="w-full px-4 py-3 rounded-xl bg-neutral-50 text-sm outline-none focus:ring-2 focus:ring-purple-200 transition-all" />
+              </div>
+              <div>
+                <label className="text-xs font-bold text-neutral-500 uppercase tracking-wide mb-1 block">Cover Letter (optional)</label>
+                <textarea rows={3} value={form.coverLetter} onChange={e => setForm(p => ({...p, coverLetter: e.target.value}))} placeholder="Why are you a great fit?" className="w-full px-4 py-3 rounded-xl bg-neutral-50 text-sm outline-none focus:ring-2 focus:ring-purple-200 transition-all resize-none" />
+              </div>
+              <div>
+                <label className="text-xs font-bold text-neutral-500 uppercase tracking-wide mb-1 block">Resume (optional)</label>
+                <label className={`flex flex-col items-center justify-center w-full py-6 rounded-2xl border-2 border-dashed transition-all cursor-pointer ${resumeFile ? 'border-green-200 bg-green-50/30' : 'border-neutral-200 hover:bg-neutral-50'}`}>
+                  <input type="file" className="hidden" accept=".pdf,.doc,.docx" onChange={handleFile} />
+                  {resumeFile ? (
+                    <><span className="text-xl mb-1">📄</span><p className="text-xs text-green-700 font-bold">{resumeFile.name}</p><p className="text-[10px] text-green-500 mt-0.5">Click to change</p></>
+                  ) : (
+                    <><span className="text-xl mb-1">☁️</span><p className="text-xs text-neutral-400 font-medium">Upload Resume / CV</p><p className="text-[10px] text-neutral-300 mt-0.5 uppercase tracking-widest font-bold">PDF, DOC, DOCX</p></>
+                  )}
+                </label>
+              </div>
+              <button type="submit" disabled={submitting} className="w-full py-4 rounded-xl text-white font-bold shadow-lg shadow-purple-200 transition-all disabled:opacity-60 hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-2" style={{ background: P }}>
+                {submitting ? (uploading ? 'Uploading Resume...' : 'Submitting...') : 'Submit Application'}
+              </button>
+            </form>
+          )}
+        </div>
+      </motion.div>
+    </div>
+  );
+};
+
 /* ── Role Detail Modal ── */
 const RoleDetailModal = ({ job, onClose, onApply }) => (
   <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-    <motion.div 
-      initial={{ opacity: 0 }} 
-      animate={{ opacity: 1 }} 
-      exit={{ opacity: 0 }}
-      className="absolute inset-0 bg-neutral-900/60 backdrop-blur-sm" 
-      onClick={onClose} 
-    />
-    <motion.div
-      initial={{ opacity: 0, scale: 0.9, y: 20 }}
-      animate={{ opacity: 1, scale: 1, y: 0 }}
-      exit={{ opacity: 0, scale: 0.9, y: 20 }}
-      className="relative bg-white rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden z-10"
-    >
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute inset-0 bg-neutral-900/60 backdrop-blur-sm" onClick={onClose} />
+    <motion.div initial={{ opacity: 0, scale: 0.9, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.9, y: 20 }} className="relative bg-white rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden z-10 max-h-[90vh] flex flex-col">
       <div className="p-8 border-b border-neutral-100 flex justify-between items-start">
         <div>
-          <span className="text-[10px] font-bold px-2 py-1 rounded-full bg-brand-purple-50 text-brand-purple-600 uppercase mb-2 inline-block">{job.type}</span>
+          <span className="text-[10px] font-bold px-2 py-1 rounded-full bg-brand-purple-50 text-brand-purple-600 uppercase mb-2 inline-block">{job.employmentType || 'Full-Time'}</span>
           <h3 className="text-xl font-bold text-neutral-900">{job.title}</h3>
-          <p className="text-sm text-neutral-500 mt-1">{job.location} • {job.exp}</p>
+          <p className="text-sm text-neutral-500 mt-1">{job.location || 'Remote'} {job.experience ? `• ${job.experience}` : ''}</p>
         </div>
         <button onClick={onClose} className="text-neutral-400 hover:text-neutral-600 transition-colors">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
         </button>
       </div>
-      <div className="p-8 space-y-6">
-        <section>
-          <h4 className="text-xs font-bold text-neutral-400 uppercase tracking-widest mb-3">Key Responsibilities</h4>
-          <ul className="text-sm text-neutral-600 space-y-2.5 list-disc pl-4">
-            <li>Liaise with core stakeholders to drive business results.</li>
-            <li>Maintain high standards of operational excellence.</li>
-            <li>Ensure compliance with all regulatory and company standards.</li>
-            <li>Drive continuous improvement in workflow and team performance.</li>
-          </ul>
-        </section>
-        <section>
-          <h4 className="text-xs font-bold text-neutral-400 uppercase tracking-widest mb-3">Requirements</h4>
-          <ul className="text-sm text-neutral-600 space-y-2.5 list-disc pl-4">
-            <li>Proven experience in {job.title} or similar role.</li>
-            <li>Strong communication and leadership skills.</li>
-            <li>Ability to work in a fast-paced environment.</li>
-          </ul>
-        </section>
+      <div className="p-8 space-y-6 overflow-y-auto flex-1">
+        {job.description && (
+          <section>
+            <h4 className="text-xs font-bold text-neutral-400 uppercase tracking-widest mb-3">About This Role</h4>
+            <p className="text-sm text-neutral-600 leading-relaxed">{job.description}</p>
+          </section>
+        )}
+        {job.requirements?.length > 0 && (
+          <section>
+            <h4 className="text-xs font-bold text-neutral-400 uppercase tracking-widest mb-3">Requirements</h4>
+            <ul className="text-sm text-neutral-600 space-y-2 list-disc pl-4">
+              {job.requirements.map((r, i) => <li key={i}>{r}</li>)}
+            </ul>
+          </section>
+        )}
+        {job.skills?.length > 0 && (
+          <section>
+            <h4 className="text-xs font-bold text-neutral-400 uppercase tracking-widest mb-3">Skills</h4>
+            <div className="flex flex-wrap gap-2">
+              {job.skills.map((s, i) => (
+                <span key={i} className="text-xs font-bold px-3 py-1 rounded-full bg-brand-purple-50 text-brand-purple-600">{s}</span>
+              ))}
+            </div>
+          </section>
+        )}
       </div>
       <div className="p-8 pt-0">
-        <button 
-          onClick={onApply}
-          className="w-full flex items-center justify-center py-4 rounded-2xl text-white font-bold shadow-lg shadow-purple-200 transition-transform active:scale-95" 
-          style={{ background: P }}
-        >
+        <button onClick={onApply} className="w-full flex items-center justify-center py-4 rounded-2xl text-white font-bold shadow-lg shadow-purple-200 transition-transform active:scale-95" style={{ background: P }}>
           Apply for this Role
         </button>
       </div>
@@ -98,12 +182,22 @@ const RoleDetailModal = ({ job, onClose, onApply }) => (
 );
 
 function Careers() {
-  const [activeTab, setActiveTab] = useState('candidate'); // 'candidate' or 'corporate'
+  const [activeTab, setActiveTab] = useState('candidate');
   const [selectedJob, setSelectedJob] = useState(null);
+  const [applyingJob, setApplyingJob] = useState(null);
+  const [stryperJobs, setStryperJobs] = useState([]);
+  const [jobsLoading, setJobsLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
   const [resume, setResume] = useState(null);
   const [form, setForm] = useState({ name: '', phone: '', email: '', roleType: '' });
   const [submitted, setSubmitted] = useState(false);
+
+  useEffect(() => {
+    jobsApi.getStryperJobs()
+      .then(res => { if (res.data?.success) setStryperJobs(res.data.jobs || []); })
+      .catch(() => {})
+      .finally(() => setJobsLoading(false));
+  }, []);
 
   const scrollToApply = () => {
     document.getElementById('apply')?.scrollIntoView({ behavior: 'smooth' });
@@ -227,20 +321,42 @@ function Careers() {
                 </div>
 
                 <div className="grid md:grid-cols-3 gap-6">
-                  {INTERNAL_JOBS.map(job => (
-                    <div key={job.id} className="bg-white p-6 rounded-2xl border border-neutral-100 shadow-sm hover:shadow-md transition-shadow">
-                      <div className="flex justify-between items-start mb-4">
-                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-purple-50 text-purple-600 uppercase">{job.type}</span>
-                        <span className="text-[10px] font-bold text-neutral-400">{job.exp}</span>
+                  {jobsLoading ? (
+                    Array.from({ length: 3 }).map((_, i) => (
+                      <div key={i} className="bg-white p-6 rounded-2xl border border-neutral-100 shadow-sm animate-pulse">
+                        <div className="h-4 bg-neutral-100 rounded w-1/2 mb-4" />
+                        <div className="h-5 bg-neutral-200 rounded w-3/4 mb-2" />
+                        <div className="h-3 bg-neutral-100 rounded w-1/2 mb-6" />
+                        <div className="h-9 bg-neutral-100 rounded-xl" />
                       </div>
-                      <h4 className="font-bold text-neutral-900 mb-2">{job.title}</h4>
-                      <p className="text-xs text-neutral-500 mb-4">{job.location}</p>
-                      <button 
-                        onClick={() => setSelectedJob(job)}
-                        className="w-full py-2.5 rounded-xl text-xs font-bold text-brand-purple-600 border border-brand-purple-100 hover:bg-brand-purple-50 transition-colors"
-                      >
-                        View Role
-                      </button>
+                    ))
+                  ) : stryperJobs.length === 0 ? (
+                    <div className="col-span-3 text-center py-12 text-neutral-400 text-sm">
+                      No openings right now. Check back soon!
+                    </div>
+                  ) : stryperJobs.map(job => (
+                    <div key={job._id} className="bg-white p-6 rounded-2xl border border-neutral-100 shadow-sm hover:shadow-md transition-shadow">
+                      <div className="flex justify-between items-start mb-4">
+                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-purple-50 text-purple-600 uppercase">{job.employmentType || 'Full-Time'}</span>
+                        <span className="text-[10px] font-bold text-neutral-400">{job.experience || ''}</span>
+                      </div>
+                      <h4 className="font-bold text-neutral-900 mb-1">{job.title}</h4>
+                      <p className="text-xs text-neutral-500 mb-4">{job.location || 'Remote'}{job.department ? ` • ${job.department}` : ''}</p>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => setSelectedJob(job)}
+                          className="flex-1 py-2.5 rounded-xl text-xs font-bold text-brand-purple-600 border border-brand-purple-100 hover:bg-brand-purple-50 transition-colors"
+                        >
+                          View Role
+                        </button>
+                        <button
+                          onClick={() => setApplyingJob(job)}
+                          className="flex-1 py-2.5 rounded-xl text-xs font-bold text-white transition-colors"
+                          style={{ background: P }}
+                        >
+                          Apply Now
+                        </button>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -400,7 +516,17 @@ function Careers() {
           <RoleDetailModal
             job={selectedJob}
             onClose={() => setSelectedJob(null)}
-            onApply={() => { setSelectedJob(null); scrollToApply(); }}
+            onApply={() => { setApplyingJob(selectedJob); setSelectedJob(null); }}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* Apply Modal */}
+      <AnimatePresence>
+        {applyingJob && (
+          <ApplyModal
+            job={applyingJob}
+            onClose={() => setApplyingJob(null)}
           />
         )}
       </AnimatePresence>

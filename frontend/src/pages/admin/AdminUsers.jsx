@@ -1,7 +1,7 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, MoreVertical, UserX, Mail, Trash2, ShieldCheck, Eye } from 'lucide-react';
-import { ALL_USERS } from '@/data/adminData';
+import { Search, MoreVertical, UserX, Mail, Trash2, ShieldCheck, Eye, Loader2 } from 'lucide-react';
+import { admin } from '@/utils/api';
 import UserProfileModal from '@/components/admin/UserProfileModal';
 import toast from 'react-hot-toast';
 
@@ -10,18 +10,47 @@ const fadeInUp = {
   visible: { opacity: 1, y: 0 }
 };
 
-// Normalise row for modal compatibility
 const normaliseRow = (user) => ({
   ...user,
-  joined: user.joined || 'N/A'
+  joined: user?.joined || 'N/A'
 });
 
 const AdminUsers = () => {
-  const [users, setUsers] = useState(ALL_USERS);
+  const [users, setUsers] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchText] = useState('');
   const [activeMenu, setActiveMenu] = useState(null);
   const [selectedUser, setSelectedUser] = useState(null);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+
+  useEffect(() => {
+    const fetchUsers = async () => {
+      setLoading(true);
+      try {
+        const res = await admin.getAllUsers({ limit: 1000 });
+        if (res.data?.success) {
+          const mappedUsers = (res.data.users || []).map(u => ({
+            id: u._id,
+            name: u.name || 'N/A',
+            email: u.email,
+            role: u.role === 'CANDIDATE' ? 'Candidate' : u.role === 'COMPANY' ? 'Company' : 'Admin',
+            status: u.accountStatus || 'Active',
+            joined: u.createdAt ? new Date(u.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) : 'N/A',
+            createdAt: u.createdAt,
+            passwordChangedAt: u.passwordChangedAt,
+            profileDetails: u.profileDetails
+          }));
+          setUsers(mappedUsers);
+        }
+      } catch (err) {
+        console.error("Failed to fetch users", err);
+        toast.error("Failed to load users from server");
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchUsers();
+  }, []);
 
   const filteredUsers = useMemo(() => {
     return users.filter(user => 
@@ -31,15 +60,26 @@ const AdminUsers = () => {
   }, [users, searchTerm]);
 
   const handleDelete = (id, name) => {
+    // API deletion endpoint not explicitly defined, but we can do local state filter
     setUsers(users.filter(u => u.id !== id));
     toast.success(`${name} has been removed.`);
     setActiveMenu(null);
   };
 
-  const handleStatusToggle = (id, currentStatus) => {
-    const newStatus = currentStatus === 'Active' || currentStatus === 'Verified' ? 'Inactive' : 'Active';
-    setUsers(users.map(u => u.id === id ? { ...u, status: newStatus } : u));
-    toast.success(`Status updated to ${newStatus}`);
+  const handleStatusToggle = async (id, currentStatus) => {
+    const newStatus = currentStatus === 'Active' ? 'Suspended' : 'Active';
+    try {
+      const res = await admin.updateUserStatus(id, { accountStatus: newStatus });
+      if (res.data?.success) {
+        setUsers(users.map(u => u.id === id ? { ...u, status: newStatus } : u));
+        toast.success(`Account status updated to ${newStatus}`);
+      } else {
+        toast.error("Failed to update user status");
+      }
+    } catch (error) {
+      console.error(error);
+      toast.error("Failed to communicate status change to server");
+    }
     setActiveMenu(null);
   };
 
@@ -189,13 +229,22 @@ const AdminUsers = () => {
                   </motion.tr>
                 ))}
               </AnimatePresence>
-              {filteredUsers.length === 0 && (
+              {loading ? (
+                <tr>
+                  <td colSpan={5} className="px-6 py-20 text-center">
+                    <div className="flex flex-col items-center justify-center gap-3">
+                      <Loader2 size={24} className="animate-spin text-brand-purple-500" />
+                      <p className="text-xs font-bold text-neutral-400 uppercase tracking-widest">Loading Users...</p>
+                    </div>
+                  </td>
+                </tr>
+              ) : filteredUsers.length === 0 ? (
                 <tr>
                   <td colSpan={5} className="px-6 py-20 text-center text-neutral-500 text-sm">
                     No users found matching "{searchTerm}"
                   </td>
                 </tr>
-              )}
+              ) : null}
             </tbody>
           </table>
         </div>

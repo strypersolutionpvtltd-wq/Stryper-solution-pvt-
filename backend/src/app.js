@@ -110,6 +110,15 @@ app.use("/api/v1/dashboard", dashboardRoutes);
 const contactRoutes = require("./routes/contact.routes");
 app.use("/api/v1/contact", contactRoutes);
 
+const analyticsRoutes = require("./routes/analytics.routes");
+app.use("/api/v1/analytics", analyticsRoutes);
+
+const shortlistRoutes = require("./routes/shortlist.routes");
+app.use("/api/v1/shortlist", shortlistRoutes);
+
+const settingsRoutes = require("./routes/settings.routes");
+app.use("/api/v1/settings", settingsRoutes);
+
 // 404 handler
 app.use((req, res) => {
   res.status(404).json({ success: false, message: "Route not found" });

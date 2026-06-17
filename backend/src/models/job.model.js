@@ -14,10 +14,17 @@ const jobSchema = new mongoose.Schema(
       trim: true,
     },
 
+    department: {
+      type: String,
+      trim: true,
+      default: "",
+    },
+
     description: {
       type: String,
-      required: true,
+      required: false,
       trim: true,
+      default: "",
     },
 
     requirements: [{
@@ -33,7 +40,8 @@ const jobSchema = new mongoose.Schema(
     employmentType: {
       type: String,
       enum: ["Full-time", "Part-time", "Contract", "Freelance", "Internship"],
-      required: true,
+      required: false,
+      default: null,
     },
 
     salaryMin: {
@@ -53,14 +61,26 @@ const jobSchema = new mongoose.Schema(
 
     location: {
       type: String,
-      required: true,
+      required: false,
       trim: true,
+      default: "",
     },
 
     experience: {
       type: String,
       trim: true,
       default: "",
+    },
+
+    workMode: {
+      type: String,
+      enum: ["On-site", "Remote", "Hybrid"],
+      default: "On-site",
+    },
+
+    deadline: {
+      type: Date,
+      default: null,
     },
 
     skills: [{
@@ -74,9 +94,21 @@ const jobSchema = new mongoose.Schema(
       default: "Active",
     },
 
+    // true = Stryper internal job — shown only on /careers page, NOT in /jobs listing
+    isStryper: {
+      type: Boolean,
+      default: false,
+    },
+
     applicationCount: {
       type: Number,
       default: 0,
+    },
+
+    openings: {
+      type: Number,
+      default: 1,
+      min: 1,
     },
 
     postedBy: {

@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { User, Bell, Lock, Globe, Shield, Save, Moon, Mail } from 'lucide-react';
+import { User, Bell, Lock, Globe, Shield, Save, Moon, Mail, Loader2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useAuth } from '@/context/AuthContext';
+import { settings, auth } from '@/utils/api';
 
 const fadeInUp = {
   hidden: { opacity: 0, y: 10 },
@@ -39,32 +40,106 @@ const Toggle = ({ enabled, onToggle }) => (
 const AdminSettings = () => {
   const { userData, setUserData } = useAuth();
   
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  
   // Local state for form
   const [profile, setProfile] = useState({
-    fullName: userData?.fullName || 'Super Admin',
-    email: userData?.email || 'admin@stryper.com'
+    fullName: '',
+    email: ''
   });
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
   
   const [prefs, setPrefs] = useState({
     maintenance: false,
     publicReg: true
   });
 
-  const handleSave = () => {
-    // Update global state
-    if (setUserData) {
-      setUserData({ ...userData, ...profile });
+  useEffect(() => {
+    const fetchSettings = async () => {
+      try {
+        setLoading(true);
+        const res = await settings.get();
+        if (res.data?.success) {
+          setProfile({
+            fullName: res.data.account?.fullName || userData?.fullName || 'Super Admin',
+            email: res.data.account?.email || userData?.email || 'admin@stryper.com'
+          });
+          if (res.data.preferences) {
+            setPrefs(res.data.preferences);
+          }
+        }
+      } catch (error) {
+        console.error('Failed to fetch admin settings:', error);
+        toast.error('Failed to load settings');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchSettings();
+  }, [userData]);
+
+  const handleSave = async () => {
+    try {
+      setSaving(true);
+
+      // If new password is provided, change password first
+      if (newPassword.trim()) {
+        if (!currentPassword.trim()) {
+          toast.error("Current password is required to change password");
+          setSaving(false);
+          return;
+        }
+        await auth.changePassword({
+          currentPassword,
+          newPassword
+        });
+      }
+
+      const res = await settings.update({
+        email: profile.email,
+        profile: { fullName: profile.fullName },
+        preferences: { publicReg: prefs.publicReg, maintenance: prefs.maintenance }
+      });
+
+      if (res.data?.success) {
+        toast.success('Settings saved successfully!');
+        setCurrentPassword('');
+        setNewPassword('');
+        if (setUserData) {
+          setUserData({ 
+            ...userData, 
+            email: res.data.account?.email, 
+            fullName: res.data.account?.fullName 
+          });
+        }
+      }
+    } catch (error) {
+      console.error('Failed to save admin settings:', error);
+      toast.error(error.response?.data?.message || 'Failed to save settings');
+    } finally {
+      setSaving(false);
     }
-    toast.success('Settings saved successfully!');
   };
 
   const handlePasswordReset = () => {
-    toast('Password reset link sent to your email.', { icon: '📧' });
+    toast('Use the Admin Profile section above to set a new password directly.', { icon: '🔑' });
   };
 
   const handle2FAToggle = () => {
-    toast('2FA configuration modal opened. (Mock)', { icon: '🔐' });
+    toast('2FA configuration is currently simulated. Contact system administrator for details.', { icon: '🔐' });
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-[400px] flex flex-col items-center justify-center gap-3">
+        <Loader2 size={36} className="animate-spin text-brand-purple-500" />
+        <p className="text-sm font-bold text-neutral-500 uppercase tracking-widest animate-pulse">Loading settings...</p>
+      </div>
+    );
+  }
 
   return (
     <motion.div 
@@ -80,9 +155,10 @@ const AdminSettings = () => {
         </div>
         <button 
           onClick={handleSave}
-          className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-brand-purple-600 text-white text-sm font-semibold hover:bg-brand-purple-700 transition-all shadow-lg shadow-brand-purple-600/20"
+          disabled={saving}
+          className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-brand-purple-600 text-white text-sm font-semibold hover:bg-brand-purple-700 disabled:opacity-50 transition-all shadow-lg shadow-brand-purple-600/20"
         >
-          <Save size={16} />
+          {saving ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
           Save Changes
         </button>
       </div>
@@ -110,6 +186,28 @@ const AdminSettings = () => {
                 type="email" 
                 value={profile.email}
                 onChange={(e) => setProfile({...profile, email: e.target.value})}
+                className="w-full bg-white/5 border border-white/5 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:ring-1 focus:ring-brand-purple-600/50" 
+              />
+            </div>
+            <div className="space-y-2 sm:col-span-2">
+              <label className="text-xs font-bold text-neutral-500 uppercase tracking-widest">Current Password</label>
+              <input 
+                type="password" 
+                placeholder="Enter current password to change password"
+                value={currentPassword}
+                onChange={(e) => setCurrentPassword(e.target.value)}
+                autoComplete="new-password"
+                className="w-full bg-white/5 border border-white/5 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:ring-1 focus:ring-brand-purple-600/50" 
+              />
+            </div>
+            <div className="space-y-2 sm:col-span-2">
+              <label className="text-xs font-bold text-neutral-500 uppercase tracking-widest">New Password</label>
+              <input 
+                type="password" 
+                placeholder="Leave blank to keep current password"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                autoComplete="new-password"
                 className="w-full bg-white/5 border border-white/5 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:ring-1 focus:ring-brand-purple-600/50" 
               />
             </div>
@@ -152,7 +250,7 @@ const AdminSettings = () => {
               className="flex items-center gap-3 w-full px-4 py-3 rounded-xl bg-white/5 border border-white/5 text-sm font-medium text-white hover:bg-white/10 transition-colors"
             >
               <Lock size={16} className="text-neutral-500" />
-              Change Password
+              Change Password Instructions
             </button>
             <button 
               onClick={handle2FAToggle}

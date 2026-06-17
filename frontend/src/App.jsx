@@ -1,6 +1,8 @@
 import { useEffect } from 'react';
 import { Routes, Route, Navigate, Outlet, useLocation } from 'react-router-dom';
+import { Toaster } from 'react-hot-toast';
 import { useAuth } from '@/context/AuthContext';
+import { analytics } from '@/utils/api';
 
 // Public layout + pages
 import MainLayout  from '@/layouts/MainLayout';
@@ -99,6 +101,10 @@ function App() {
   const { pathname } = useLocation();
 
   useEffect(() => {
+    analytics.logVisit().catch(err => console.error("Error logging visit", err));
+  }, []);
+
+  useEffect(() => {
     // ONLY scroll when pathname actually changes
     // Disable smooth scroll when moving to dashboards to prevent blinking
     const isDashboard = pathname.startsWith('/hire-zone') || pathname.startsWith('/admin') || pathname.startsWith('/career-hub');
@@ -108,6 +114,16 @@ function App() {
   }, [pathname]);
 
   return (
+    <>
+      <Toaster
+        position="top-right"
+        toastOptions={{
+          duration: 3000,
+          style: { borderRadius: '12px', fontSize: '13px', fontWeight: '500' },
+          success: { style: { background: '#f0fdf4', color: '#15803d', border: '1px solid #bbf7d0' } },
+          error: { style: { background: '#fef2f2', color: '#dc2626', border: '1px solid #fecaca' } },
+        }}
+      />
     <Routes>
       {/* ── Public routes + Career Hub (both use MainLayout) ── */}
       <Route element={<PublicGuard />}>
@@ -175,6 +191,7 @@ function App() {
       {/* Restricted Access Page */}
       <Route path="/restricted-area" element={<RestrictedAccess />} />
     </Routes>
+    </>
   );
 }
 

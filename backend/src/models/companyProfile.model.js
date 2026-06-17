@@ -147,6 +147,40 @@ const companyProfileSchema = new mongoose.Schema(
       default: 0,
       min: 0,
     },
+
+    // --- Settings Preferences ---
+    newApplicationNotif: {
+      type: Boolean,
+      default: true,
+    },
+    interviewReminderNotif: {
+      type: Boolean,
+      default: true,
+    },
+    offerUpdatesNotif: {
+      type: Boolean,
+      default: true,
+    },
+    weeklyReportNotif: {
+      type: Boolean,
+      default: false,
+    },
+    marketingEmailsNotif: {
+      type: Boolean,
+      default: false,
+    },
+    profileVisible: {
+      type: Boolean,
+      default: true,
+    },
+    showSalary: {
+      type: Boolean,
+      default: false,
+    },
+    allowMessages: {
+      type: Boolean,
+      default: true,
+    },
   },
   {
     timestamps: true,

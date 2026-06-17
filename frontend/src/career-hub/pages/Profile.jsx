@@ -15,24 +15,25 @@ const Section = ({ title, action, children }) => (
   </div>
 );
 
-// Suggestion dropdown input
-const SuggestInput = ({ value, onChange, placeholder, options, className }) => {
+const SuggestInput = ({ value, onChange, onEnter, placeholder, options, className, inputId }) => {
   const [show, setShow] = useState(false);
-  const filtered = options.filter(o => o.toLowerCase().includes((value || '').toLowerCase()) && o !== value);
+  const filtered = (options || []).filter(o => o.toLowerCase().includes((value || '').toLowerCase()) && o.toLowerCase() !== (value || '').toLowerCase());
   return (
     <div className="relative">
       <input
+        id={inputId}
         value={value || ''}
         onChange={e => { onChange(e.target.value); setShow(true); }}
         onFocus={() => setShow(true)}
         onBlur={() => setTimeout(() => setShow(false), 150)}
+        onKeyDown={e => { if (e.key === 'Enter' && onEnter) { onEnter(value); e.preventDefault(); } }}
         placeholder={placeholder}
         className={className || inputCls}
       />
       {show && filtered.length > 0 && (
         <ul className="absolute z-50 left-0 right-0 top-full mt-1 bg-white border border-neutral-200 rounded-xl shadow-lg max-h-44 overflow-y-auto">
-          {filtered.slice(0, 6).map(o => (
-            <li key={o} onMouseDown={() => { onChange(o); setShow(false); }}
+          {filtered.slice(0, 8).map(o => (
+            <li key={o} onMouseDown={() => { onChange(o); setShow(false); if (onEnter) onEnter(o); }}
               className="px-4 py-2 text-sm text-neutral-700 hover:bg-purple-50 cursor-pointer">{o}</li>
           ))}
         </ul>
@@ -41,7 +42,29 @@ const SuggestInput = ({ value, onChange, placeholder, options, className }) => {
   );
 };
 
-const EXPERIENCE_OPTIONS = ['Fresher','Less than 1 year','1 year','2 years','3 years','4 years','5 years','6 years','7 years','8 years','10+ years','15+ years'];
+const SKILL_OPTIONS = [
+  // Programming Languages
+  'JavaScript','TypeScript','Python','Java','C++','C#','C','Go','Rust','Kotlin','Swift','PHP','Ruby','Scala','R','MATLAB','Perl','Dart','Lua','Shell Script','Bash','PowerShell',
+  // Frontend
+  "Frontend", "Backend", "Fullstack", 'React.js','Vue.js','Angular','Next.js','Nuxt.js','Svelte','HTML','CSS','Tailwind CSS','Bootstrap','SASS/SCSS','jQuery','Redux','Zustand','GraphQL','REST APIs','WebSockets',
+  // Backend
+  'Node.js','Express.js','Django','Flask','FastAPI','Spring Boot','Laravel','Ruby on Rails','ASP.NET','NestJS','Fastify','Hapi.js',
+  // Databases
+  'MongoDB','MySQL','PostgreSQL','SQLite','Redis','Firebase','Supabase','Elasticsearch','DynamoDB','Oracle DB','MS SQL Server','Cassandra','Neo4j',
+  // DevOps & Cloud
+  'Docker','Kubernetes','AWS','Azure','Google Cloud','CI/CD','Jenkins','GitHub Actions','Terraform','Ansible','Linux','Nginx','Apache','Prometheus','Grafana',
+  // Mobile
+  'React Native','Flutter','Android','iOS','Ionic','Xamarin',
+  // Tools & Platforms
+  'Git','GitHub','GitLab','Bitbucket','Jira','Confluence','Figma','Adobe XD','Postman','Swagger','VS Code','IntelliJ IDEA',
+  // Testing
+  'Jest','Mocha','Cypress','Selenium','Playwright','JUnit','pytest','Vitest',
+  // Data & AI
+  'Machine Learning','Deep Learning','TensorFlow','PyTorch','Pandas','NumPy','Scikit-learn','Data Analysis','Power BI','Tableau','Apache Spark','Hadoop',
+  // Soft & Other
+  'Agile','Scrum','System Design','Microservices','REST','GraphQL','WebRTC','Blockchain','Solidity','Unity','Unreal Engine',
+];
+const EXPERIENCE_OPTIONS = ['Less than 1 year','1 year','2 years','3 years','4 years','5 years','6 years','7 years','8 years','9 years','10+ years','15+ years'];
 const SALARY_OPTIONS = ['Below ₹3 LPA','₹3–5 LPA','₹5–8 LPA','₹8–12 LPA','₹12–18 LPA','₹18–25 LPA','₹25–35 LPA','₹35–50 LPA','₹50+ LPA'];
 const NOTICE_OPTIONS = ['Immediate','15 days','1 month','2 months','3 months'];
 const EMP_OPTIONS = ['Full-time','Part-time','Contract','Freelance','Internship'];
@@ -95,8 +118,8 @@ export default function Profile() {
             skills: (p.skills || []).map(s => ({ name: s })),
             careerDetails: {
               preferredRole:      p.preferredJobTitle || '',
-              experience:         '',
-              salaryExpectation:  p.preferredSalary?.min ? `₹${p.preferredSalary.min}–${p.preferredSalary.max} LPA` : '',
+              experience:         p.totalExperience || '',
+              salaryExpectation:  p.expectedSalary || '',
               locationPreference: p.preferredLocation || '',
               employmentType:     (p.employmentType || [])[0] || '',
               noticePeriod:       p.noticePeriod || '',
@@ -134,6 +157,8 @@ export default function Profile() {
         phone:             form.phone || '',
         skills:            form.skills.map(s => s.name),
         preferredJobTitle: form.careerDetails?.preferredRole || '',
+        totalExperience:   form.careerDetails?.experience || '',
+        expectedSalary:    form.careerDetails?.salaryExpectation || '',
         preferredLocation: form.careerDetails?.locationPreference || '',
         noticePeriod:      form.careerDetails?.noticePeriod || 'Immediate',
         employmentType:    form.careerDetails?.employmentType ? [form.careerDetails.employmentType] : [],
@@ -364,7 +389,16 @@ export default function Profile() {
       <Section title="Skills"
         action={editSkills
           ? <EditActions section="skills" />
-          : <button onClick={() => { setSavedForm(form); setEditSkills(true); }} className="px-3 py-1.5 rounded-lg text-xs font-semibold border-2" style={{borderColor:'#8B3A8F',color:'#8B3A8F'}}>Edit</button>
+          : (
+            <div className="flex gap-2">
+              <button onClick={() => { setSavedForm(form); setEditSkills(true); setTimeout(() => document.getElementById('skill-quick-input')?.focus(), 50); }}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-white" style={{ background: '#8B3A8F' }}>
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round"><path d="M12 5v14M5 12h14"/></svg>
+                Add Skill
+              </button>
+              <button onClick={() => { setSavedForm(form); setEditSkills(true); }} className="px-3 py-1.5 rounded-lg text-xs font-semibold border-2" style={{borderColor:'#8B3A8F',color:'#8B3A8F'}}>Edit</button>
+            </div>
+          )
         }>
         <div className="flex flex-wrap gap-2 mb-3">
           {form.skills.length > 0 ? form.skills.map((s, i) => (
@@ -379,9 +413,15 @@ export default function Profile() {
         </div>
         {editSkills && (
           <div className="flex gap-2 mt-2">
-            <input value={newSkill} onChange={e => setNewSkill(e.target.value)}
-              onKeyDown={e => { if (e.key === 'Enter' && newSkill.trim()) { setForm(p => ({...p, skills: [...p.skills, {name: newSkill.trim()}]})); setNewSkill(''); e.preventDefault(); }}}
-              className={`${inputCls} flex-1`} placeholder="Type skill + Enter to add" />
+            <SuggestInput
+              value={newSkill}
+              onChange={v => setNewSkill(v)}
+              onEnter={v => { if (v?.trim()) { setForm(p => ({...p, skills: [...p.skills, {name: v.trim()}]})); setNewSkill(''); }}}
+              placeholder="Type skill + Enter to add"
+              options={SKILL_OPTIONS.filter(s => !form.skills.find(sk => sk.name.toLowerCase() === s.toLowerCase()))}
+              className={`${inputCls} flex-1`}
+              inputId="skill-quick-input"
+            />
             <button onClick={() => { if (newSkill.trim()) { setForm(p => ({...p, skills: [...p.skills, {name: newSkill.trim()}]})); setNewSkill(''); }}}
               className="px-4 py-2 rounded-xl text-sm font-semibold text-white" style={{background:'#8B3A8F'}}>Add</button>
           </div>

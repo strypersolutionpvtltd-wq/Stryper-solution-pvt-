@@ -1,27 +1,47 @@
 import { useState } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { useGoogleReCaptcha } from 'react-google-recaptcha-v3';
 import GoogleIcon from './GoogleIcon';
 import { useAuth } from '@/context/AuthContext';
+import { validateField, filterInput } from '@/utils/validation';
 import logoImg from "@/assets/image/logo.jpeg";
 import toast from 'react-hot-toast';
 
 const SignInForm = ({ onSwitchToSignUp, onClose, hideHeader }) => {
   const [form, setForm] = useState({ email: '', password: '' });
+  const [errors, setErrors] = useState({});
   const [showPass, setShowPass] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
   const { executeRecaptcha } = useGoogleReCaptcha();
 
-  const handleChange = (e) => setForm(p => ({ ...p, [e.target.name]: e.target.value }));
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    const filteredValue = filterInput(name, value);
+    setForm(p => ({ ...p, [name]: filteredValue }));
+    if (errors[name]) setErrors(p => ({ ...p, [name]: '' }));
+  };
+
+  const validateForm = () => {
+    const newErrors = {};
+    
+    const emailError = validateField('email', form.email);
+    if (emailError) newErrors.email = emailError;
+
+    const passwordError = validateField('password', form.password);
+    if (passwordError) newErrors.password = passwordError;
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!form.email || !form.password) {
-      toast.error('Email and password are required.');
+    if (!validateForm()) {
+      toast.error('Please fix the errors above');
       return;
     }
 
@@ -100,11 +120,27 @@ const SignInForm = ({ onSwitchToSignUp, onClose, hideHeader }) => {
             placeholder="rahul@gmail.com"
             value={form.email}
             onChange={handleChange}
-            required
-            className="w-full px-4 py-2.5 rounded-xl border border-neutral-200 text-sm text-neutral-800 placeholder-neutral-400 focus:outline-none transition-all"
-            onFocus={e => e.target.style.boxShadow = '0 0 0 2px #8B3A8F40'}
+            className={`w-full px-4 py-2.5 rounded-xl border text-sm text-neutral-800 placeholder-neutral-400 focus:outline-none transition-all ${
+              errors.email ? 'border-red-300 bg-red-50' : 'border-neutral-200 focus:border-purple-400'
+            }`}
+            onFocus={e => {
+              if (!errors.email) {
+                e.target.style.boxShadow = '0 0 0 2px #8B3A8F40';
+              }
+            }}
             onBlur={e => e.target.style.boxShadow = ''}
           />
+          <AnimatePresence>
+            {errors.email && (
+              <motion.p
+                initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
+                className="text-xs text-red-500 mt-1 flex items-center gap-1"
+              >
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>
+                {errors.email}
+              </motion.p>
+            )}
+          </AnimatePresence>
         </div>
 
         <div>
@@ -124,9 +160,14 @@ const SignInForm = ({ onSwitchToSignUp, onClose, hideHeader }) => {
               placeholder="••••••••"
               value={form.password}
               onChange={handleChange}
-              required
-              className="w-full px-4 py-2.5 rounded-xl border border-neutral-200 text-sm text-neutral-800 placeholder-neutral-400 focus:outline-none transition-all"
-              onFocus={e => e.target.style.boxShadow = '0 0 0 2px #8B3A8F40'}
+              className={`w-full px-4 py-2.5 rounded-xl border text-sm text-neutral-800 placeholder-neutral-400 focus:outline-none transition-all ${
+                errors.password ? 'border-red-300 bg-red-50' : 'border-neutral-200 focus:border-purple-400'
+              }`}
+              onFocus={e => {
+                if (!errors.password) {
+                  e.target.style.boxShadow = '0 0 0 2px #8B3A8F40';
+                }
+              }}
               onBlur={e => e.target.style.boxShadow = ''}
             />
             <button
@@ -142,6 +183,17 @@ const SignInForm = ({ onSwitchToSignUp, onClose, hideHeader }) => {
               )}
             </button>
           </div>
+          <AnimatePresence>
+            {errors.password && (
+              <motion.p
+                initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
+                className="text-xs text-red-500 mt-1 flex items-center gap-1"
+              >
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>
+                {errors.password}
+              </motion.p>
+            )}
+          </AnimatePresence>
         </div>
 
 
