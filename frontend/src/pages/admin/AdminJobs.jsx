@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, Briefcase, MapPin, Users, IndianRupee, Trash2, CheckCircle, Clock, Eye, X, Save, Loader2 } from 'lucide-react';
+import { Search, Briefcase, MapPin, Users, IndianRupee, Trash2, CheckCircle, Clock, Eye, X, Save, Loader2, Edit2 } from 'lucide-react';
 import { admin, jobs as jobsApi } from '@/utils/api';
 import toast from 'react-hot-toast';
 
@@ -10,10 +10,35 @@ const fadeInUp = {
   visible: { opacity: 1, y: 0 }
 };
 
-const PostJobModal = ({ isOpen, onClose, onSave }) => {
+const PostJobModal = ({ isOpen, onClose, onSave, companies = [], jobToEdit = null, defaultIsStryper = true }) => {
   const [formData, setFormData] = useState({ 
-    title: '', location: '', salary: '', experience: '', type: 'Full-time', industry: '', skills: '', desc: '', status: 'Active' 
+    title: '', location: '', salaryMin: '', salaryMax: '', experience: '', type: 'Full-time', industry: '', skills: '', desc: '', status: 'Active', isStryper: true, companyId: ''
   });
+
+  useEffect(() => {
+    if (jobToEdit) {
+      setFormData({
+        title: jobToEdit.raw?.title || '',
+        location: jobToEdit.raw?.location || '',
+        salaryMin: jobToEdit.raw?.salaryMin || '',
+        salaryMax: jobToEdit.raw?.salaryMax || '',
+        experience: jobToEdit.raw?.experience || '',
+        type: jobToEdit.raw?.employmentType || 'Full-time',
+        industry: jobToEdit.raw?.department || '',
+        skills: (jobToEdit.raw?.skills || []).join(', '),
+        desc: jobToEdit.raw?.description || '',
+        status: jobToEdit.raw?.status || 'Active',
+        isStryper: jobToEdit.raw?.isStryper === true,
+        companyId: jobToEdit.raw?.companyId?._id || jobToEdit.raw?.companyId || ''
+      });
+    } else {
+      setFormData({
+        title: '', location: '', salaryMin: '', salaryMax: '', experience: '', type: 'Full-time', industry: '', skills: '', desc: '', status: 'Active',
+        isStryper: defaultIsStryper,
+        companyId: ''
+      });
+    }
+  }, [jobToEdit, defaultIsStryper, isOpen]);
 
   return (
     <AnimatePresence>
@@ -22,7 +47,7 @@ const PostJobModal = ({ isOpen, onClose, onSave }) => {
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose} className="absolute inset-0 bg-black/80 backdrop-blur-sm" />
           <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} className="relative bg-[#0f0f0f] border border-white/10 rounded-[2rem] w-full max-w-2xl shadow-2xl overflow-hidden text-white flex flex-col max-h-[90vh]">
             <div className="p-6 border-b border-white/5 flex items-center justify-between">
-              <h3 className="font-bold text-lg">Stryper Post Job</h3>
+              <h3 className="font-bold text-lg">{jobToEdit ? 'Edit Job' : `Post ${formData.isStryper ? 'Stryper Internal' : 'External Company'} Job`}</h3>
               <button onClick={onClose} className="p-2 hover:bg-white/5 rounded-full"><X size={20}/></button>
             </div>
             <div className="p-8 space-y-4 overflow-y-auto">
@@ -32,47 +57,98 @@ const PostJobModal = ({ isOpen, onClose, onSave }) => {
                   <input value={formData.title} onChange={e => setFormData({...formData, title: e.target.value})} className="w-full mt-1 bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-sm focus:outline-none" />
                 </div>
                 <div>
-                  <label className="text-xs font-bold text-neutral-500 uppercase">Industry</label>
+                  <label className="text-xs font-bold text-neutral-500 uppercase">Department / Industry</label>
                   <input value={formData.industry} onChange={e => setFormData({...formData, industry: e.target.value})} className="w-full mt-1 bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-sm focus:outline-none" />
                 </div>
               </div>
-              <div className="grid grid-cols-3 gap-4">
+
+              {!formData.isStryper && (
+                <div>
+                  <label className="text-xs font-bold text-neutral-500 uppercase">Select External Company</label>
+                  <select 
+                    value={formData.companyId} 
+                    onChange={e => setFormData({...formData, companyId: e.target.value})} 
+                    className="w-full mt-1 bg-[#161616] border border-white/10 rounded-xl px-4 py-2 text-sm focus:outline-none"
+                  >
+                    <option value="">-- Choose Company --</option>
+                    {companies.map(c => (
+                      <option key={c.id} value={c.id}>{c.name}</option>
+                    ))}
+                  </select>
+                </div>
+              )}
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div>
                   <label className="text-xs font-bold text-neutral-500 uppercase">Location</label>
                   <input value={formData.location} onChange={e => setFormData({...formData, location: e.target.value})} className="w-full mt-1 bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-sm focus:outline-none" />
                 </div>
                 <div>
-                  <label className="text-xs font-bold text-neutral-500 uppercase">Salary Range</label>
-                  <input value={formData.salary} onChange={e => setFormData({...formData, salary: e.target.value})} className="w-full mt-1 bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-sm focus:outline-none" />
+                  <label className="text-xs font-bold text-neutral-500 uppercase">Min Salary (INR)</label>
+                  <input type="number" value={formData.salaryMin} onChange={e => setFormData({...formData, salaryMin: e.target.value})} className="w-full mt-1 bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-sm focus:outline-none" />
                 </div>
                 <div>
-                  <label className="text-xs font-bold text-neutral-500 uppercase">Experience</label>
-                  <input value={formData.experience} placeholder="e.g. 3-5 Years" onChange={e => setFormData({...formData, experience: e.target.value})} className="w-full mt-1 bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-sm focus:outline-none" />
+                  <label className="text-xs font-bold text-neutral-500 uppercase">Max Salary (INR)</label>
+                  <input type="number" value={formData.salaryMax} onChange={e => setFormData({...formData, salaryMax: e.target.value})} className="w-full mt-1 bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-sm focus:outline-none" />
                 </div>
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div>
+                  <label className="text-xs font-bold text-neutral-500 uppercase">Experience (e.g. 2-5 Years)</label>
+                  <input value={formData.experience} placeholder="e.g. 3-5 Years" onChange={e => setFormData({...formData, experience: e.target.value})} className="w-full mt-1 bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-sm focus:outline-none" />
+                </div>
                 <div>
                   <label className="text-xs font-bold text-neutral-500 uppercase">Job Type</label>
                   <select value={formData.type} onChange={e => setFormData({...formData, type: e.target.value})} className="w-full mt-1 bg-[#161616] border border-white/10 rounded-xl px-4 py-2 text-sm focus:outline-none">
                     <option>Full-time</option>
                     <option>Part-time</option>
                     <option>Contract</option>
+                    <option>Freelance</option>
+                    <option>Internship</option>
                   </select>
                 </div>
                 <div>
-                  <label className="text-xs font-bold text-neutral-500 uppercase">Skills (comma separated)</label>
-                  <input value={formData.skills} placeholder="React, Node.js, AWS" onChange={e => setFormData({...formData, skills: e.target.value})} className="w-full mt-1 bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-sm focus:outline-none" />
+                  <label className="text-xs font-bold text-neutral-500 uppercase">Job Status</label>
+                  <select value={formData.status} onChange={e => setFormData({...formData, status: e.target.value})} className="w-full mt-1 bg-[#161616] border border-white/10 rounded-xl px-4 py-2 text-sm focus:outline-none">
+                    <option>Active</option>
+                    <option>Draft</option>
+                    <option>Closed</option>
+                    <option>Archived</option>
+                  </select>
                 </div>
               </div>
               <div>
+                <label className="text-xs font-bold text-neutral-500 uppercase">Skills (comma separated)</label>
+                <input value={formData.skills} placeholder="React, Node.js, AWS" onChange={e => setFormData({...formData, skills: e.target.value})} className="w-full mt-1 bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-sm focus:outline-none" />
+              </div>
+              <div>
                 <label className="text-xs font-bold text-neutral-500 uppercase">Description</label>
-                <textarea value={formData.desc} onChange={e => setFormData({...formData, desc: e.target.value})} rows={3} className="w-full mt-1 bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-sm focus:outline-none resize-none" />
+                <textarea value={formData.desc} onChange={e => setFormData({...formData, desc: e.target.value})} rows={4} className="w-full mt-1 bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-sm focus:outline-none resize-none" />
               </div>
             </div>
             <div className="p-6 bg-white/5 flex gap-3 justify-end shrink-0">
-              <button onClick={() => { onSave({...formData, status: 'Draft', isStryper: true}); onClose(); }} className="px-6 py-2 rounded-xl text-sm font-bold text-neutral-400 hover:text-white transition-colors">Save as Draft</button>
-              <button onClick={() => { onSave({...formData, isStryper: true}); onClose(); }} className="px-6 py-2 rounded-xl bg-brand-purple-600 text-white text-sm font-bold hover:bg-brand-purple-700 transition-all flex items-center gap-2 shadow-lg shadow-brand-purple-600/20">
-                <Save size={16}/> Publish Job
+              <button 
+                onClick={() => { 
+                  if (!formData.title) return toast.error("Job title is required");
+                  if (!formData.isStryper && !formData.companyId) return toast.error("Please select an external company");
+                  onSave({...formData, status: 'Draft'}); 
+                  onClose(); 
+                }} 
+                className="px-6 py-2 rounded-xl text-sm font-bold text-neutral-400 hover:text-white transition-colors"
+              >
+                Save as Draft
+              </button>
+              <button 
+                onClick={() => { 
+                  if (!formData.title) return toast.error("Job title is required");
+                  if (!formData.isStryper && !formData.companyId) return toast.error("Please select an external company");
+                  onSave({...formData}); 
+                  onClose(); 
+                }} 
+                className="px-6 py-2 rounded-xl bg-brand-purple-600 text-white text-sm font-bold hover:bg-brand-purple-700 transition-all flex items-center gap-2 shadow-lg shadow-brand-purple-600/20"
+                style={{ background: '#8B3A8F' }}
+              >
+                <Save size={16}/> {jobToEdit ? 'Update Job' : 'Publish Job'}
               </button>
             </div>
           </motion.div>
@@ -262,6 +338,9 @@ const AdminJobs = () => {
   const [searchTerm, setSearchText] = useState('');
   const [isPostModalOpen, setIsPostModalOpen] = useState(false);
   const [viewingJob, setViewingJob] = useState(null);
+  const [companies, setCompanies] = useState([]);
+  const [jobToEdit, setJobToEdit] = useState(null);
+  const [defaultIsStryper, setDefaultIsStryper] = useState(true);
 
   const fetchJobs = async () => {
     setLoading(true);
@@ -289,8 +368,24 @@ const AdminJobs = () => {
     }
   };
 
+  const fetchCompanies = async () => {
+    try {
+      const res = await admin.getAllUsers({ role: 'COMPANY', limit: 1000 });
+      if (res.data?.success) {
+        const mapped = (res.data.users || []).map(u => ({
+          id: u.profileDetails?._id || u._id,
+          name: u.profileDetails?.companyName || u.name || 'N/A'
+        }));
+        setCompanies(mapped);
+      }
+    } catch (error) {
+      console.error("Failed to fetch companies", error);
+    }
+  };
+
   useEffect(() => {
     fetchJobs();
+    fetchCompanies();
   }, []);
 
   const handlePostJob = async (newJob) => {
@@ -305,18 +400,29 @@ const AdminJobs = () => {
         status: newJob.status || 'Active',
         department: newJob.industry || '',
         isStryper: newJob.isStryper === true,
+        salaryMin: newJob.salaryMin ? Number(newJob.salaryMin) : undefined,
+        salaryMax: newJob.salaryMax ? Number(newJob.salaryMax) : undefined,
+        companyId: newJob.isStryper ? undefined : newJob.companyId,
       };
       
-      const res = await jobsApi.create(jobPayload);
+      let res;
+      if (jobToEdit) {
+        res = await jobsApi.update(jobToEdit.id, jobPayload);
+      } else {
+        res = await jobsApi.create(jobPayload);
+      }
+
       if (res.data?.success) {
-        toast.success(`Job successfully ${newJob.status === 'Draft' ? 'saved to drafts' : 'posted'}!`);
+        toast.success(`Job successfully ${jobToEdit ? 'updated' : (newJob.status === 'Draft' ? 'saved to drafts' : 'posted')}!`);
+        setIsPostModalOpen(false);
+        setJobToEdit(null);
         fetchJobs();
       } else {
-        toast.error("Failed to post job");
+        toast.error(`Failed to ${jobToEdit ? 'update' : 'post'} job`);
       }
     } catch (err) {
       console.error(err);
-      toast.error("Failed to post job to server");
+      toast.error(`Failed to ${jobToEdit ? 'update' : 'post'} job on server`);
     }
   };
 
@@ -375,8 +481,11 @@ const AdminJobs = () => {
     >
       <PostJobModal 
         isOpen={isPostModalOpen} 
-        onClose={() => setIsPostModalOpen(false)} 
+        onClose={() => { setIsPostModalOpen(false); setJobToEdit(null); }} 
         onSave={handlePostJob} 
+        companies={companies}
+        jobToEdit={jobToEdit}
+        defaultIsStryper={defaultIsStryper}
       />
       <ViewJobModal 
         isOpen={!!viewingJob} 
@@ -403,12 +512,19 @@ const AdminJobs = () => {
         </div>
         <div className="flex flex-wrap items-center gap-3">
           <button 
-            onClick={() => setIsPostModalOpen(true)}
+            onClick={() => { setJobToEdit(null); setDefaultIsStryper(true); setIsPostModalOpen(true); }}
             className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold text-white transition-all shadow-lg hover:shadow-brand-purple-500/20"
             style={{ background: '#8B3A8F' }}
           >
             <Briefcase size={16} />
-            Post Stryper Job
+            Post Internal Job
+          </button>
+          <button 
+            onClick={() => { setJobToEdit(null); setDefaultIsStryper(false); setIsPostModalOpen(true); }}
+            className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold text-white transition-all border border-white/10 hover:bg-white/5"
+          >
+            <Briefcase size={16} />
+            Post External Job
           </button>
           <div className="relative flex items-center">
             <Search className="absolute left-3 text-neutral-500" size={16} />
@@ -530,6 +646,14 @@ const AdminJobs = () => {
                             <Eye size={16} />
                           </button>
                           
+                          <button 
+                            onClick={(e) => { e.stopPropagation(); setJobToEdit(job); setDefaultIsStryper(job.isStryper); setIsPostModalOpen(true); }}
+                            title="Edit Job"
+                            className="p-2 rounded-lg hover:bg-white/5 text-neutral-400 hover:text-white transition-colors"
+                          >
+                            <Edit2 size={16} />
+                          </button>
+
                           <button 
                             onClick={(e) => { e.stopPropagation(); handleStatusToggle(job.id, job.status); }}
                             title="Change Status"

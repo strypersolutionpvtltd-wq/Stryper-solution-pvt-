@@ -32,34 +32,45 @@ const createJob = async (req, res) => {
       }
     }
 
-    let companyProfile = await CompanyProfile.findOne({ userId });
+    // Determine the companyId to use:
+    // If Admin and companyId is specified in req.body, use it. Otherwise, look up or create CompanyProfile.
+    const userObj = await User.findById(userId);
+    const isAdmin = userObj && userObj.role === "ADMIN";
 
-    // If company profile doesn't exist, auto-create one using the user's real email
-    if (!companyProfile) {
-      const user = await User.findById(userId).select("email");
-      const userEmail = user?.email || "contact@company.com";
+    let companyIdToUse;
+    if (isAdmin && req.body.companyId) {
+      companyIdToUse = req.body.companyId;
+    } else {
+      let companyProfile = await CompanyProfile.findOne({ userId });
 
-      try {
-        companyProfile = await CompanyProfile.create({
-          userId,
-          companyName: "My Company",
-          industry: "Other",
-          companySize: "1-50",
-          companyDescription: "Company description pending",
-          email: userEmail,
-        });
-      } catch (createError) {
-        console.error("Error creating default company profile:", createError);
-        return res.status(500).json({
-          success: false,
-          message: "Unable to create company profile. Please complete your Company Profile first.",
-          error: process.env.NODE_ENV === "development" ? createError.message : undefined,
-        });
+      // If company profile doesn't exist, auto-create one using the user's real email
+      if (!companyProfile) {
+        const user = await User.findById(userId).select("email");
+        const userEmail = user?.email || "contact@company.com";
+
+        try {
+          companyProfile = await CompanyProfile.create({
+            userId,
+            companyName: isAdmin ? "Stryper Solution" : "My Company",
+            industry: isAdmin ? "Human Resources" : "Other",
+            companySize: "1-50",
+            companyDescription: "Company description pending",
+            email: userEmail,
+          });
+        } catch (createError) {
+          console.error("Error creating default company profile:", createError);
+          return res.status(500).json({
+            success: false,
+            message: "Unable to create company profile. Please complete your Company Profile first.",
+            error: process.env.NODE_ENV === "development" ? createError.message : undefined,
+          });
+        }
       }
+      companyIdToUse = companyProfile._id;
     }
 
     const newJob = await Job.create({
-      companyId: companyProfile._id,
+      companyId: companyIdToUse,
       title: title || "Untitled Job",
       department: department || "",
       description: description || "",
@@ -245,27 +256,34 @@ const updateJob = async (req, res) => {
       });
     }
 
-    const updatedJob = await Job.findByIdAndUpdate(
-      id,
-      {
-        title: title || job.title,
-        department: department !== undefined ? department : job.department,
-        description: description || job.description,
-        requirements: requirements || job.requirements,
-        responsibilities: responsibilities || job.responsibilities,
-        employmentType: employmentType || job.employmentType,
-        salaryMin: salaryMin !== undefined ? salaryMin : job.salaryMin,
-        salaryMax: salaryMax !== undefined ? salaryMax : job.salaryMax,
-        location: location || job.location,
-        experience: experience !== undefined ? experience : job.experience,
-        skills: skills || job.skills,
-        status: status || job.status,
-        workMode: workMode || job.workMode,
-        deadline: deadline !== undefined ? deadline : job.deadline,
-        openings: openings !== undefined ? parseInt(openings) : job.openings,
-      },
-      { new: true }
-    );
+    const updateFields = {
+      title: title || job.title,
+      department: department !== undefined ? department : job.department,
+      description: description || job.description,
+      requirements: requirements || job.requirements,
+      responsibilities: responsibilities || job.responsibilities,
+      employmentType: employmentType || job.employmentType,
+      salaryMin: salaryMin !== undefined ? salaryMin : job.salaryMin,
+      salaryMax: salaryMax !== undefined ? salaryMax : job.salaryMax,
+      location: location || job.location,
+      experience: experience !== undefined ? experience : job.experience,
+      skills: skills || job.skills,
+      status: status || job.status,
+      workMode: workMode || job.workMode,
+      deadline: deadline !== undefined ? deadline : job.deadline,
+      openings: openings !== undefined ? parseInt(openings) : job.openings,
+    };
+
+    if (isAdmin) {
+      if (req.body.isStryper !== undefined) {
+        updateFields.isStryper = req.body.isStryper === true || req.body.isStryper === "true";
+      }
+      if (req.body.companyId) {
+        updateFields.companyId = req.body.companyId;
+      }
+    }
+
+    const updatedJob = await Job.findByIdAndUpdate(id, updateFields, { new: true });
 
     return res.status(200).json({
       success: true,
