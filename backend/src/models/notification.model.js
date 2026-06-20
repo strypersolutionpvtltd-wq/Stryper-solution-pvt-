@@ -55,6 +55,18 @@ const notificationSchema = new mongoose.Schema(
       trim: true,
       default: "",
     },
+
+    companyName: {
+      type: String,
+      trim: true,
+      default: "",
+    },
+
+    jobTitle: {
+      type: String,
+      trim: true,
+      default: "",
+    },
   },
   {
     timestamps: true,
