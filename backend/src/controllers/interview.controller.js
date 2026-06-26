@@ -2,6 +2,7 @@ const Interview = require("../models/interview.model");
 const JobApplication = require("../models/jobApplication.model");
 const Notification = require("../models/notification.model");
 const CandidateProfile = require("../models/candidateProfile.model");
+const CompanyProfile = require("../models/companyProfile.model");
 
 // @desc    Schedule interview
 // @route   POST /api/v1/interviews
@@ -23,6 +24,34 @@ const scheduleInterview = async (req, res) => {
         success: false,
         message: "Application ID, date, time, and type are required",
       });
+    }
+
+    try {
+      const convertTime12to24 = (time12h) => {
+        const [time, modifier] = time12h.split(' ');
+        let [hours, minutes] = time.split(':');
+        if (hours === '12') {
+          hours = '00';
+        }
+        if (modifier === 'PM') {
+          hours = parseInt(hours, 10) + 12;
+        }
+        return `${String(hours).padStart(2, '0')}:${minutes}`;
+      };
+
+      const datePart = new Date(interviewDate).toISOString().split('T')[0];
+      const time24 = convertTime12to24(interviewTime);
+      const scheduledDateTime = new Date(`${datePart}T${time24}:00`);
+
+      const minAllowedTime = new Date(Date.now() + 30 * 60 * 1000);
+      if (scheduledDateTime < minAllowedTime) {
+        return res.status(400).json({
+          success: false,
+          message: "Interview must be scheduled at least 30 minutes in the future",
+        });
+      }
+    } catch (err) {
+      // If datetime parsing fails, fallback and let mongoose validation handle it
     }
 
     const application = await JobApplication.findById(applicationId);
@@ -86,6 +115,7 @@ const scheduleInterview = async (req, res) => {
 const getCompanyInterviews = async (req, res) => {
   try {
     const userId = req.user?.id;
+    const userRole = req.user?.role;
 
     if (!userId) {
       return res.status(401).json({
@@ -94,10 +124,26 @@ const getCompanyInterviews = async (req, res) => {
       });
     }
 
-    const interviews = await Interview.find({ createdBy: userId })
+    let query = { createdBy: userId };
+    if (userRole === "ADMIN") {
+      query = {};
+    } else {
+      const companyProfile = await CompanyProfile.findOne({ userId });
+      if (companyProfile) {
+        query = {
+          $or: [
+            { createdBy: userId },
+            { companyId: companyProfile._id }
+          ]
+        };
+      }
+    }
+
+    const interviews = await Interview.find(query)
       .populate("candidateId", "firstName lastName headline profilePicture")
       .populate("jobId", "title")
-      .populate("applicationId", "status")
+      .populate("companyId", "companyName")
+      .populate("applicationId", "status isStryperApplication")
       .sort({ interviewDate: 1 });
 
     return res.status(200).json({
@@ -169,7 +215,21 @@ const updateInterview = async (req, res) => {
       });
     }
 
-    if (interview.createdBy.toString() !== userId) {
+    const userRole = req.user?.role;
+    let isAuthorized = false;
+
+    if (userRole === "ADMIN") {
+      isAuthorized = true;
+    } else if (interview.createdBy.toString() === userId) {
+      isAuthorized = true;
+    } else if (interview.companyId) {
+      const companyProfile = await CompanyProfile.findOne({ userId });
+      if (companyProfile && companyProfile._id.toString() === interview.companyId.toString()) {
+        isAuthorized = true;
+      }
+    }
+
+    if (!isAuthorized) {
       return res.status(403).json({
         success: false,
         message: "Not authorized to update this interview",
@@ -225,7 +285,21 @@ const cancelInterview = async (req, res) => {
       });
     }
 
-    if (interview.createdBy.toString() !== userId) {
+    const userRole = req.user?.role;
+    let isAuthorized = false;
+
+    if (userRole === "ADMIN") {
+      isAuthorized = true;
+    } else if (interview.createdBy.toString() === userId) {
+      isAuthorized = true;
+    } else if (interview.companyId) {
+      const companyProfile = await CompanyProfile.findOne({ userId });
+      if (companyProfile && companyProfile._id.toString() === interview.companyId.toString()) {
+        isAuthorized = true;
+      }
+    }
+
+    if (!isAuthorized) {
       return res.status(403).json({
         success: false,
         message: "Not authorized to cancel this interview",

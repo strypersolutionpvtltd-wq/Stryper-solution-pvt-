@@ -1,6 +1,7 @@
 const Shortlist      = require("../models/shortlist.model");
 const CompanyProfile = require("../models/companyProfile.model");
 const CandidateProfile = require("../models/candidateProfile.model");
+const Notification = require("../models/notification.model");
 
 // Helper: get company profile for current user
 const getCompany = async (userId) => CompanyProfile.findOne({ userId });
@@ -20,6 +21,23 @@ const addToShortlist = async (req, res) => {
     if (!candidate) return res.status(404).json({ success: false, message: "Candidate not found" });
 
     await Shortlist.create({ companyId: company._id, candidateId, addedBy: userId });
+
+    // Send notification to candidate
+    try {
+      if (candidate.recruiterMessages !== false) {
+        await Notification.create({
+          userId: candidate.userId,
+          title: "Profile Shortlisted",
+          message: `${company.companyName} has shortlisted your profile.`,
+          type: "Profile",
+          relatedId: company._id,
+          relatedModel: "CompanyProfile",
+          actionUrl: `/career-hub/notifications`,
+        });
+      }
+    } catch (notifErr) {
+      console.error("Failed to create shortlist notification:", notifErr);
+    }
 
     return res.status(201).json({ success: true, message: "Candidate shortlisted" });
   } catch (error) {
