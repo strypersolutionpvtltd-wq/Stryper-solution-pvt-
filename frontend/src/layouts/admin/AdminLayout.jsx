@@ -16,7 +16,8 @@ import {
   LogOut,
   Menu,
   X,
-  CheckCircle2
+  CheckCircle2,
+  Calendar
 } from 'lucide-react';
 import { ADMIN_NOTIFICATIONS } from '@/data/adminData';
 
@@ -74,6 +75,7 @@ const AdminLayout = () => {
     { label: 'Stryper Partners', icon: Briefcase, path: '/admin/consultants' },
     { label: 'Jobs', icon: Briefcase, path: '/admin/jobs' },
     { label: 'Applications', icon: FileText, path: '/admin/applications' },
+    { label: 'Interviews', icon: Calendar, path: '/admin/interviews' },
     { label: 'Analytics', icon: BarChart3, path: '/admin/analytics' },
     { label: 'Notifications', icon: Bell, path: '/admin/notifications' },
     { label: 'Settings', icon: Settings, path: '/admin/settings' },

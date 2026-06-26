@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useSearchParams } from 'react-router-dom';
 import SectionHeader from '@/hire-zone/components/shared/SectionHeader';
 import ResumePreviewModal from '@/hire-zone/components/shared/ResumePreviewModal';
-import { candidateProfile as candidateAPI } from '@/utils/api';
+import { candidateProfile as candidateAPI, shortlist as shortlistAPI } from '@/utils/api';
 import toast from 'react-hot-toast';
 
 const LOCATIONS  = ['All', 'Delhi', 'Noida', 'Gurugram', 'Bangalore', 'Mumbai', 'Pune', 'Hyderabad', 'Chennai', 'Kochi', 'Remote'];
@@ -102,16 +102,8 @@ const ResumeSearch = () => {
   const [candidates, setCandidates] = useState([]);
   const [total, setTotal]       = useState(0);
   const [loading, setLoading]   = useState(true);
-  const [shortlisted, setShortlisted] = useState(() => {
-    try { return JSON.parse(localStorage.getItem('hz_shortlisted') || '[]'); } catch { return []; }
-  });
-  const [shortlistedCandidates, setShortlistedCandidates] = useState(() => {
-    try {
-      const ids = JSON.parse(localStorage.getItem('hz_shortlisted') || '[]');
-      if (ids.length === 0) return [];
-      return JSON.parse(localStorage.getItem('hz_shortlisted_data') || '[]');
-    } catch { return []; }
-  });
+  const [shortlisted, setShortlisted] = useState([]);
+  const [shortlistedCandidates, setShortlistedCandidates] = useState([]);
   const [shortlistOpen, setShortlistOpen] = useState(true);
   const [viewingResume, setViewingResume] = useState(null);
   const [showMobileFilters, setShowMobileFilters] = useState(false);
@@ -130,18 +122,6 @@ const ResumeSearch = () => {
       const fetched = res.data.candidates || [];
       setCandidates(fetched);
       setTotal(res.data.pagination?.total || 0);
-
-      // Sync shortlisted candidate data from fetched results
-      // (handles the case where hz_shortlisted_data is empty/stale)
-      setShortlistedCandidates(prev => {
-        const existingIds = new Set(prev.map(c => String(c.id)));
-        const shortlistedIds = JSON.parse(localStorage.getItem('hz_shortlisted') || '[]');
-        const missing = fetched.filter(c => shortlistedIds.includes(String(c.id)) && !existingIds.has(String(c.id)));
-        if (missing.length === 0) return prev;
-        const updated = [...prev, ...missing];
-        localStorage.setItem('hz_shortlisted_data', JSON.stringify(updated));
-        return updated;
-      });
     } catch (err) {
       console.error('Failed to fetch candidates:', err);
       toast.error('Failed to load candidates');
@@ -150,6 +130,23 @@ const ResumeSearch = () => {
       setLoading(false);
     }
   }, []);
+
+  const fetchShortlist = useCallback(async () => {
+    try {
+      const res = await shortlistAPI.get();
+      if (res.data?.success) {
+        const fetched = res.data.candidates || [];
+        setShortlistedCandidates(fetched);
+        setShortlisted(fetched.map(c => String(c.id)));
+      }
+    } catch (err) {
+      console.error('Failed to fetch shortlist:', err);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchShortlist();
+  }, [fetchShortlist]);
 
   // Debounced fetch on filter change
   useEffect(() => {
@@ -170,22 +167,23 @@ const ResumeSearch = () => {
     }, { replace: true });
   };
 
-  const handleShortlist = (candidate) => {
+  const handleShortlist = async (candidate) => {
     const isShortlisted = shortlisted.includes(candidate.id);
-    const nextIds = isShortlisted
-      ? shortlisted.filter(id => id !== candidate.id)
-      : [...shortlisted, candidate.id];
-    const nextData = isShortlisted
-      ? shortlistedCandidates.filter(c => c.id !== candidate.id)
-      : [...shortlistedCandidates, candidate];
-    setShortlisted(nextIds);
-    setShortlistedCandidates(nextData);
-    localStorage.setItem('hz_shortlisted', JSON.stringify(nextIds));
-    localStorage.setItem('hz_shortlisted_data', JSON.stringify(nextData));
-    if (isShortlisted) {
-      toast(`${candidate.name} removed from shortlist`);
-    } else {
-      toast.success(`${candidate.name} shortlisted!`, { icon: '⭐' });
+    try {
+      if (isShortlisted) {
+        await shortlistAPI.remove(candidate.id);
+        setShortlisted(prev => prev.filter(id => id !== candidate.id));
+        setShortlistedCandidates(prev => prev.filter(c => c.id !== candidate.id));
+        toast(`${candidate.name} removed from shortlist`);
+      } else {
+        await shortlistAPI.add(candidate.id);
+        setShortlisted(prev => [...prev, candidate.id]);
+        setShortlistedCandidates(prev => [...prev, candidate]);
+        toast.success(`${candidate.name} shortlisted!`, { icon: '⭐' });
+      }
+    } catch (err) {
+      console.error('Failed to update shortlist:', err);
+      toast.error(err.response?.data?.message || 'Failed to update shortlist');
     }
   };
 

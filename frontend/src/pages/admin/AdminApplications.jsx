@@ -29,7 +29,7 @@ const AppViewModal = ({ isOpen, onClose, app, onStatusUpdate, activeTab }) => {
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose} className="absolute inset-0 bg-black/80 backdrop-blur-sm" />
         <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} className="relative bg-[#0f0f0f] border border-white/10 rounded-[2rem] w-full max-w-lg shadow-2xl overflow-hidden text-white flex flex-col max-h-[90vh]">
           <div className="p-6 border-b border-white/5 flex items-center justify-between">
-            <h3 className="font-bold text-lg">Application Details</h3>
+            <h3 className="font-bold text-lg text-white">Application Details</h3>
             <button onClick={onClose} className="p-2 hover:bg-white/5 rounded-full text-neutral-400 hover:text-white transition-colors"><X size={20}/></button>
           </div>
           
@@ -40,10 +40,10 @@ const AppViewModal = ({ isOpen, onClose, app, onStatusUpdate, activeTab }) => {
                 {app.candidate.charAt(0)}
               </div>
               <div>
-                <h4 className="text-lg font-bold">{app.candidate}</h4>
+                <h4 className="text-lg font-bold text-white">{app.candidate}</h4>
                 <p className="text-sm text-neutral-400">{app.job}</p>
-                {app.email && <p className="text-xs text-neutral-500 mt-0.5">✉ {app.email}</p>}
-                {app.phone && <p className="text-xs text-neutral-500">📞 {app.phone}</p>}
+                {app.email && <p className="text-xs text-neutral-400 mt-0.5">✉ {app.email}</p>}
+                {app.phone && <p className="text-xs text-neutral-400">📞 {app.phone}</p>}
               </div>
             </div>
 
@@ -210,7 +210,7 @@ const AdminApplications = () => {
             skills: a.candidateId?.skills || [],
             coverLetter: a.coverLetter || '',
             resumeUrl: a.resume || a.resumeUrl || a.candidateId?.resume || '',
-            email: guestInfo.guestEmail || '',
+            email: guestInfo.guestEmail || a.candidateId?.userId?.email || '',
             phone: guestInfo.guestPhone || a.candidateId?.phone || '',
             isStryper: a.isStryperApplication === true || !a.companyId,
           };

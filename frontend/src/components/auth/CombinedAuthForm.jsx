@@ -17,7 +17,7 @@ import {
   ArrowRight
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
-import logoImg from "@/assets/image/logo.jpeg";
+import logoImg from "@/assets/image/logo.png";
 import toast from 'react-hot-toast';
 
 // --- Zod Validation Schemas ---
@@ -187,7 +187,14 @@ const CombinedAuthForm = ({ onClose, initialView = 'signin', initialRole = 'cand
         setUserRole(data.role);
         setIsLoggedIn(true);
         if (onClose) onClose();
-        navigate(data.role === 'candidate' ? '/career-hub/profile' : '/hire-zone/dashboard', { replace: true });
+        navigate('/verify-email', { 
+          state: { 
+            email: data.email, 
+            phone: data.phone,
+            nextRedirect: data.role === 'candidate' ? '/career-hub/profile' : '/hire-zone/dashboard'
+          }, 
+          replace: true 
+        });
       } else {
         toast.error(result.message || 'Registration failed.');
       }
@@ -207,9 +214,11 @@ const CombinedAuthForm = ({ onClose, initialView = 'signin', initialRole = 'cand
 
   return (
     <div className="w-full max-w-md mx-auto bg-white rounded-3xl shadow-2xl overflow-hidden border border-neutral-100 flex flex-col">
-      {/* Branding Header */}
-      <div className="bg-black py-6 flex justify-center border-b border-white/10">
-        <img src={logoImg} alt="Stryper Solution" className="h-10 w-auto object-contain" />
+      <div className="bg-black py-4 flex items-center justify-center gap-2.5 border-b border-white/10">
+        <img src={logoImg} alt="Stryper Solution" className="h-10 w-10 rounded-full object-cover border border-white/10" />
+        <span className="font-display font-bold text-base text-white tracking-tight uppercase">
+          stryper solution
+        </span>
       </div>
 
       {/* Mode Switcher Tabs */}

@@ -242,7 +242,7 @@ const AdminUserDetail = () => {
           
           <div className="flex-1 text-center md:text-left pb-2">
             <div className="flex flex-col md:flex-row md:items-center gap-3 mb-2">
-              <h1 className="text-3xl font-bold tracking-tight">{user.name}</h1>
+              <h1 className="text-3xl font-bold tracking-tight text-white">{user.name}</h1>
               <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest ${
                 ['Active', 'Verified'].includes(user.status) ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20' : 'bg-amber-500/10 text-amber-500 border border-amber-500/20'
               }`}>
@@ -286,15 +286,15 @@ const AdminUserDetail = () => {
           <motion.div initial="hidden" animate="visible" variants={fadeInUp} transition={{ delay: 0.1 }}
             className="bg-[#0f0f0f] border border-white/5 rounded-3xl p-6 space-y-6"
           >
-            <h3 className="text-xs font-bold text-neutral-500 uppercase tracking-widest">Account Overview</h3>
+            <h3 className="text-xs font-bold text-neutral-400 uppercase tracking-widest">Account Overview</h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="p-4 rounded-2xl bg-white/5 border border-white/5">
-                <p className="text-[10px] font-bold text-neutral-500 uppercase mb-1">Total Logs</p>
-                <p className="text-xl font-bold">142</p>
+                <p className="text-[10px] font-bold text-neutral-400 uppercase mb-1">Total Logs</p>
+                <p className="text-xl font-bold text-white">142</p>
               </div>
               <div className="p-4 rounded-2xl bg-white/5 border border-white/5">
-                <p className="text-[10px] font-bold text-neutral-500 uppercase mb-1">Transactions</p>
-                <p className="text-xl font-bold">12</p>
+                <p className="text-[10px] font-bold text-neutral-400 uppercase mb-1">Transactions</p>
+                <p className="text-xl font-bold text-white">12</p>
               </div>
             </div>
             
@@ -313,7 +313,7 @@ const AdminUserDetail = () => {
           <motion.div initial="hidden" animate="visible" variants={fadeInUp} transition={{ delay: 0.2 }}
             className="bg-[#0f0f0f] border border-white/5 rounded-3xl p-6"
           >
-            <h3 className="text-xs font-bold text-neutral-500 uppercase tracking-widest mb-6">Contact Information</h3>
+            <h3 className="text-xs font-bold text-neutral-400 uppercase tracking-widest mb-6">Contact Information</h3>
             <div className="space-y-5">
               {[
                 { label: 'Email', value: user.email, icon: Mail },
@@ -325,7 +325,7 @@ const AdminUserDetail = () => {
                     <item.icon size={16} />
                   </div>
                   <div>
-                    <p className="text-[10px] font-bold text-neutral-500 uppercase tracking-tighter">{item.label}</p>
+                    <p className="text-[10px] font-bold text-neutral-400 uppercase tracking-tighter">{item.label}</p>
                     <p className="text-sm font-medium text-neutral-200 mt-0.5 break-all">{item.value}</p>
                   </div>
                 </div>
@@ -343,7 +343,7 @@ const AdminUserDetail = () => {
                 <div className="p-2 rounded-xl bg-blue-500/10 text-blue-500">
                   <Activity size={18} />
                 </div>
-                <h3 className="font-bold">System Activity Logs</h3>
+                <h3 className="font-bold text-white">System Activity Logs</h3>
               </div>
               <button 
                 onClick={handleViewAllLogs}
@@ -382,12 +382,12 @@ const AdminUserDetail = () => {
                   <div className="flex-1">
                     <div className="flex items-center justify-between">
                       <p className="text-sm font-bold text-neutral-200">{log.action}</p>
-                      <span className="text-[10px] font-medium text-neutral-600 flex items-center gap-1">
+                      <span className="text-[10px] font-medium text-neutral-400 flex items-center gap-1">
                         <Clock size={10} />
                         {log.time}
                       </span>
                     </div>
-                    <p className="text-xs text-neutral-500 mt-1">{log.detail}</p>
+                    <p className="text-xs text-neutral-400 mt-1">{log.detail}</p>
                   </div>
                 </div>
               ))}
@@ -402,7 +402,7 @@ const AdminUserDetail = () => {
                 <AlertCircle size={18} />
                 Danger Zone
               </h3>
-              <p className="text-neutral-500 text-xs mt-1">Permanently delete this user and all associated data. This action cannot be undone.</p>
+              <p className="text-neutral-400 text-xs mt-1">Permanently delete this user and all associated data. This action cannot be undone.</p>
             </div>
             <button 
               onClick={handleDeleteUser}
