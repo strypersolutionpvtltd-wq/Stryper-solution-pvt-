@@ -1,4 +1,4 @@
-﻿import { useState, useMemo, useEffect, useRef } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Search, Briefcase, MapPin, Users, IndianRupee, Trash2, Eye, X, Save, Loader2, Plus, Pencil } from 'lucide-react';
 import { admin, jobs as jobsApi } from '@/utils/api';
@@ -497,7 +497,7 @@ const AdminJobs = () => {
         salaryMin: data.salaryMin, salaryMax: data.salaryMax,
         openings: data.openings, deadline: data.deadline, isStryper: data.isStryper,
       };
-      if (data.companyId) payload._adminCompanyId = data.companyId;
+      if (data.companyId) payload.companyId = data.companyId;
       let res;
       if (editingJob) { res = await jobsApi.update(editingJob.id, payload); }
       else { res = await jobsApi.create(payload); }
