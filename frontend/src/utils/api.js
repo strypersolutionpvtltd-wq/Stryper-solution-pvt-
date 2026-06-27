@@ -27,9 +27,9 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      // Skip auto-logout for password change — wrong password returns 401 intentionally
+      // Skip auto-logout for password change and login — wrong credentials return 401 intentionally
       const url = error.config?.url || '';
-      if (url.includes('/auth/change-password')) {
+      if (url.includes('/auth/change-password') || url.includes('/auth/login')) {
         return Promise.reject(error);
       }
       // Token expired or invalid — logout user

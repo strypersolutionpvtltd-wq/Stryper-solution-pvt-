@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect, useRef } from 'react';
+﻿import { useState, useMemo, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Search, Briefcase, MapPin, Users, IndianRupee, Trash2, Eye, X, Save, Loader2, Plus, Pencil } from 'lucide-react';
 import { admin, jobs as jobsApi } from '@/utils/api';
@@ -15,7 +15,6 @@ const SKILL_SUGG = ['React.js','Next.js','Vue.js','Angular','JavaScript','TypeSc
 
 const EMPTY = { title:'',department:'',customDepartment:'',location:'',employmentType:'',workMode:'',experience:'',openings:1,deadline:'',salaryMin:'',salaryMax:'',skills:[],skillInput:'',description:'',companyId:'',companySearch:'' };
 
-// ── Job Form Modal ──────────────────────────────────────────────────────────
 const JobFormModal = ({ isOpen, onClose, onSave, isInternal, editJob, companies }) => {
   const [form, setForm] = useState(EMPTY);
   const [saving, setSaving] = useState(false);
@@ -144,7 +143,7 @@ const JobFormModal = ({ isOpen, onClose, onSave, isInternal, editJob, companies 
   };
 
   if (!isOpen) return null;
-  const title = editJob ? `Edit — ${editJob.title}` : isInternal ? 'Add Internal Job' : 'Add External Job';
+  const title = editJob ? `Edit â€” ${editJob.title}` : isInternal ? 'Add Internal Job' : 'Add External Job';
 
   return (
     <AnimatePresence>
@@ -157,14 +156,14 @@ const JobFormModal = ({ isOpen, onClose, onSave, isInternal, editJob, companies 
           <div className="p-6 border-b border-white/5 flex items-center justify-between shrink-0">
             <div>
               <h3 className="font-bold text-lg">{title}</h3>
-              <p className="text-xs text-neutral-500 mt-0.5">{isInternal ? 'Internal Stryper job — shown on /careers page' : 'External job — shown to candidates on /jobs page'}</p>
+              <p className="text-xs text-neutral-500 mt-0.5">{isInternal ? 'Internal Stryper job â€” shown on /careers page' : 'External job â€” shown to candidates on /jobs page'}</p>
             </div>
             <button onClick={onClose} className="p-2 hover:bg-white/5 rounded-full text-neutral-400"><X size={20}/></button>
           </div>
 
           <div className="overflow-y-auto flex-1 p-6 space-y-6">
 
-            {/* Company searchable dropdown — External only */}
+            {/* Company searchable dropdown â€” External only */}
             {!isInternal && !editJob && (
               <div className="bg-brand-purple-600/5 border border-brand-purple-600/20 rounded-2xl p-4" ref={compRef}>
                 <label className={labelCls}>Company <span className="text-red-400">*</span></label>
@@ -174,7 +173,7 @@ const JobFormModal = ({ isOpen, onClose, onSave, isInternal, editJob, companies 
                     onChange={e => { set('companySearch', e.target.value); set('companyId', ''); setShowCompDrop(true); }}
                     onFocus={() => setShowCompDrop(true)}
                     className={inputCls} autoComplete="off" />
-                  {form.companyId && <span className="absolute right-3 top-1/2 -translate-y-1/2 text-emerald-400 text-[10px] font-bold">✓ Selected</span>}
+                  {form.companyId && <span className="absolute right-3 top-1/2 -translate-y-1/2 text-emerald-400 text-[10px] font-bold">âœ“ Selected</span>}
                   <AnimatePresence>
                     {showCompDrop && filteredComp.length > 0 && (
                       <motion.ul initial={{opacity:0,y:-4}} animate={{opacity:1,y:0}} exit={{opacity:0,y:-4}}
@@ -195,7 +194,7 @@ const JobFormModal = ({ isOpen, onClose, onSave, isInternal, editJob, companies 
               </div>
             )}
 
-            {/* Section 1 — Basic Info */}
+            {/* Section 1 â€” Basic Info */}
             <div className="space-y-4">
               <p className="text-[10px] font-bold text-neutral-500 uppercase tracking-widest flex items-center gap-2">
                 <span className="w-5 h-5 rounded-full bg-brand-purple-600/20 text-brand-purple-400 flex items-center justify-center text-[9px] font-bold">1</span>
@@ -280,19 +279,19 @@ const JobFormModal = ({ isOpen, onClose, onSave, isInternal, editJob, companies 
               </div>
             </div>
 
-            {/* Section 2 — Compensation */}
+            {/* Section 2 â€” Compensation */}
             <div className="space-y-4">
               <p className="text-[10px] font-bold text-neutral-500 uppercase tracking-widest flex items-center gap-2">
                 <span className="w-5 h-5 rounded-full bg-brand-gold-500/20 text-brand-gold-500 flex items-center justify-center text-[9px] font-bold">2</span>
                 Compensation <span className="text-neutral-600 normal-case font-normal">(optional)</span>
               </p>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div><label className={labelCls}>Min Salary (₹/month)</label><input type="number" value={form.salaryMin} onChange={e => set('salaryMin', e.target.value)} placeholder="e.g. 50000" className={inputCls}/></div>
-                <div><label className={labelCls}>Max Salary (₹/month)</label><input type="number" value={form.salaryMax} onChange={e => set('salaryMax', e.target.value)} placeholder="e.g. 120000" className={inputCls}/></div>
+                <div><label className={labelCls}>Min Salary (â‚¹/month)</label><input type="number" value={form.salaryMin} onChange={e => set('salaryMin', e.target.value)} placeholder="e.g. 50000" className={inputCls}/></div>
+                <div><label className={labelCls}>Max Salary (â‚¹/month)</label><input type="number" value={form.salaryMax} onChange={e => set('salaryMax', e.target.value)} placeholder="e.g. 120000" className={inputCls}/></div>
               </div>
             </div>
 
-            {/* Section 3 — Skills */}
+            {/* Section 3 â€” Skills */}
             <div className="space-y-4" ref={skillRef}>
               <p className="text-[10px] font-bold text-neutral-500 uppercase tracking-widest flex items-center gap-2">
                 <span className="w-5 h-5 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-[9px] font-bold">3</span>
@@ -330,7 +329,7 @@ const JobFormModal = ({ isOpen, onClose, onSave, isInternal, editJob, companies 
               </div>
             </div>
 
-            {/* Section 4 — Description */}
+            {/* Section 4 â€” Description */}
             <div className="space-y-4">
               <p className="text-[10px] font-bold text-neutral-500 uppercase tracking-widest flex items-center gap-2">
                 <span className="w-5 h-5 rounded-full bg-blue-500/20 text-blue-400 flex items-center justify-center text-[9px] font-bold">4</span>
@@ -360,14 +359,14 @@ const JobFormModal = ({ isOpen, onClose, onSave, isInternal, editJob, companies 
   );
 };
 
-// ── View Job Modal ──────────────────────────────────────────────────────────
+// â”€â”€ View Job Modal â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const ViewJobModal = ({ isOpen, onClose, job, onStatusChange }) => {
   const [updating, setUpdating] = useState(false);
   if (!isOpen || !job) return null;
   const raw = job.raw || {};
   const postedDate = raw.createdAt ? new Date(raw.createdAt).toLocaleDateString('en-US', { year:'numeric', month:'short', day:'numeric' }) : 'N/A';
   const deadline = raw.deadline ? new Date(raw.deadline).toLocaleDateString('en-US', { year:'numeric', month:'short', day:'numeric' }) : 'Not set';
-  const salary = raw.salaryMin && raw.salaryMax ? `₹${(raw.salaryMin/100000).toFixed(1)}L – ₹${(raw.salaryMax/100000).toFixed(1)}L` : 'Not disclosed';
+  const salary = raw.salaryMin && raw.salaryMax ? `â‚¹${(raw.salaryMin/100000).toFixed(1)}L â€“ â‚¹${(raw.salaryMax/100000).toFixed(1)}L` : 'Not disclosed';
   const statusColors = { Active:'bg-emerald-500/10 text-emerald-500 border-emerald-500/20', Draft:'bg-neutral-500/10 text-neutral-400 border-neutral-500/20', Closed:'bg-red-500/10 text-red-400 border-red-500/20', Archived:'bg-amber-500/10 text-amber-400 border-amber-500/20' };
   const initials = (job.company||'SC').split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
   return (
@@ -436,7 +435,7 @@ const ViewJobModal = ({ isOpen, onClose, job, onStatusChange }) => {
                 <button key={s} onClick={async()=>{setUpdating(true);await onStatusChange(job.id,s);setUpdating(false);}}
                   disabled={job.status===s||updating}
                   className={`px-4 py-2 rounded-xl text-xs font-bold border transition-all disabled:opacity-40 disabled:cursor-not-allowed ${job.status===s?(statusColors[s]||'bg-white/10 text-white border-white/20')+' cursor-default':'bg-white/5 text-neutral-400 border-white/10 hover:bg-white/10 hover:text-white'}`}>
-                  {job.status===s?`● ${s}`:s}
+                  {job.status===s?`â— ${s}`:s}
                 </button>
               ))}
               <button onClick={onClose} className="ml-auto px-5 py-2 rounded-xl text-xs font-bold text-neutral-500 hover:text-white hover:bg-white/5 transition-colors border border-white/5">Close</button>
@@ -448,7 +447,7 @@ const ViewJobModal = ({ isOpen, onClose, job, onStatusChange }) => {
   );
 };
 
-// ── Main Component ──────────────────────────────────────────────────────────
+// â”€â”€ Main Component â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const AdminJobs = () => {
   const [jobs, setJobs] = useState([]);
   const [companies, setCompanies] = useState([]);
@@ -469,7 +468,7 @@ const AdminJobs = () => {
           company: j.companyId?.companyName || 'Stryper Solution',
           location: j.location || 'Remote',
           applicants: j.applicationCount || 0,
-          salary: j.salaryMin && j.salaryMax ? `₹${(j.salaryMin/100000).toFixed(0)}L - ₹${(j.salaryMax/100000).toFixed(0)}L` : 'N/A',
+          salary: j.salaryMin && j.salaryMax ? `â‚¹${(j.salaryMin/100000).toFixed(0)}L - â‚¹${(j.salaryMax/100000).toFixed(0)}L` : 'N/A',
           status: j.status || 'Active',
           isStryper: j.isStryper === true,
           raw: j,
@@ -525,7 +524,7 @@ const AdminJobs = () => {
       if (res.data?.success) {
         setJobs(p=>p.map(j=>j.id===id?{...j,status:newStatus}:j));
         setViewingJob(p=>p?{...p,status:newStatus}:p);
-        toast.success(`Status → ${newStatus}`);
+        toast.success(`Status â†’ ${newStatus}`);
       }
     } catch { toast.error('Failed to update status'); }
   };

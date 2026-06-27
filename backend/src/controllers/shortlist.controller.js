@@ -24,20 +24,21 @@ const addToShortlist = async (req, res) => {
 
     // Send notification to candidate
     try {
-      if (candidate.recruiterMessages !== false) {
-        await Notification.create({
-          userId: candidate.userId,
-          title: "Profile Shortlisted",
-          message: `${company.companyName} has shortlisted your profile.`,
-          type: "Profile",
-          relatedId: company._id,
-          relatedModel: "CompanyProfile",
-          actionUrl: `/career-hub/notifications`,
-        });
-      }
+      await Notification.create({
+        userId: candidate.userId,
+        title: "Shortlisted",
+        message: `Congratulations! Your profile has been shortlisted by ${company.companyName}.`,
+        type: "Application",
+        relatedId: company._id,
+        relatedModel: "CompanyProfile",
+        actionUrl: `/career-hub/dashboard`,
+        companyName: company.companyName,
+        jobTitle: "Profile Shortlist",
+      });
     } catch (notifErr) {
       console.error("Failed to create shortlist notification:", notifErr);
     }
+
 
     return res.status(201).json({ success: true, message: "Candidate shortlisted" });
   } catch (error) {

@@ -142,6 +142,30 @@ const applyForJob = async (req, res) => {
       });
     }
 
+    // Create notification for Stryper Admin team
+    try {
+      const User = require("../models/user.model");
+      const adminUser = await User.findOne({ role: "ADMIN" });
+      if (adminUser) {
+        const isInternal = job.isStryper;
+        const compName = company?.companyName || "External Company";
+        await Notification.create({
+          userId: adminUser._id,
+          title: isInternal ? "New Application (Internal)" : "New Application (External)",
+          message: `${candidateProfile.firstName} ${candidateProfile.lastName} applied for ${job.title} ${isInternal ? "at Stryper" : `at ${compName}`}`,
+          type: "Application",
+          relatedId: application._id,
+          relatedModel: "JobApplication",
+          actionUrl: `/admin/applications`,
+          companyName: isInternal ? "Stryper Solution" : compName,
+          jobTitle: job.title,
+        });
+        console.log(`[NOTIFICATION] Created admin notification for application ${application._id}`);
+      }
+    } catch (notifError) {
+      console.error("Failed to create admin notification:", notifError.message);
+    }
+
     return res.status(201).json({
       success: true,
       message: "Application submitted successfully",
@@ -303,6 +327,7 @@ const updateApplicationStatus = async (req, res) => {
     if (statusMessages[status]) {
       const candidateProfileObj = await CandidateProfile.findOne({ userId: application.userId });
       if (!candidateProfileObj || candidateProfileObj.applicationUpdates !== false) {
+        const job = await Job.findById(application.jobId).populate("companyId");
         await Notification.create({
           userId: application.userId,
           title: `Application ${status}`,
@@ -311,6 +336,8 @@ const updateApplicationStatus = async (req, res) => {
           relatedId: application.jobId,
           relatedModel: "Job",
           actionUrl: `/career-hub/applied-jobs`,
+          companyName: job?.companyId?.companyName || "Company",
+          jobTitle: job?.title || "Job Listing",
         });
       }
     }
