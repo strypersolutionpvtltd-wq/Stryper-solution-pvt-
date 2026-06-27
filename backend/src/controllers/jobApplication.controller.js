@@ -122,6 +122,7 @@ const applyForJob = async (req, res) => {
       coverLetter: coverLetter || "",
       salaryExpectation: salaryExpectation || null,
       noticePeriod: noticePeriod || "",
+      isStryperApplication: job.isStryper || false,
     });
 
     // Update job application count

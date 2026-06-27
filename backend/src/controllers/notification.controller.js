@@ -1,4 +1,8 @@
 const Notification = require("../models/notification.model");
+const CompanyProfile = require("../models/companyProfile.model");
+const Job = require("../models/job.model");
+const JobApplication = require("../models/jobApplication.model");
+const Interview = require("../models/interview.model");
 
 // @desc    Get my notifications
 // @route   GET /api/v1/notifications
@@ -17,9 +21,59 @@ const getMyNotifications = async (req, res) => {
     const notifications = await Notification.find({ userId })
       .sort({ createdAt: -1 });
 
+    const resolvedNotifications = await Promise.all(
+      notifications.map(async (n) => {
+        const notifObj = n.toObject();
+        notifObj.companyName = "";
+        notifObj.jobTitle = "";
+
+        if (notifObj.relatedId && notifObj.relatedModel) {
+          try {
+            if (notifObj.relatedModel === "CompanyProfile") {
+              const company = await CompanyProfile.findById(notifObj.relatedId).select("companyName");
+              if (company) {
+                notifObj.companyName = company.companyName;
+              }
+            } else if (notifObj.relatedModel === "Job") {
+              const job = await Job.findById(notifObj.relatedId)
+                .populate("companyId", "companyName")
+                .select("title companyId");
+              if (job) {
+                notifObj.jobTitle = job.title;
+                if (job.companyId) {
+                  notifObj.companyName = job.companyId.companyName;
+                }
+              }
+            } else if (notifObj.relatedModel === "JobApplication") {
+              const app = await JobApplication.findById(notifObj.relatedId)
+                .populate("jobId", "title")
+                .populate("companyId", "companyName")
+                .select("jobId companyId");
+              if (app) {
+                if (app.jobId) notifObj.jobTitle = app.jobId.title;
+                if (app.companyId) notifObj.companyName = app.companyId.companyName;
+              }
+            } else if (notifObj.relatedModel === "Interview") {
+              const interview = await Interview.findById(notifObj.relatedId)
+                .populate("jobId", "title")
+                .populate("companyId", "companyName")
+                .select("jobId companyId");
+              if (interview) {
+                if (interview.jobId) notifObj.jobTitle = interview.jobId.title;
+                if (interview.companyId) notifObj.companyName = interview.companyId.companyName;
+              }
+            }
+          } catch (err) {
+            console.error(`Failed to resolve details for notification ${n._id}:`, err);
+          }
+        }
+        return notifObj;
+      })
+    );
+
     return res.status(200).json({
       success: true,
-      notifications,
+      notifications: resolvedNotifications,
     });
   } catch (error) {
     return res.status(500).json({

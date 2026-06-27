@@ -7,7 +7,7 @@ const User = require("../models/user.model");
 // @access  Private (Company)
 const createJob = async (req, res) => {
   try {
-    const { title, description, requirements, responsibilities, employmentType, salaryMin, salaryMax, location, experience, skills, salaryCurrency, status, workMode, department, deadline, openings, isStryper } = req.body;
+    const { title, description, requirements, responsibilities, employmentType, salaryMin, salaryMax, location, experience, skills, salaryCurrency, status, workMode, department, deadline, openings, isStryper, _adminCompanyId } = req.body;
     const userId = req.user?.id;
 
     if (!userId) {
@@ -68,6 +68,7 @@ const createJob = async (req, res) => {
       }
       companyIdToUse = companyProfile._id;
     }
+
 
     const newJob = await Job.create({
       companyId: companyIdToUse,
@@ -365,7 +366,7 @@ module.exports = {
 async function getStryperJobs(req, res) {
   try {
     const jobs = await Job.find({ isStryper: true, status: "Active" })
-      .select("title department location experience employmentType workMode description skills requirements deadline createdAt")
+      .select("title department location experience employmentType workMode description skills requirements deadline createdAt salaryMin salaryMax")
       .sort({ createdAt: -1 });
 
     return res.status(200).json({ success: true, jobs });

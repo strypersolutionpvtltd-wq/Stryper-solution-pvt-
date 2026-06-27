@@ -11,6 +11,7 @@ const {
   addPartner,
   updatePartnerStatus,
   removePartner,
+  getCompanyList,
 } = require("../controllers/admin.controller");
 const { protect: authMiddleware, authorizeRoles } = require("../middleware/auth.middleware");
 
@@ -30,5 +31,8 @@ router.get("/partners", authMiddleware, authorizeRoles("ADMIN"), getAllPartners)
 router.post("/partners", authMiddleware, authorizeRoles("ADMIN"), addPartner);
 router.patch("/partners/:id/status", authMiddleware, authorizeRoles("ADMIN"), updatePartnerStatus);
 router.delete("/partners/:id", authMiddleware, authorizeRoles("ADMIN"), removePartner);
+
+// Company list for dropdowns
+router.get("/company-list", authMiddleware, authorizeRoles("ADMIN"), getCompanyList);
 
 module.exports = router;

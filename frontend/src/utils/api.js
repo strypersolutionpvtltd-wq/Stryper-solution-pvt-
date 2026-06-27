@@ -49,6 +49,13 @@ export const auth = {
   logout: () => api.post('/auth/logout'),
   changePassword: (data) => api.put('/auth/change-password', data),
   deleteAccount: (data) => api.delete('/auth/delete-account', { data }),
+  verifyEmail: (data) => api.post('/auth/verify-email', data),
+  resendOtp: (data) => api.post('/auth/resend-otp', data),
+  forgotPassword: (data) => api.post('/auth/forgot-password', data),
+  verifyResetOtp: (data) => api.post('/auth/verify-reset-otp', data),
+  resetPassword: (data) => api.post('/auth/reset-password', data),
+  sendSignupOtp: (data) => api.post('/auth/send-signup-otp', data),
+  registerVerified: (data) => api.post('/auth/register-verified', data),
 };
 
 // Candidate Profile endpoints
@@ -156,6 +163,8 @@ export const admin = {
   addPartner: (data) => api.post('/admin/partners', data),
   updatePartnerStatus: (id) => api.patch(`/admin/partners/${id}/status`),
   removePartner: (id) => api.delete(`/admin/partners/${id}`),
+  // Company list for dropdowns
+  getCompanyList: () => api.get('/admin/company-list'),
 };
 
 // Upload endpoints
@@ -176,6 +185,13 @@ export const contact = {
 // Analytics endpoints
 export const analytics = {
   logVisit: () => api.post('/analytics/visit'),
+};
+
+// Shortlist endpoints
+export const shortlist = {
+  get: () => api.get('/shortlist'),
+  add: (candidateId) => api.post(`/shortlist/${candidateId}`),
+  remove: (candidateId) => api.delete(`/shortlist/${candidateId}`),
 };
 
 // Settings endpoints

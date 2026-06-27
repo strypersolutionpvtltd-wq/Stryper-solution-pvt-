@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import StatusBadge from '@/hire-zone/components/shared/StatusBadge';
 
-const JobCard = ({ job, onAction, onView }) => {
+const JobCard = ({ job, onAction, onView, onEdit }) => {
   const [menuOpen, setMenuOpen] = useState(false);
   const navigate = useNavigate();
 
@@ -92,6 +92,7 @@ const JobCard = ({ job, onAction, onView }) => {
                 >
                   {[
                     { label: 'View Details',  icon: '👁',  action: 'view-details' },
+                    { label: 'Edit Job',      icon: '📝',  action: 'edit' },
                     { label: 'View Applicants', icon: '👥', action: 'view' },
                     { label: job.status === 'Active' ? 'Deactivate Job' : 'Activate Job', icon: job.status === 'Active' ? '⏸' : '▶️', action: 'toggle' },
                     { label: 'Close Job', icon: '🔒', action: 'close' },
@@ -102,6 +103,9 @@ const JobCard = ({ job, onAction, onView }) => {
                       onClick={() => {
                         if (action === 'view-details') {
                           onView?.(job);
+                          setMenuOpen(false);
+                        } else if (action === 'edit') {
+                          onEdit?.(job);
                           setMenuOpen(false);
                         } else if (action === 'view') {
                           navigate('/hire-zone/applicants');

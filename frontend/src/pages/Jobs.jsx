@@ -106,9 +106,23 @@ const ApplyModal = ({ job, onClose, onApplied }) => {
       const resumeUrl = uploadRes.data.resume || '';
 
       // 2. Submit application
+      const matches = form.expectedSalary ? form.expectedSalary.match(/\d+/g) : null;
+      let salaryExpectation = null;
+      if (matches) {
+        const nums = matches.map(Number);
+        let lpa = 0;
+        if (nums.length === 2) {
+          lpa = (nums[0] + nums[1]) / 2;
+        } else if (nums.length === 1) {
+          lpa = form.expectedSalary.toLowerCase().includes('below') ? nums[0] - 0.5 : nums[0];
+        }
+        salaryExpectation = lpa * 100000;
+      }
+
       await api.post('/applications', {
         jobId: job.id,
         resume: resumeUrl,
+        salaryExpectation,
         noticePeriod: form.noticePeriod,
       });
 

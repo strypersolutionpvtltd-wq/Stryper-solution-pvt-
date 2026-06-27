@@ -4,6 +4,7 @@ const JobApplication = require("../models/jobApplication.model");
 const CompanyProfile = require("../models/companyProfile.model");
 const CandidateProfile = require("../models/candidateProfile.model");
 const SiteVisit = require("../models/siteVisit.model");
+const bcrypt = require("bcryptjs");
 
 // @desc    Get platform statistics
 // @route   GET /api/v1/admin/stats
@@ -219,7 +220,14 @@ const getAllApplications = async (req, res) => {
     const applications = await JobApplication.find(filter)
       .populate("jobId", "title")
       .populate("companyId", "companyName")
-      .populate("candidateId", "firstName lastName skills location totalExperience resume phone")
+      .populate({
+        path: "candidateId",
+        select: "firstName lastName skills location totalExperience resume phone userId",
+        populate: {
+          path: "userId",
+          select: "email"
+        }
+      })
       .skip((page - 1) * limit)
       .limit(parseInt(limit))
       .sort({ appliedDate: -1 });
@@ -423,7 +431,7 @@ const getAllPartners = async (req, res) => {
     if (search) filter.companyName = { $regex: search, $options: "i" };
 
     const partners = await CompanyProfile.find(filter)
-      .select("_id companyName industry partnerSpecialty partnerRating activeHires isVerifiedCompany partnerSince createdAt")
+      .select("_id userId companyName industry partnerSpecialty partnerRating activeHires isVerifiedCompany partnerSince createdAt")
       .sort({ createdAt: -1 })
       .lean();
 
@@ -432,6 +440,7 @@ const getAllPartners = async (req, res) => {
       count: partners.length,
       partners: partners.map(p => ({
         id: p._id,
+        userId: p.userId,
         name: p.companyName,
         specialty: p.partnerSpecialty || p.industry || "N/A",
         experience: p.partnerSince
@@ -452,42 +461,96 @@ const getAllPartners = async (req, res) => {
 // @access  Private (Admin)
 const addPartner = async (req, res) => {
   try {
-    const { name, specialty, experience, rating } = req.body;
-    if (!name || !specialty) {
-      return res.status(400).json({ success: false, message: "Name and specialty are required" });
+    const { mode, email, password, companyName, industry, hrName, phone, website } = req.body;
+
+    if (!email) {
+      return res.status(400).json({ success: false, message: "Email is required" });
     }
 
-    // Parse experience years to calculate partnerSince
-    const yearsMatch = String(experience).match(/\d+/);
-    const years = yearsMatch ? parseInt(yearsMatch[0]) : 0;
-    const partnerSince = new Date();
-    partnerSince.setFullYear(partnerSince.getFullYear() - years);
+    let profile;
 
-    // Check if a company with same name already exists
-    let profile = await CompanyProfile.findOne({ companyName: { $regex: `^${name}$`, $options: "i" } });
+    if (mode === "link") {
+      // Look up user by email
+      const user = await User.findOne({ email: { $regex: `^${email}$`, $options: "i" } });
+      if (!user) {
+        return res.status(404).json({ success: false, message: "No account found with this email. Please select 'Register New Company' instead." });
+      }
 
-    if (profile) {
-      // Mark existing company as partner
-      profile.isStryperPartner = true;
-      profile.partnerSpecialty = specialty;
-      profile.partnerRating = rating || 5.0;
-      profile.partnerSince = partnerSince;
-      await profile.save();
+      // Find their company profile
+      profile = await CompanyProfile.findOne({ userId: user._id });
+      if (!profile) {
+        // If user exists but no company profile, create one
+        profile = await CompanyProfile.create({
+          userId: user._id,
+          companyName: user.fullName || "Stryper Partner",
+          industry: "Recruitment",
+          email: user.email,
+          isStryperPartner: true,
+          partnerSpecialty: "Recruitment",
+          partnerRating: 5.0,
+          partnerSince: new Date(),
+        });
+      } else {
+        // Mark as partner and save
+        profile.isStryperPartner = true;
+        await profile.save();
+      }
     } else {
-      // Create a placeholder company profile for standalone partner
-      // Use a dummy userId placeholder — admin-created partners may not have a user account
-      const adminUser = await User.findOne({ role: "ADMIN" });
+      // Mode is "create" (Register New Company)
+      // Check if email already exists in User model
+      const existingUser = await User.findOne({ email: { $regex: `^${email}$`, $options: "i" } });
+      if (existingUser) {
+        return res.status(409).json({ success: false, message: "An account with this email already exists. Try using 'Link Existing Account' instead." });
+      }
+
+      if (!companyName) {
+        return res.status(400).json({ success: false, message: "Company Name is required" });
+      }
+
+      const passToUse = password || `Stryper@${Math.floor(1000 + Math.random() * 9000)}`;
+      const hashedPassword = await bcrypt.hash(passToUse, 10);
+
+      const newUser = await User.create({
+        email: email.toLowerCase().trim(),
+        password: hashedPassword,
+        role: "COMPANY",
+        isVerified: true,
+        fullName: hrName || companyName,
+      });
+
       profile = await CompanyProfile.create({
-        userId: adminUser._id,
-        companyName: name,
-        industry: specialty,
-        companySize: "N/A",
-        companyDescription: `Stryper Partner: ${name}`,
-        email: `partner_${Date.now()}@stryper.internal`,
+        userId: newUser._id,
+        companyName,
+        industry: industry || "General",
+        companySize: "1-10",
+        companyDescription: `Stryper Partner: ${companyName}`,
+        email: email.toLowerCase().trim(),
+        phone: phone || "",
+        website: website || "",
+        hrName: hrName || "",
         isStryperPartner: true,
-        partnerSpecialty: specialty,
-        partnerRating: rating || 5.0,
-        partnerSince,
+        partnerSpecialty: industry || "General",
+        partnerRating: 5.0,
+        partnerSince: new Date(),
+      });
+
+      return res.status(201).json({
+        success: true,
+        message: "Partner account registered and added successfully",
+        createdCredentials: {
+          email: email.toLowerCase().trim(),
+          password: passToUse,
+        },
+        partner: {
+          id: profile._id,
+          userId: profile.userId,
+          name: profile.companyName,
+          specialty: profile.partnerSpecialty,
+          experience: "N/A",
+          activeHires: profile.activeHires || 0,
+          rating: profile.partnerRating,
+          status: profile.isVerifiedCompany ? "Verified" : "Active",
+        },
       });
     }
 
@@ -496,9 +559,10 @@ const addPartner = async (req, res) => {
       message: "Partner added successfully",
       partner: {
         id: profile._id,
+        userId: profile.userId,
         name: profile.companyName,
         specialty: profile.partnerSpecialty,
-        experience: experience || "N/A",
+        experience: "N/A",
         activeHires: profile.activeHires || 0,
         rating: profile.partnerRating,
         status: profile.isVerifiedCompany ? "Verified" : "Active",
@@ -562,4 +626,20 @@ module.exports = {
   addPartner,
   updatePartnerStatus,
   removePartner,
+  getCompanyList,
 };
+
+// @desc    Get all companies (for admin dropdowns)
+// @route   GET /api/v1/admin/company-list
+// @access  Private (Admin)
+async function getCompanyList(req, res) {
+  try {
+    const companies = await CompanyProfile.find({})
+      .select("_id companyName industry")
+      .sort({ companyName: 1 })
+      .lean();
+    return res.status(200).json({ success: true, companies });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: "Failed to fetch companies", error: error.message });
+  }
+}
