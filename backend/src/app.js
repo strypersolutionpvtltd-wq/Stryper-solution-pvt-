@@ -63,6 +63,9 @@ app.use(
       "http://localhost:3000",
       "http://localhost:5173",
       process.env.CLIENT_ORIGIN,
+      // Dynamic www and non-www support
+      process.env.CLIENT_ORIGIN ? process.env.CLIENT_ORIGIN.replace("https://", "https://www.") : null,
+      process.env.CLIENT_ORIGIN ? process.env.CLIENT_ORIGIN.replace("https://www.", "https://") : null,
     ].filter(Boolean),
     credentials: true,
   })
