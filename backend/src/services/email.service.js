@@ -1,19 +1,26 @@
 const nodemailer = require("nodemailer");
 
-// Create reusable transporter
+// Reusable transporter with connection pooling and dynamic secure configurations
+const smtpPort = parseInt(process.env.SMTP_PORT || "465");
 const transporter = nodemailer.createTransport({
+  pool: true, 
   host: process.env.SMTP_HOST || "smtpout.secureserver.net",
-  port: 465,
-  secure: true,
+  port: smtpPort,
+  secure: smtpPort === 465, // true only for port 465
+  requireTLS: smtpPort === 587, // force STARTTLS on 587
+  maxConnections: 5,
+  maxMessages: 100,
+  rateLimit: 5,
   auth: {
     user: process.env.SMTP_USER,
     pass: process.env.SMTP_PASS,
   },
   tls: {
     rejectUnauthorized: false,
+    ciphers: "SSLv3", // Solve legacy TLS reset on secureserver
   },
-  connectionTimeout: 10000,
-  socketTimeout: 15000,
+  connectionTimeout: 20000, 
+  socketTimeout: 30000,
 });
 
 // Helper: send general mail
