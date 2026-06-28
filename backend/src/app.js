@@ -6,6 +6,9 @@ const { CloudinaryStorage } = require("multer-storage-cloudinary");
 
 const app = express();
 
+// Trust proxy — required on EC2/Nginx so req.ip returns real visitor IP
+app.set("trust proxy", true);
+
 // ── Cloudinary Configuration ───────────────────────────────────────────────
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,

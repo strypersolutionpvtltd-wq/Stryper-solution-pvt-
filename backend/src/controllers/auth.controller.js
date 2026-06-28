@@ -435,17 +435,16 @@ const verifyEmail = async (req, res) => {
       });
     }
 
-    const isDevelopment = process.env.NODE_ENV === "development";
-    const isBypassOtp = isDevelopment && otp === "123456";
+    const isBypassOtp = false;
 
-    if (!isBypassOtp && (!user.verificationOtp || user.verificationOtp !== otp)) {
+    if (!user.verificationOtp || user.verificationOtp !== otp) {
       return res.status(400).json({
         success: false,
         message: "Invalid verification code",
       });
     }
 
-    if (!isBypassOtp && user.verificationOtpExpires && user.verificationOtpExpires < new Date()) {
+    if (user.verificationOtpExpires && user.verificationOtpExpires < new Date()) {
       return res.status(400).json({
         success: false,
         message: "Verification code has expired. Please request a new one.",
@@ -621,17 +620,16 @@ const verifyResetOtp = async (req, res) => {
       });
     }
 
-    const isDevelopment = process.env.NODE_ENV === "development";
-    const isBypassOtp = isDevelopment && otp === "123456";
+    const isBypassOtp = false;
 
-    if (!isBypassOtp && (!user.resetPasswordOtp || user.resetPasswordOtp !== otp)) {
+    if (!user.resetPasswordOtp || user.resetPasswordOtp !== otp) {
       return res.status(400).json({
         success: false,
         message: "Invalid verification code",
       });
     }
 
-    if (!isBypassOtp && user.resetPasswordOtpExpires && user.resetPasswordOtpExpires < new Date()) {
+    if (user.resetPasswordOtpExpires && user.resetPasswordOtpExpires < new Date()) {
       return res.status(400).json({
         success: false,
         message: "Verification code has expired. Please request a new one.",
@@ -673,18 +671,15 @@ const resetPassword = async (req, res) => {
       });
     }
 
-    const isDevelopment = process.env.NODE_ENV === "development";
-    const isBypassOtp = isDevelopment && otp === "123456";
-
     // Verify OTP again (prevent reset bypassing)
-    if (!isBypassOtp && (!user.resetPasswordOtp || user.resetPasswordOtp !== otp)) {
+    if (!user.resetPasswordOtp || user.resetPasswordOtp !== otp) {
       return res.status(400).json({
         success: false,
         message: "Invalid or expired verification code",
       });
     }
 
-    if (!isBypassOtp && user.resetPasswordOtpExpires && user.resetPasswordOtpExpires < new Date()) {
+    if (user.resetPasswordOtpExpires && user.resetPasswordOtpExpires < new Date()) {
       return res.status(400).json({
         success: false,
         message: "Verification code has expired",
@@ -798,17 +793,16 @@ const registerVerifiedUser = async (req, res) => {
 
     const { email, password, role, otp: expectedOtp, otpExpires } = decoded;
 
-    const isDevelopment = process.env.NODE_ENV === "development";
-    const isBypassOtp = isDevelopment && otp === "123456";
+    const isBypassOtp = false;
 
-    if (!isBypassOtp && expectedOtp !== otp) {
+    if (expectedOtp !== otp) {
       return res.status(400).json({
         success: false,
         message: "Invalid verification code",
       });
     }
 
-    if (!isBypassOtp && otpExpires < Date.now()) {
+    if (otpExpires < Date.now()) {
       return res.status(400).json({
         success: false,
         message: "Verification code has expired. Please request a new one.",
