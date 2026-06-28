@@ -2,17 +2,18 @@ const nodemailer = require("nodemailer");
 
 // Create reusable transporter
 const transporter = nodemailer.createTransport({
-  host: process.env.SMTP_HOST || "smtp.titan.email",
-  port: parseInt(process.env.SMTP_PORT || "465"),
-  secure: parseInt(process.env.SMTP_PORT || "465") === 465, // true for port 465
+  host: process.env.SMTP_HOST || "smtpout.secureserver.net",
+  port: 465,
+  secure: true,
   auth: {
     user: process.env.SMTP_USER,
     pass: process.env.SMTP_PASS,
   },
   tls: {
-    // do not fail on invalid certs
     rejectUnauthorized: false,
   },
+  connectionTimeout: 10000,
+  socketTimeout: 15000,
 });
 
 // Helper: send general mail
