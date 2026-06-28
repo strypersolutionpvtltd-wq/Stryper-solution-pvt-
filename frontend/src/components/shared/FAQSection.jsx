@@ -35,7 +35,7 @@ const FAQS = [
   {
     question: "How do I share my job requirements with Stryper Solution?",
     answer:
-      "You can simply fill out the contact form on our website, email us at Strypersolutionpvtltd@gmail.com, or call our support team directly at +91 8448590303.",
+      "You can simply fill out the contact form on our website, email us at sarthak.chauhan@strypersolution.com, or call our support team directly at +91 8448590303.",
   },
   {
     question: "Do candidates have to pay any registration fees?",

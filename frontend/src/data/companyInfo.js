@@ -7,7 +7,7 @@ export const COMPANY_INFO = {
   shortName: "Stryper Solution",
   tagline: "Building Reliable teams for India’s Tech Future",
   founded: 2021,
-  email: "Strypersolutionpvtltd@gmail.com",
+  email: "sarthak.chauhan@strypersolution.com",
   phone: "+91 8448590303",
   address: {
     line1: "B-301 Tower B, Pioneer Urban Square, Sector 62",
