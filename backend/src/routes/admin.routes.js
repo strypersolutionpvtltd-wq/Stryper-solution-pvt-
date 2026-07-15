@@ -11,6 +11,13 @@ const {
   addPartner,
   updatePartnerStatus,
   removePartner,
+  deleteApplication,
+  updateApplicationStatus,
+  getAllInquiries,
+  updateInquiryStatus,
+  deleteInquiry,
+  getAdminSettings,
+  updateAdminSettings,
 } = require("../controllers/admin.controller");
 const { protect: authMiddleware, authorizeRoles } = require("../middleware/auth.middleware");
 
@@ -30,5 +37,19 @@ router.get("/partners", authMiddleware, authorizeRoles("ADMIN"), getAllPartners)
 router.post("/partners", authMiddleware, authorizeRoles("ADMIN"), addPartner);
 router.patch("/partners/:id/status", authMiddleware, authorizeRoles("ADMIN"), updatePartnerStatus);
 router.delete("/partners/:id", authMiddleware, authorizeRoles("ADMIN"), removePartner);
+
+// Application management
+router.delete("/applications/:id", authMiddleware, authorizeRoles("ADMIN"), deleteApplication);
+router.patch("/applications/:id/status", authMiddleware, authorizeRoles("ADMIN"), updateApplicationStatus);
+
+// Inquiries management
+router.get("/inquiries", authMiddleware, authorizeRoles("ADMIN"), getAllInquiries);
+router.patch("/inquiries/:id/status", authMiddleware, authorizeRoles("ADMIN"), updateInquiryStatus);
+router.delete("/inquiries/:id", authMiddleware, authorizeRoles("ADMIN"), deleteInquiry);
+
+// Settings management
+router.get("/settings/public", getAdminSettings);
+router.get("/settings", authMiddleware, authorizeRoles("ADMIN"), getAdminSettings);
+router.put("/settings", authMiddleware, authorizeRoles("ADMIN"), updateAdminSettings);
 
 module.exports = router;

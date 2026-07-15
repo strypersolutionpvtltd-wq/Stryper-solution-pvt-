@@ -1,7 +1,8 @@
 const nodemailer = require('nodemailer');
+const Inquiry = require('../models/inquiry.model');
 
 // ─────────────────────────────────────────────────────────────────────────────
-// @desc    Send contact form message via email
+// @desc    Send contact form message via email and save to DB
 // @route   POST /api/v1/contact
 // @access  Public
 // ─────────────────────────────────────────────────────────────────────────────
@@ -15,6 +16,20 @@ const sendContactMessage = async (req, res) => {
         success: false,
         message: 'Please fill in all required fields: name, email, service, and message.',
       });
+    }
+
+    // Save inquiry to MongoDB database
+    try {
+      await Inquiry.create({
+        name,
+        email,
+        phone: phone || '',
+        service,
+        message,
+        status: 'new'
+      });
+    } catch (dbErr) {
+      console.error('Failed to save inquiry to database:', dbErr.message);
     }
 
     // 2. Validate email format

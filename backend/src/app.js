@@ -42,14 +42,27 @@ const uploadProfilePicture = multer({
   limits: { fileSize: 2 * 1024 * 1024 }, // 2MB
 });
 
+const generalImageStorage = new CloudinaryStorage({
+  cloudinary: cloudinary,
+  params: {
+    folder: "stryper/general-images",
+    resource_type: "image",
+    allowed_formats: ["jpg", "jpeg", "png", "webp", "gif"],
+  },
+});
+
+const uploadGeneralImage = multer({
+  storage: generalImageStorage,
+  limits: { fileSize: 10 * 1024 * 1024 }, // 10MB
+});
+
 // CORS
 app.use(
   cors({
     origin: [
-      "http://localhost:3000",
       "http://localhost:5173",
-      process.env.CLIENT_ORIGIN,
-    ].filter(Boolean),
+      "http://localhost:5174"
+    ],
     credentials: true,
   })
 );
@@ -91,6 +104,12 @@ const { uploadResume: uploadResumeController, uploadProfilePicture: uploadProfil
 // Upload routes with multer middleware
 app.post("/api/v1/upload/resume", authMiddleware, uploadResume.single("resume"), uploadResumeController);
 app.post("/api/v1/upload/profile-picture", authMiddleware, uploadProfilePicture.single("profilePicture"), uploadProfilePictureController);
+app.post("/api/v1/upload/image", authMiddleware, uploadGeneralImage.single("image"), (req, res) => {
+  if (!req.file) {
+    return res.status(400).json({ success: false, message: "No file uploaded" });
+  }
+  return res.status(200).json({ success: true, imageUrl: req.file.path });
+});
 
 const savedJobRoutes = require("./routes/savedJob.routes");
 app.use("/api/v1/saved-jobs", savedJobRoutes);
@@ -118,6 +137,18 @@ app.use("/api/v1/shortlist", shortlistRoutes);
 
 const settingsRoutes = require("./routes/settings.routes");
 app.use("/api/v1/settings", settingsRoutes);
+
+const projectRoutes = require("./routes/project.routes");
+app.use("/api/v1/projects", projectRoutes);
+
+const blogRoutes = require("./routes/blog.routes");
+app.use("/api/v1/blogs", blogRoutes);
+
+const testimonialRoutes = require("./routes/testimonial.routes");
+app.use("/api/v1/testimonials", testimonialRoutes);
+
+const galleryRoutes = require("./routes/gallery.routes");
+app.use("/api/v1/gallery", galleryRoutes);
 
 // 404 handler
 app.use((req, res) => {

@@ -1,5 +1,12 @@
 require("dotenv").config();
+const dns = require("dns");
+try {
+  dns.setServers(["8.8.8.8", "1.1.1.1"]);
+} catch (e) {
+  console.warn("DNS override failed:", e.message);
+}
 const mongoose = require("mongoose");
+mongoose.set("bufferCommands", false);
 const bcrypt = require("bcryptjs");
 const User = require("./src/models/user.model");
 const CompanyProfile = require("./src/models/companyProfile.model");
@@ -214,7 +221,8 @@ const seed = async () => {
 
     if (!adminUser) {
       console.log("No ADMIN user found. Creating a default ADMIN user...");
-      const hashedPassword = await bcrypt.hash("admin123", 10);
+      const password = process.env.ADMIN_PASSWORD || "infra@@2026";
+      const hashedPassword = await bcrypt.hash(password, 10);
       adminUser = await User.create({
         email: "admin@stryper.com",
         password: hashedPassword,
@@ -223,7 +231,7 @@ const seed = async () => {
         fullName: "Stryper Admin",
         accountStatus: "Active"
       });
-      console.log("Default ADMIN user created (admin@stryper.com / admin123)");
+      console.log(`Default ADMIN user created (admin@stryper.com / ${password})`);
     } else {
       console.log(`Found existing ADMIN user: ${adminUser.email}`);
     }
