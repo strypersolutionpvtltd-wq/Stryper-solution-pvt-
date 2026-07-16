@@ -22,6 +22,7 @@ const AdminUsers = () => {
   const [activeMenu, setActiveMenu] = useState(null);
   const [selectedUser, setSelectedUser] = useState(null);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+  const [deletingId, setDeletingId] = useState(null);
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -59,11 +60,27 @@ const AdminUsers = () => {
     );
   }, [users, searchTerm]);
 
-  const handleDelete = (id, name) => {
-    // API deletion endpoint not explicitly defined, but we can do local state filter
-    setUsers(users.filter(u => u.id !== id));
-    toast.success(`${name} has been removed.`);
+  const handleDelete = async (id, name) => {
+    const confirmed = window.confirm(`"${name}" ko permanently delete karna chahte hain? Yeh action undo nahi ho sakta.`);
+    if (!confirmed) return;
+
+    setDeletingId(id);
     setActiveMenu(null);
+    try {
+      const res = await admin.deleteUser(id);
+      if (res.data?.success) {
+        // Only remove from local state AFTER backend confirms deletion
+        setUsers(prev => prev.filter(u => u.id !== id));
+        toast.success(`${name} has been permanently deleted.`);
+      } else {
+        toast.error(res.data?.message || 'Failed to delete user.');
+      }
+    } catch (err) {
+      console.error('Delete user error:', err);
+      toast.error(err.response?.data?.message || 'Server error: Could not delete user.');
+    } finally {
+      setDeletingId(null);
+    }
   };
 
   const handleStatusToggle = async (id, currentStatus) => {
@@ -216,10 +233,11 @@ const AdminUsers = () => {
                               </button>
                               <button 
                                 onClick={() => handleDelete(user.id, user.name)}
-                                className="w-full flex items-center gap-2 px-4 py-2.5 text-xs font-medium text-red-400 hover:bg-red-500/10 transition-colors"
+                                disabled={deletingId === user.id}
+                                className="w-full flex items-center gap-2 px-4 py-2.5 text-xs font-medium text-red-400 hover:bg-red-500/10 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                               >
-                                <Trash2 size={14} />
-                                Delete User
+                                {deletingId === user.id ? <Loader2 size={14} className="animate-spin" /> : <Trash2 size={14} />}
+                                {deletingId === user.id ? 'Deleting...' : 'Delete User'}
                               </button>
                             </div>
                           )}

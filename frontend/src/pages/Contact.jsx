@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 import PageHero from "@/components/shared/PageHero";
 import { COMPANY_INFO } from "@/data/companyInfo";
 import FAQSection from "@/components/shared/FAQSection";
+import { contact as contactApi } from "@/utils/api";
 import {
   fadeInUp,
   fadeInLeft,
@@ -469,15 +470,9 @@ const ContactForm = () => {
     setError("");
 
     try {
-      const response = await fetch("http://localhost:8080/api/v1/contact", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(form),
-      });
+      const response = await contactApi.send(form);
 
-      const data = await response.json();
+      const data = response.data;
 
       if (data.success) {
         setSubmitted(true);
