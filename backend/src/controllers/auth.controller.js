@@ -435,16 +435,14 @@ const verifyEmail = async (req, res) => {
       });
     }
 
-    const isBypassOtp = otp === "123456" || otp === "000000" || (process.env.NODE_ENV !== "production");
-
-    if (!isBypassOtp && (!user.verificationOtp || user.verificationOtp !== otp)) {
+    if (!user.verificationOtp || user.verificationOtp !== otp) {
       return res.status(400).json({
         success: false,
         message: "Invalid verification code",
       });
     }
 
-    if (!isBypassOtp && user.verificationOtpExpires && user.verificationOtpExpires < new Date()) {
+    if (user.verificationOtpExpires && user.verificationOtpExpires < new Date()) {
       return res.status(400).json({
         success: false,
         message: "Verification code has expired. Please request a new one.",
@@ -620,16 +618,14 @@ const verifyResetOtp = async (req, res) => {
       });
     }
 
-    const isBypassOtp = otp === "123456" || otp === "000000" || (process.env.NODE_ENV !== "production");
-
-    if (!isBypassOtp && (!user.resetPasswordOtp || user.resetPasswordOtp !== otp)) {
+    if (!user.resetPasswordOtp || user.resetPasswordOtp !== otp) {
       return res.status(400).json({
         success: false,
         message: "Invalid verification code",
       });
     }
 
-    if (!isBypassOtp && user.resetPasswordOtpExpires && user.resetPasswordOtpExpires < new Date()) {
+    if (user.resetPasswordOtpExpires && user.resetPasswordOtpExpires < new Date()) {
       return res.status(400).json({
         success: false,
         message: "Verification code has expired. Please request a new one.",
@@ -793,16 +789,14 @@ const registerVerifiedUser = async (req, res) => {
 
     const { email, password, role, otp: expectedOtp, otpExpires } = decoded;
 
-    const isBypassOtp = otp === "123456" || otp === "000000" || (process.env.NODE_ENV !== "production");
-
-    if (!isBypassOtp && expectedOtp !== otp) {
+    if (expectedOtp !== otp) {
       return res.status(400).json({
         success: false,
         message: "Invalid verification code",
       });
     }
 
-    if (!isBypassOtp && otpExpires < Date.now()) {
+    if (otpExpires < Date.now()) {
       return res.status(400).json({
         success: false,
         message: "Verification code has expired. Please request a new one.",
