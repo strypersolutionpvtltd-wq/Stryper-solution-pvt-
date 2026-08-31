@@ -13,7 +13,7 @@ import toast from 'react-hot-toast';
 const mapJob = (j) => ({
   id:          j._id,
   title:       j.title,
-  company:     j.companyId?.companyName || 'Company',
+  company:     'Stryper Solution',
   desc:        j.description,
   location:    j.location,
   experience:  j.experience || 'Any',
@@ -900,22 +900,12 @@ const Jobs = () => {
       </section>
 
       {/* ── TOP COMPANIES STRIP ── */}
-      <section className="bg-white border-b border-neutral-100 py-4 overflow-hidden">
-        <div className="container mx-auto px-4 max-w-6xl">
-          <div className="flex items-center gap-6 overflow-x-auto scrollbar-hide">
-            <span className="text-xs font-semibold text-neutral-400 uppercase tracking-wide shrink-0">Top Hiring:</span>
-            {topCompanies.length === 0 ? (
-              Array.from({ length: 4 }).map((_, i) => (
-                <div key={i} className="flex items-center gap-2 shrink-0 animate-pulse">
-                  <div className="w-10 h-10 rounded-xl bg-neutral-100" />
-                  <div className="space-y-1">
-                    <div className="h-3 w-20 bg-neutral-100 rounded" />
-                    <div className="h-2 w-14 bg-neutral-100 rounded" />
-                  </div>
-                </div>
-              ))
-            ) : (
-              topCompanies.map(c => (
+      {topCompanies.length > 0 && (
+        <section className="bg-white border-b border-neutral-100 py-4 overflow-hidden">
+          <div className="container mx-auto px-4 max-w-6xl">
+            <div className="flex items-center gap-6 overflow-x-auto scrollbar-hide">
+              <span className="text-xs font-semibold text-neutral-400 uppercase tracking-wide shrink-0">Top Hiring:</span>
+              {topCompanies.map(c => (
                 <div key={c.name} className="flex items-center gap-2 shrink-0 cursor-pointer group">
                   <CompanyLogo name={c.name} />
                   <div>
@@ -923,11 +913,11 @@ const Jobs = () => {
                     <p className="text-[10px] text-neutral-400">{c.jobs} opening{c.jobs !== 1 ? 's' : ''}</p>
                   </div>
                 </div>
-              ))
-            )}
+              ))}
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       {/* ── MAIN CONTENT ── */}
       <div className="container mx-auto px-4 max-w-6xl py-8">

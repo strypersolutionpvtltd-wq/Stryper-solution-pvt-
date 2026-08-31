@@ -1,8 +1,8 @@
 const nodemailer = require("nodemailer");
 require("dotenv").config();
 
-const user = "aman.nayak@strypersolution.com";
-const pass = "Stryper2026@";
+const user = process.env.SMTP_USER || "rishabh.saini@strypersolution.com";
+const pass = process.env.SMTP_PASS || "StryperSolution@098";
 
 const configs = [
   { host: "smtpout.secureserver.net", port: 465, secure: true, name: "GoDaddy smtpout Port 465 SSL/TLS" },

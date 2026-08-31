@@ -614,6 +614,171 @@ const removePartner = async (req, res) => {
   }
 };
 
+// @desc    Approve or Reject a pending job (Admin)
+// @route   PATCH /api/v1/admin/jobs/:id/approve
+// @access  Private (Admin)
+const approveJob = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { action, rejectionReason } = req.body;
+    const adminUserId = req.user?.id;
+
+    if (!action || !["approve", "reject"].includes(action)) {
+      return res.status(400).json({ success: false, message: 'Action must be "approve" or "reject"' });
+    }
+
+    const job = await Job.findById(id);
+    if (!job) {
+      return res.status(404).json({ success: false, message: "Job not found" });
+    }
+
+    const Notification = require("../models/notification.model");
+
+    if (action === "approve") {
+      job.status = "Active";
+      await job.save();
+
+      try {
+        const company = await CompanyProfile.findById(job.companyId);
+        if (company) {
+          await Notification.create({
+            userId: company.userId,
+            title: "Job Approved & Live",
+            message: `Your job posting "${job.title}" has been approved and is now live.`,
+            type: "JobPosting",
+            relatedId: job._id,
+            relatedModel: "Job",
+            actionUrl: `/hire-zone/manage-jobs`,
+          });
+        }
+      } catch (notifErr) {
+        console.warn("Could not send company notification for job approval:", notifErr.message);
+      }
+
+      return res.status(200).json({ success: true, message: "Job approved and is now live", job });
+    } else {
+      job.status = "Rejected";
+      await job.save();
+
+      try {
+        const company = await CompanyProfile.findById(job.companyId);
+        if (company) {
+          await Notification.create({
+            userId: company.userId,
+            title: "Job Posting Rejected",
+            message: `Your job posting "${job.title}" was not approved.${rejectionReason ? ` Reason: ${rejectionReason}` : ""}`,
+            type: "JobPosting",
+            relatedId: job._id,
+            relatedModel: "Job",
+            actionUrl: `/hire-zone/manage-jobs`,
+          });
+        }
+      } catch (notifErr) {
+        console.warn("Could not send company notification for job rejection:", notifErr.message);
+      }
+
+      return res.status(200).json({ success: true, message: "Job rejected", job });
+    }
+  } catch (error) {
+    console.error("approveJob error:", error);
+    return res.status(500).json({ success: false, message: "Failed to process job approval", error: error.message });
+  }
+};
+
+// @desc    Forward or Reject a pending application (Admin)
+// @route   PATCH /api/v1/admin/applications/:id/review
+// @access  Private (Admin)
+const reviewApplication = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { action, note } = req.body;
+    const adminUserId = req.user?.id;
+
+    if (!action || !["forward", "reject"].includes(action)) {
+      return res.status(400).json({ success: false, message: 'Action must be "forward" or "reject"' });
+    }
+
+    const application = await JobApplication.findById(id)
+      .populate("jobId", "title companyId isStryper")
+      .populate("candidateId", "firstName lastName")
+      .populate("userId", "email");
+
+    if (!application) {
+      return res.status(404).json({ success: false, message: "Application not found" });
+    }
+
+    const Notification = require("../models/notification.model");
+    const candidateName = application.candidateId
+      ? `${application.candidateId.firstName} ${application.candidateId.lastName}`.trim()
+      : "A candidate";
+    const jobTitle = application.jobId?.title || "a position";
+
+    application.adminReviewNote = note || "";
+    application.adminReviewedAt = new Date();
+    application.adminReviewedBy = adminUserId;
+
+    if (action === "forward") {
+      application.status = "Applied";
+      await application.save();
+
+      try {
+        const company = await CompanyProfile.findById(application.companyId);
+        if (company && company.newApplicationNotif !== false) {
+          await Notification.create({
+            userId: company.userId,
+            title: "New Application",
+            message: `${candidateName} applied for "${jobTitle}"`,
+            type: "Application",
+            relatedId: application._id,
+            relatedModel: "JobApplication",
+            actionUrl: `/hire-zone/applicants`,
+          });
+        }
+
+        await Notification.create({
+          userId: application.userId,
+          title: "Application Forwarded",
+          message: `Your application for "${jobTitle}" is now being reviewed by the company.`,
+          type: "Application",
+          relatedId: application.jobId?._id,
+          relatedModel: "Job",
+          actionUrl: `/career-hub/applied-jobs`,
+        });
+      } catch (notifErr) {
+        console.warn("Could not send forward notifications:", notifErr.message);
+      }
+
+      return res.status(200).json({ success: true, message: "Application forwarded to company", application });
+    } else {
+      application.status = "AdminRejected";
+      await application.save();
+
+      try {
+        await Notification.create({
+          userId: application.userId,
+          title: "Application Update",
+          message: `Your application for "${jobTitle}" was not shortlisted at this time.${note ? " " + note : ""}`,
+          type: "Application",
+          relatedId: application.jobId?._id,
+          relatedModel: "Job",
+          actionUrl: `/career-hub/applied-jobs`,
+        });
+      } catch (notifErr) {
+        console.warn("Could not send rejection notification:", notifErr.message);
+      }
+
+      if (application.jobId?._id) {
+        await Job.findByIdAndUpdate(application.jobId._id, { $inc: { applicationCount: -1 } });
+      }
+
+      return res.status(200).json({ success: true, message: "Application rejected", application });
+    }
+  } catch (error) {
+    console.error("reviewApplication error:", error);
+    return res.status(500).json({ success: false, message: "Failed to review application", error: error.message });
+  }
+};
+
 module.exports = {
   getPlatformStats,
   getAllUsers,
@@ -627,6 +792,8 @@ module.exports = {
   updatePartnerStatus,
   removePartner,
   getCompanyList,
+  approveJob,
+  reviewApplication,
 };
 
 // @desc    Get all companies (for admin dropdowns)

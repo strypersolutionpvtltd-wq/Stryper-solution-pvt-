@@ -9,7 +9,17 @@ import { MOCK_JOBS } from '@/hire-zone/data/mockJobs';
 import toast from 'react-hot-toast';
 import { Loader2, X, MapPin, Save } from 'lucide-react';
 
-const STATUS_FILTERS = ['All', 'Active', 'Draft', 'Paused', 'Closed'];
+const STATUS_FILTERS = ['All', 'Active', 'PendingApproval', 'Draft', 'Paused', 'Closed', 'Rejected'];
+
+const FILTER_LABELS = {
+  All:             'All',
+  Active:          'Active',
+  PendingApproval: 'Pending Approval',
+  Draft:           'Draft',
+  Paused:          'Paused',
+  Closed:          'Closed',
+  Rejected:        'Rejected',
+};
 
 const WORK_MODES = ['On-site', 'Remote', 'Hybrid'];
 const EMPLOYMENT_TYPES = ['Full-time', 'Part-time', 'Contract', 'Internship', 'Freelance'];
@@ -618,11 +628,13 @@ const ManageJobs = () => {
   };
 
   const counts = {
-    All:    jobsList.length,
-    Active: jobsList.filter(j => j.status === 'Active').length,
-    Draft:  jobsList.filter(j => j.status === 'Draft').length,
-    Paused: jobsList.filter(j => j.status === 'Paused').length,
-    Closed: jobsList.filter(j => j.status === 'Closed').length,
+    All:             jobsList.length,
+    Active:          jobsList.filter(j => j.status === 'Active').length,
+    PendingApproval: jobsList.filter(j => j.status === 'PendingApproval').length,
+    Draft:           jobsList.filter(j => j.status === 'Draft').length,
+    Paused:          jobsList.filter(j => j.status === 'Paused').length,
+    Closed:          jobsList.filter(j => j.status === 'Closed').length,
+    Rejected:        jobsList.filter(j => j.status === 'Rejected').length,
   };
 
   return (
@@ -659,16 +671,16 @@ const ManageJobs = () => {
               </button>
             )}
           </div>
-          <div className="flex items-center gap-1 bg-neutral-100 rounded-xl p-1">
+          <div className="flex items-center gap-1 bg-neutral-100 rounded-xl p-1 overflow-x-auto">
             {STATUS_FILTERS.map(s => (
               <button
                 key={s}
                 onClick={() => setStatusFilter(s)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all ${
                   statusFilter === s ? 'bg-white text-neutral-900 shadow-sm' : 'text-neutral-500 hover:text-neutral-700'
                 }`}
               >
-                {s} <span className="ml-0.5 opacity-60">({counts[s]})</span>
+                {FILTER_LABELS[s] ?? s} <span className="ml-0.5 opacity-60">({counts[s] ?? 0})</span>
               </button>
             ))}
           </div>

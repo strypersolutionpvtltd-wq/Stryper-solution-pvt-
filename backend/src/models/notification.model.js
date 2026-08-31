@@ -25,6 +25,7 @@ const notificationSchema = new mongoose.Schema(
       enum: [
         "Application",
         "Interview",
+        "Job",
         "JobPosting",
         "Message",
         "Status",

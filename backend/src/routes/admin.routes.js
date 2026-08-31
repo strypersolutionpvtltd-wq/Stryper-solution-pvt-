@@ -12,6 +12,8 @@ const {
   updatePartnerStatus,
   removePartner,
   getCompanyList,
+  approveJob,
+  reviewApplication,
 } = require("../controllers/admin.controller");
 const { protect: authMiddleware, authorizeRoles } = require("../middleware/auth.middleware");
 
@@ -34,5 +36,9 @@ router.delete("/partners/:id", authMiddleware, authorizeRoles("ADMIN"), removePa
 
 // Company list for dropdowns
 router.get("/company-list", authMiddleware, authorizeRoles("ADMIN"), getCompanyList);
+
+// Job approval & application review routes
+router.patch("/jobs/:id/approve", authMiddleware, authorizeRoles("ADMIN"), approveJob);
+router.patch("/applications/:id/review", authMiddleware, authorizeRoles("ADMIN"), reviewApplication);
 
 module.exports = router;

@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, Briefcase, MapPin, Users, IndianRupee, Trash2, Eye, X, Save, Loader2, Plus, Pencil } from 'lucide-react';
+import { Search, Briefcase, MapPin, Users, IndianRupee, Trash2, Eye, X, Save, Loader2, Plus, Pencil, Check, XCircle } from 'lucide-react';
 import { admin, jobs as jobsApi } from '@/utils/api';
 import toast from 'react-hot-toast';
 
@@ -452,11 +452,14 @@ const AdminJobs = () => {
   const [jobs, setJobs] = useState([]);
   const [companies, setCompanies] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [activeCategory, setActiveCategory] = useState('external');
+  const [activeCategory, setActiveCategory] = useState('pending');
   const [searchTerm, setSearchText] = useState('');
   const [modal, setModal] = useState(null);
   const [editingJob, setEditingJob] = useState(null);
   const [viewingJob, setViewingJob] = useState(null);
+  const [rejectingJob, setRejectingJob] = useState(null);
+  const [rejectReason, setRejectReason] = useState('');
+  const [actionLoading, setActionLoading] = useState(false);
 
   const fetchJobs = async () => {
     setLoading(true);
@@ -468,7 +471,7 @@ const AdminJobs = () => {
           company: j.companyId?.companyName || 'Stryper Solution',
           location: j.location || 'Remote',
           applicants: j.applicationCount || 0,
-          salary: j.salaryMin && j.salaryMax ? `â‚¹${(j.salaryMin/100000).toFixed(0)}L - â‚¹${(j.salaryMax/100000).toFixed(0)}L` : 'N/A',
+          salary: j.salaryMin && j.salaryMax ? `₹${(j.salaryMin/100000).toFixed(0)}L - ₹${(j.salaryMax/100000).toFixed(0)}L` : 'N/A',
           status: j.status || 'Active',
           isStryper: j.isStryper === true,
           raw: j,
@@ -524,18 +527,71 @@ const AdminJobs = () => {
       if (res.data?.success) {
         setJobs(p=>p.map(j=>j.id===id?{...j,status:newStatus}:j));
         setViewingJob(p=>p?{...p,status:newStatus}:p);
-        toast.success(`Status â†’ ${newStatus}`);
+        toast.success(`Status → ${newStatus}`);
       }
     } catch { toast.error('Failed to update status'); }
   };
 
+  const handleApproveJob = async (id) => {
+    setActionLoading(true);
+    try {
+      const res = await admin.approveJob(id, { action: 'approve' });
+      if (res.data?.success) {
+        toast.success('Job approved & is now live!');
+        setJobs(prev => prev.map(j => j.id === id ? { ...j, status: 'Active' } : j));
+        if (viewingJob?.id === id) setViewingJob(p => p ? { ...p, status: 'Active' } : p);
+      }
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to approve job');
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleRejectJob = async () => {
+    if (!rejectingJob) return;
+    setActionLoading(true);
+    try {
+      const res = await admin.approveJob(rejectingJob.id, {
+        action: 'reject',
+        rejectionReason: rejectReason.trim(),
+      });
+      if (res.data?.success) {
+        toast.success('Job rejected.');
+        setJobs(prev => prev.map(j => j.id === rejectingJob.id ? { ...j, status: 'Rejected' } : j));
+        if (viewingJob?.id === rejectingJob.id) setViewingJob(p => p ? { ...p, status: 'Rejected' } : p);
+        setRejectingJob(null);
+        setRejectReason('');
+      }
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to reject job');
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const pendingCount = useMemo(() => jobs.filter(j => j.status === 'PendingApproval').length, [jobs]);
+  const externalCount = useMemo(() => jobs.filter(j => !j.isStryper).length, [jobs]);
+  const internalCount = useMemo(() => jobs.filter(j => j.isStryper).length, [jobs]);
+
   const filtered = useMemo(() => jobs.filter(j => {
     const matchSearch = (j.title?.toLowerCase()||'').includes(searchTerm.toLowerCase()) || (j.company?.toLowerCase()||'').includes(searchTerm.toLowerCase());
-    const matchCat = activeCategory==='internal' ? j.isStryper===true : j.isStryper!==true;
+    let matchCat = true;
+    if (activeCategory === 'pending') matchCat = j.status === 'PendingApproval';
+    else if (activeCategory === 'external') matchCat = j.isStryper !== true;
+    else if (activeCategory === 'internal') matchCat = j.isStryper === true;
     return matchSearch && matchCat;
   }), [jobs, searchTerm, activeCategory]);
 
-  const statusColors = { Active:'bg-emerald-500/10 text-emerald-500', Paused:'bg-amber-500/10 text-amber-500', Draft:'bg-neutral-500/10 text-neutral-400', Closed:'bg-red-500/10 text-red-500', Archived:'bg-amber-500/10 text-amber-400' };
+  const statusColors = {
+    Active:          'bg-emerald-500/10 text-emerald-500 border-emerald-500/20',
+    PendingApproval: 'bg-amber-500/10 text-amber-400 border-amber-500/20',
+    Rejected:        'bg-red-500/10 text-red-400 border-red-500/20',
+    Paused:          'bg-amber-500/10 text-amber-500 border-amber-500/20',
+    Draft:           'bg-neutral-500/10 text-neutral-400 border-neutral-500/20',
+    Closed:          'bg-red-500/10 text-red-500 border-red-500/20',
+    Archived:        'bg-amber-500/10 text-amber-400 border-amber-500/20',
+  };
 
   return (
     <motion.div initial="hidden" animate="visible" variants={{visible:{transition:{staggerChildren:0.05}}}} className="space-y-6 pb-10 text-white">
@@ -549,11 +605,45 @@ const AdminJobs = () => {
       />
       <ViewJobModal isOpen={!!viewingJob} job={viewingJob} onClose={()=>setViewingJob(null)} onStatusChange={handleStatusChange}/>
 
+      {/* Reject Modal */}
+      <AnimatePresence>
+        {rejectingJob && (
+          <div className="fixed inset-0 z-[120] flex items-center justify-center p-4">
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setRejectingJob(null)} className="absolute inset-0 bg-black/80 backdrop-blur-sm" />
+            <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} className="relative bg-[#0f0f0f] border border-white/10 rounded-2xl w-full max-w-md p-6 shadow-2xl text-white">
+              <h3 className="text-lg font-bold mb-1 flex items-center gap-2 text-red-400">
+                <XCircle size={20} /> Reject Job Posting
+              </h3>
+              <p className="text-xs text-neutral-400 mb-4">
+                Provide a reason for rejecting <strong className="text-white">"{rejectingJob.title}"</strong> (optional, will be sent to the company).
+              </p>
+              <textarea
+                rows={3}
+                value={rejectReason}
+                onChange={e => setRejectReason(e.target.value)}
+                placeholder="e.g. Incomplete job description, invalid salary range..."
+                className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-sm text-white focus:outline-none focus:ring-1 focus:ring-red-500/50 resize-none mb-4 placeholder:text-neutral-600"
+              />
+              <div className="flex gap-2 justify-end">
+                <button onClick={() => setRejectingJob(null)} className="px-4 py-2 rounded-xl text-xs font-semibold text-neutral-400 hover:text-white hover:bg-white/5 transition-colors">Cancel</button>
+                <button
+                  onClick={handleRejectJob}
+                  disabled={actionLoading}
+                  className="px-4 py-2 rounded-xl text-xs font-bold text-white bg-red-600 hover:bg-red-700 transition-all disabled:opacity-50 flex items-center gap-1.5 shadow-lg shadow-red-600/20"
+                >
+                  {actionLoading ? <Loader2 size={13} className="animate-spin" /> : <XCircle size={13} />} Confirm Reject
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h2 className="text-2xl font-bold text-white tracking-tight">Job Moderation</h2>
-          <p className="text-neutral-500 text-sm mt-1">Review and manage {jobs.length} job postings.</p>
+          <p className="text-neutral-500 text-sm mt-1">Review, approve, and manage {jobs.length} job postings.</p>
         </div>
         <div className="flex flex-wrap items-center gap-3">
           <button onClick={()=>setModal('internal')}
@@ -573,14 +663,27 @@ const AdminJobs = () => {
       </div>
 
       {/* Tabs */}
-      <div className="flex items-center gap-1 bg-white/5 p-1 rounded-2xl w-fit border border-white/5">
+      <div className="flex items-center gap-1 bg-white/5 p-1 rounded-2xl w-fit border border-white/5 overflow-x-auto">
+        <button onClick={()=>setActiveCategory('pending')}
+          className={`flex items-center gap-1.5 px-5 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${activeCategory==='pending'?'bg-amber-500 text-neutral-950 shadow-lg font-extrabold':'text-amber-400 hover:text-white hover:bg-white/5'}`}>
+          Pending Approval
+          {pendingCount > 0 && (
+            <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-bold ${activeCategory==='pending' ? 'bg-black text-amber-400' : 'bg-amber-500/20 text-amber-400'}`}>
+              {pendingCount}
+            </span>
+          )}
+        </button>
         <button onClick={()=>setActiveCategory('external')}
-          className={`px-6 py-2 rounded-xl text-xs font-bold transition-all ${activeCategory==='external'?'bg-[#8B3A8F] text-white shadow-lg':'text-neutral-500 hover:text-white hover:bg-white/5'}`}>
-          External Jobs
+          className={`px-5 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${activeCategory==='external'?'bg-[#8B3A8F] text-white shadow-lg':'text-neutral-500 hover:text-white hover:bg-white/5'}`}>
+          External Jobs ({externalCount})
         </button>
         <button onClick={()=>setActiveCategory('internal')}
-          className={`px-6 py-2 rounded-xl text-xs font-bold transition-all ${activeCategory==='internal'?'bg-[#8B3A8F] text-white shadow-lg':'text-neutral-500 hover:text-white hover:bg-white/5'}`}>
-          Internal Jobs
+          className={`px-5 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${activeCategory==='internal'?'bg-[#8B3A8F] text-white shadow-lg':'text-neutral-500 hover:text-white hover:bg-white/5'}`}>
+          Internal Jobs ({internalCount})
+        </button>
+        <button onClick={()=>setActiveCategory('all')}
+          className={`px-5 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${activeCategory==='all'?'bg-[#8B3A8F] text-white shadow-lg':'text-neutral-500 hover:text-white hover:bg-white/5'}`}>
+          All Jobs ({jobs.length})
         </button>
       </div>
 
@@ -609,7 +712,7 @@ const AdminJobs = () => {
                   </td></tr>
                 ) : filtered.length === 0 ? (
                   <tr><td colSpan={6} className="px-6 py-20 text-center text-neutral-500 text-sm">
-                    {searchTerm ? `No jobs matching "${searchTerm}"` : `No ${activeCategory} jobs yet.`}
+                    {searchTerm ? `No jobs matching "${searchTerm}"` : activeCategory === 'pending' ? '🎉 No pending jobs to review!' : `No ${activeCategory} jobs yet.`}
                   </td></tr>
                 ) : filtered.map(job => (
                   <motion.tr layout initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0,scale:0.95}} key={job.id}
@@ -626,9 +729,27 @@ const AdminJobs = () => {
                     <td className="px-6 py-4"><div className="flex items-center gap-1.5 text-neutral-400 text-xs"><MapPin size={12}/>{job.location}</div></td>
                     <td className="px-6 py-4"><div className="flex items-center gap-1.5 text-neutral-400 text-xs"><Users size={12}/>{job.applicants} Applied</div></td>
                     <td className="px-6 py-4"><div className="flex items-center gap-1 text-emerald-500 text-xs font-bold"><IndianRupee size={12}/>{job.salary}</div></td>
-                    <td className="px-6 py-4"><span className={`text-[10px] font-bold px-2 py-1 rounded-full ${statusColors[job.status]||'bg-neutral-500/10 text-neutral-400'}`}>{job.status}</span></td>
+                    <td className="px-6 py-4"><span className={`text-[10px] font-bold px-2 py-1 rounded-full border ${statusColors[job.status]||'bg-neutral-500/10 text-neutral-400'}`}>{job.status === 'PendingApproval' ? 'Pending Approval' : job.status}</span></td>
                     <td className="px-6 py-4 text-right">
                       <div className="flex items-center justify-end gap-1">
+                        {job.status === 'PendingApproval' && (
+                          <>
+                            <button
+                              onClick={e => { e.stopPropagation(); handleApproveJob(job.id); }}
+                              title="Approve Job"
+                              className="p-2 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/20 transition-colors"
+                            >
+                              <Check size={15} />
+                            </button>
+                            <button
+                              onClick={e => { e.stopPropagation(); setRejectingJob(job); }}
+                              title="Reject Job"
+                              className="p-2 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 transition-colors"
+                            >
+                              <X size={15} />
+                            </button>
+                          </>
+                        )}
                         <button onClick={e=>{e.stopPropagation();setViewingJob(job);}} title="View" className="p-2 rounded-lg hover:bg-white/5 text-neutral-400 hover:text-white transition-colors"><Eye size={16}/></button>
                         <button onClick={e=>{e.stopPropagation();setEditingJob(job);setModal('edit');}} title="Edit" className="p-2 rounded-lg hover:bg-brand-purple-600/10 text-neutral-400 hover:text-brand-purple-400 transition-colors"><Pencil size={15}/></button>
                         <button onClick={e=>{e.stopPropagation();handleDelete(job.id,job.title);}} title="Delete" className="p-2 rounded-lg hover:bg-red-500/10 text-neutral-400 hover:text-red-500 transition-colors"><Trash2 size={16}/></button>

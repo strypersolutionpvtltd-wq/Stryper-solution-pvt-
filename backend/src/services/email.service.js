@@ -17,7 +17,6 @@ const transporter = nodemailer.createTransport({
   },
   tls: {
     rejectUnauthorized: false,
-    ciphers: "SSLv3", // Solve legacy TLS reset on secureserver
   },
   connectionTimeout: 20000, 
   socketTimeout: 30000,

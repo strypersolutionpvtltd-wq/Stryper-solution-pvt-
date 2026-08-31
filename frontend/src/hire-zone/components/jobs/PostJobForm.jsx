@@ -336,7 +336,7 @@ const PostJobForm = () => {
       setSubmitted(true);
       
       // Show success toast
-      toast.success(draft ? 'Job draft saved successfully!' : 'Job published successfully!');
+      toast.success(draft ? 'Job draft saved successfully!' : 'Job submitted for admin approval. You will be notified once approved.');
       
       // Redirect after 2 seconds
       setTimeout(() => {
@@ -380,12 +380,12 @@ const PostJobForm = () => {
           )}
         </div>
         <h2 className="text-xl font-bold text-neutral-900 mb-2">
-          {isDraft ? 'Draft Saved!' : 'Job Posted Successfully!'}
+          {isDraft ? 'Draft Saved!' : 'Job Submitted for Approval!'}
         </h2>
         <p className="text-neutral-500 text-sm mb-6 max-w-sm">
           {isDraft
             ? 'Your job draft has been saved. You can publish it anytime from Manage Jobs.'
-            : `"${form.title}" is now live and accepting applications.`}
+            : `"${form.title}" has been submitted for admin review. You will be notified once it is approved and goes live.`}
         </p>
         <button
           onClick={handleReset}
@@ -667,7 +667,7 @@ const PostJobForm = () => {
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <polyline points="22 2 15 22 11 13 2 9 22 2"/>
           </svg>
-          Publish Job
+          Submit for Approval
         </motion.button>
       </div>
     </div>

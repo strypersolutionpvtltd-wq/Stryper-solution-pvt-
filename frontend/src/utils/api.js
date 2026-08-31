@@ -165,6 +165,10 @@ export const admin = {
   removePartner: (id) => api.delete(`/admin/partners/${id}`),
   // Company list for dropdowns
   getCompanyList: () => api.get('/admin/company-list'),
+  // Job approval
+  approveJob: (id, data) => api.patch(`/admin/jobs/${id}/approve`, data),
+  // Application review (forward to company or reject)
+  reviewApplication: (id, data) => api.patch(`/admin/applications/${id}/review`, data),
 };
 
 // Upload endpoints

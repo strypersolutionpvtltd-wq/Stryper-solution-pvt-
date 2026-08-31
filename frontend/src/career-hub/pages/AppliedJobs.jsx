@@ -2,12 +2,19 @@ import { useState, useEffect } from 'react';
 import { jobApplications } from '@/utils/api';
 
 const STATUS_STYLES = {
+  'PendingAdminReview':  'bg-amber-50 text-amber-700 border-amber-200',
+  'AdminRejected':       'bg-red-50 text-red-600 border-red-200',
   'Applied':             'bg-blue-50 text-blue-700 border-blue-200',
   'Under Review':        'bg-blue-50 text-blue-700 border-blue-200',
   'Shortlisted':         'bg-green-50 text-green-700 border-green-200',
   'Rejected':            'bg-red-50 text-red-700 border-red-200',
   'Interview Scheduled': 'bg-purple-50 text-purple-700 border-purple-200',
   'Accepted':            'bg-emerald-50 text-emerald-700 border-emerald-200',
+};
+
+const STATUS_LABELS = {
+  'PendingAdminReview': 'Under Review',
+  'AdminRejected':      'Not Selected',
 };
 
 const AppliedJobs = () => {
@@ -21,7 +28,7 @@ const AppliedJobs = () => {
         const list = (res.data?.applications || []).map(app => ({
           id:          app._id,
           title:       app.jobId?.title || 'Job Position',
-          company:     app.jobId?.companyId?.companyName || app.companyId?.companyName || 'Company',
+          company:     'Stryper Solution',
           location:    app.jobId?.location || '—',
           appliedDate: app.createdAt ? new Date(app.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : '—',
           status:      app.status || 'Applied',
@@ -66,7 +73,7 @@ const AppliedJobs = () => {
                 <p className="text-xs text-neutral-400 mt-0.5">Applied {app.appliedDate}</p>
               </div>
               <span className={`shrink-0 px-3 py-1 rounded-full text-xs font-semibold border ${STATUS_STYLES[app.status] ?? 'bg-neutral-100 text-neutral-600 border-neutral-200'}`}>
-                {app.status}
+                {STATUS_LABELS[app.status] ?? app.status}
               </span>
             </div>
           ))

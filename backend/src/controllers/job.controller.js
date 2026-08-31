@@ -37,6 +37,14 @@ const createJob = async (req, res) => {
     const userObj = await User.findById(userId);
     const isAdmin = userObj && userObj.role === "ADMIN";
 
+    // Company users: force PendingApproval (except Draft). Admin: use requested status.
+    let finalStatus;
+    if (isAdmin) {
+      finalStatus = status || "Active";
+    } else {
+      finalStatus = status === "Draft" ? "Draft" : "PendingApproval";
+    }
+
     let companyIdToUse;
     if (isAdmin && req.body.companyId) {
       companyIdToUse = req.body.companyId;
@@ -84,7 +92,7 @@ const createJob = async (req, res) => {
       location: location || "",
       experience: experience || "",
       skills: skills || [],
-      status: status || "Draft",
+      status: finalStatus,
       workMode: workMode || "On-site",
       deadline: deadline || null,
       openings: openings ? parseInt(openings) : 1,
@@ -125,7 +133,7 @@ const getAllJobs = async (req, res) => {
     filter.$or = [{ isStryper: false }, { isStryper: { $exists: false } }, { isStryper: null }];
 
     const jobs = await Job.find(filter)
-      .populate("companyId", "companyName companyLogo location profileVisible")
+      .populate("companyId", "profileVisible")
       .skip((page - 1) * limit)
       .limit(parseInt(limit))
       .sort({ createdAt: -1 });
@@ -161,7 +169,7 @@ const getJobById = async (req, res) => {
     const { id } = req.params;
 
     const job = await Job.findById(id)
-      .populate("companyId", "companyName companyLogo website linkedin location email phone")
+      .populate("companyId", "profileVisible")
       .populate("postedBy", "email");
 
     if (!job) {

@@ -198,10 +198,12 @@ const SignUpForm = ({ type, onBack, onSwitchToSignIn, onClose, hideHeader, setIs
       if (error) newErrors[name] = error;
     });
 
-    // Validate resume for candidates
-    if (!isHire) {
-      if (!file) {
-        newErrors.resume = 'Please upload your resume';
+    // Validate resume if uploaded
+    if (file) {
+      const fileErr = validation.resume(file);
+      if (fileErr) {
+        newErrors.resume = fileErr;
+        setFileError(fileErr);
       }
     }
 
@@ -436,13 +438,13 @@ const SignUpForm = ({ type, onBack, onSwitchToSignIn, onClose, hideHeader, setIs
         {!isHire && (
           <div>
             <label className="block text-xs font-semibold text-neutral-600 mb-1.5">
-              Upload Resume / CV
+              Upload Resume / CV <span className="text-neutral-400 font-normal">(Optional)</span>
             </label>
             <label
               htmlFor="signup-resume"
               className={`flex flex-col items-center justify-center w-full py-6 rounded-xl border-2 border-dashed cursor-pointer transition-all ${
                 dragOver ? 'border-brand-purple-500 bg-brand-purple-50' : 
-                fileError ? 'border-red-300 bg-red-50' :
+                (fileError || errors.resume) ? 'border-red-300 bg-red-50' :
                 'border-neutral-200 hover:border-brand-purple-400 hover:bg-neutral-50'
               }`}
               onDragOver={e => { e.preventDefault(); setDragOver(true); }}
@@ -470,13 +472,13 @@ const SignUpForm = ({ type, onBack, onSwitchToSignIn, onClose, hideHeader, setIs
               )}
             </label>
             <AnimatePresence>
-              {fileError && (
+              {(fileError || errors.resume) && (
                 <motion.p
                   initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
                   className="text-xs text-red-500 mt-1 flex items-center gap-1"
                 >
                   <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>
-                  {fileError}
+                  {fileError || errors.resume}
                 </motion.p>
               )}
             </AnimatePresence>
