@@ -614,6 +614,106 @@ const removePartner = async (req, res) => {
   }
 };
 
+const deleteApplication = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const JobApplication = require("../models/jobApplication.model");
+    const app = await JobApplication.findById(id);
+    if (!app) {
+      return res.status(404).json({ success: false, message: "Application not found" });
+    }
+    await JobApplication.findByIdAndDelete(id);
+    return res.status(200).json({ success: true, message: "Application deleted successfully" });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+const updateApplicationStatus = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status } = req.body;
+    const JobApplication = require("../models/jobApplication.model");
+    const app = await JobApplication.findById(id);
+    if (!app) {
+      return res.status(404).json({ success: false, message: "Application not found" });
+    }
+    app.status = status;
+    await app.save();
+    return res.status(200).json({ success: true, message: `Application status updated to ${status}`, application: app });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+const getAllInquiries = async (req, res) => {
+  try {
+    const Inquiry = require("../models/inquiry.model");
+    const inquiries = await Inquiry.find().sort({ createdAt: -1 });
+    return res.status(200).json({ success: true, count: inquiries.length, inquiries });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+const updateInquiryStatus = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status } = req.body;
+    const Inquiry = require("../models/inquiry.model");
+    const inquiry = await Inquiry.findById(id);
+    if (!inquiry) {
+      return res.status(404).json({ success: false, message: "Inquiry not found" });
+    }
+    inquiry.status = status;
+    await inquiry.save();
+    return res.status(200).json({ success: true, message: `Inquiry status updated to ${status}`, inquiry });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+const deleteInquiry = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const Inquiry = require("../models/inquiry.model");
+    const inquiry = await Inquiry.findById(id);
+    if (!inquiry) {
+      return res.status(404).json({ success: false, message: "Inquiry not found" });
+    }
+    await Inquiry.findByIdAndDelete(id);
+    return res.status(200).json({ success: true, message: "Inquiry deleted successfully" });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+const getAdminSettings = async (req, res) => {
+  try {
+    const SystemSettings = require("../models/systemSettings.model");
+    let settings = await SystemSettings.findOne();
+    if (!settings) {
+      settings = await SystemSettings.create({});
+    }
+    return res.status(200).json({ success: true, settings });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+const updateAdminSettings = async (req, res) => {
+  try {
+    const SystemSettings = require("../models/systemSettings.model");
+    let settings = await SystemSettings.findOne();
+    if (!settings) {
+      settings = await SystemSettings.create({});
+    }
+    const updated = await SystemSettings.findByIdAndUpdate(settings._id, req.body, { new: true, runValidators: true });
+    return res.status(200).json({ success: true, settings: updated });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
 // @desc    Approve or Reject a pending job (Admin)
 // @route   PATCH /api/v1/admin/jobs/:id/approve
 // @access  Private (Admin)
@@ -791,6 +891,13 @@ module.exports = {
   addPartner,
   updatePartnerStatus,
   removePartner,
+  deleteApplication,
+  updateApplicationStatus,
+  getAllInquiries,
+  updateInquiryStatus,
+  deleteInquiry,
+  getAdminSettings,
+  updateAdminSettings,
   getCompanyList,
   approveJob,
   reviewApplication,

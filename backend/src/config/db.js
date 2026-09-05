@@ -1,4 +1,11 @@
 const mongoose = require("mongoose");
+const dns = require("dns");
+try {
+  dns.setServers(["8.8.8.8", "1.1.1.1"]);
+} catch (e) {
+  console.warn("DNS override failed:", e.message);
+}
+mongoose.set("bufferCommands", false);
 const { DB_NAME } = require("../constants");
 
 const connectDB = async () => {
@@ -10,7 +17,7 @@ const connectDB = async () => {
     console.log(`MongoDB Connected: ${conn.connection.host}`);
   } catch (error) {
     console.error(`MongoDB Connection Failed: ${error.message}`);
-    process.exit(1); // Exit process on connection failure
+    console.log("Proceeding with server startup (some database features may be unavailable)...");
   }
 };
 
