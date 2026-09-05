@@ -1,14 +1,49 @@
 const express = require("express");
-const { registerUser, loginUser, getMe, changePassword, logoutUser, deleteAccount } = require("../controllers/auth.controller");
+const { 
+  registerUser, 
+  loginUser, 
+  getMe, 
+  changePassword, 
+  logoutUser, 
+  deleteAccount,
+  verifyEmail,
+  resendOtp,
+  forgotPassword,
+  verifyResetOtp,
+  resetPassword,
+  sendSignupOtp,
+  registerVerifiedUser
+} = require("../controllers/auth.controller");
 const { protect, authorizeRoles } = require("../middleware/auth.middleware");
 
 const router = express.Router();
+
+// POST /api/v1/auth/send-signup-otp
+router.post("/send-signup-otp", sendSignupOtp);
+
+// POST /api/v1/auth/register-verified
+router.post("/register-verified", registerVerifiedUser);
 
 // POST /api/v1/auth/register
 router.post("/register", registerUser);
 
 // POST /api/v1/auth/login
 router.post("/login", loginUser);
+
+// POST /api/v1/auth/verify-email
+router.post("/verify-email", verifyEmail);
+
+// POST /api/v1/auth/resend-otp
+router.post("/resend-otp", resendOtp);
+
+// POST /api/v1/auth/forgot-password
+router.post("/forgot-password", forgotPassword);
+
+// POST /api/v1/auth/verify-reset-otp
+router.post("/verify-reset-otp", verifyResetOtp);
+
+// POST /api/v1/auth/reset-password
+router.post("/reset-password", resetPassword);
 
 // GET /api/v1/auth/me  (protected)
 router.get("/me", protect, getMe);

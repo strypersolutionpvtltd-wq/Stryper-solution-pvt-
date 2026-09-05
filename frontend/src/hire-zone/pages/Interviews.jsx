@@ -110,6 +110,14 @@ const ScheduleModal = ({ onClose, onSubmit, applications }) => {
     if (!form.applicationId) e.applicationId = 'Select a candidate';
     if (!form.date)           e.date          = 'Required';
     if (!form.time)           e.time          = 'Required';
+
+    if (form.date && form.time) {
+      const scheduledDateTime = new Date(`${form.date}T${form.time}:00`);
+      const minAllowedTime = new Date(Date.now() + 30 * 60 * 1000);
+      if (scheduledDateTime < minAllowedTime) {
+        e.time = 'Time must be at least 30 minutes in the future';
+      }
+    }
     return e;
   };
 
@@ -288,14 +296,7 @@ const Interviews = () => {
 
       setInterviewsList(ivs);
 
-      // Only exclude applications that have an ACTIVE (non-cancelled) interview
-      const scheduledAppIds = new Set(
-        ivs.filter(iv => iv.status !== 'Cancelled').map(iv => String(iv.applicationId))
-      );
-      const pending = (appRes.data.applications || []).filter(
-        a => !scheduledAppIds.has(String(a.id))
-      );
-      setApplications(pending);
+      setApplications(appRes.data.applications || []);
     } catch (err) {
       console.error('Failed to load interviews:', err);
       toast.error('Failed to load interviews');
@@ -328,7 +329,6 @@ const Interviews = () => {
       };
 
       setInterviewsList(prev => [newIv, ...prev]);
-      setApplications(prev => prev.filter(a => a.id !== formData.applicationId));
       setShowModal(false);
       toast.success(`Interview scheduled for ${newIv.candidate}`);
     } catch (err) {

@@ -113,15 +113,6 @@ const Footer = () => {
           <div className="space-y-5">
             <h3 className="text-xs font-semibold text-neutral-200 uppercase tracking-widest">Contact Us</h3>
             <ul className="space-y-4">
-              <li className="flex items-start gap-3">
-                <div className="w-8 h-8 rounded-lg bg-neutral-800 flex items-center justify-center shrink-0 mt-0.5">
-                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1C4.79 1 3 2.79 3 5c0 3.25 4 8 4 8s4-4.75 4-8c0-2.21-1.79-4-4-4z" stroke="#a78bfa" strokeWidth="1.3"/><circle cx="7" cy="5" r="1.5" stroke="#a78bfa" strokeWidth="1.2"/></svg>
-                </div>
-                <address className="not-italic text-sm text-neutral-500 leading-relaxed">
-                  {COMPANY_INFO.address.line1},<br />
-                  {COMPANY_INFO.address.city}, {COMPANY_INFO.address.state} — {COMPANY_INFO.address.pin}
-                </address>
-              </li>
               <li className="flex items-center gap-3">
                 <div className="w-8 h-8 rounded-lg bg-neutral-800 flex items-center justify-center shrink-0">
                   <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 2.5C2 2.22 2.22 2 2.5 2h2l1 2.5-1.5 1c.5 1.5 2 3 3.5 3.5l1-1.5L11 8.5v2c0 .28-.22.5-.5.5C5.15 11 2 7.85 2 4v-1.5z" stroke="#a78bfa" strokeWidth="1.3" strokeLinejoin="round"/></svg>

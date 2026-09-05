@@ -22,9 +22,15 @@ export const AuthProvider = ({ children }) => {
     if (token && user) {
       try {
         const parsedUser = JSON.parse(user);
-        setUserData(parsedUser);
-        setUserRole(parsedUser.role);
-        setIsLoggedIn(true);
+        if (parsedUser.isVerified) {
+          setUserData(parsedUser);
+          setUserRole(parsedUser.role);
+          setIsLoggedIn(true);
+        } else {
+          // Keep logged out and clean up if not verified on reload/mount
+          localStorage.removeItem(STORAGE_KEYS.token);
+          localStorage.removeItem(STORAGE_KEYS.user);
+        }
       } catch (e) {
         localStorage.removeItem(STORAGE_KEYS.token);
         localStorage.removeItem(STORAGE_KEYS.user);
@@ -38,7 +44,39 @@ export const AuthProvider = ({ children }) => {
       const response = await auth.register({ email, password, role, captchaToken });
       const { token, user } = response.data;
 
-      // Auto-login: store token and user just like login does
+      // Store token in localStorage so subsequent profile creation APIs can use it,
+      // but DO NOT set isLoggedIn(true) in state yet!
+      if (token && user) {
+        localStorage.setItem(STORAGE_KEYS.token, token);
+        localStorage.setItem(STORAGE_KEYS.user, JSON.stringify(user));
+      }
+
+      return { success: true, data: response.data };
+    } catch (error) {
+      return {
+        success: false,
+        message: error.response?.data?.message || 'Registration failed',
+      };
+    }
+  };
+
+  const sendSignupOtp = async (email, password, role, captchaToken) => {
+    try {
+      const response = await auth.sendSignupOtp({ email, password, role, captchaToken });
+      return { success: true, data: response.data };
+    } catch (error) {
+      return {
+        success: false,
+        message: error.response?.data?.message || 'Failed to send verification code',
+      };
+    }
+  };
+
+  const registerVerified = async (signupToken, otp) => {
+    try {
+      const response = await auth.registerVerified({ signupToken, otp });
+      const { token, user } = response.data;
+
       if (token && user) {
         localStorage.setItem(STORAGE_KEYS.token, token);
         localStorage.setItem(STORAGE_KEYS.user, JSON.stringify(user));
@@ -51,7 +89,7 @@ export const AuthProvider = ({ children }) => {
     } catch (error) {
       return {
         success: false,
-        message: error.response?.data?.message || 'Registration failed',
+        message: error.response?.data?.message || 'Verification failed',
       };
     }
   };
@@ -84,6 +122,7 @@ export const AuthProvider = ({ children }) => {
       return {
         success: false,
         message: error.response?.data?.message || 'Login failed',
+        isNotVerified: error.response?.data?.isNotVerified || false,
       };
     }
   };
@@ -114,6 +153,28 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const verifyEmail = async (email, otp) => {
+    try {
+      const response = await auth.verifyEmail({ email, otp });
+      const { token, user } = response.data;
+
+      if (token && user) {
+        localStorage.setItem(STORAGE_KEYS.token, token);
+        localStorage.setItem(STORAGE_KEYS.user, JSON.stringify(user));
+        setUserData(user);
+        setUserRole(user.role);
+        setIsLoggedIn(true);
+      }
+
+      return { success: true, data: response.data };
+    } catch (error) {
+      return {
+        success: false,
+        message: error.response?.data?.message || 'Verification failed',
+      };
+    }
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -126,6 +187,9 @@ export const AuthProvider = ({ children }) => {
         logout,
         getMe,
         updateUserData,
+        verifyEmail,
+        sendSignupOtp,
+        registerVerified,
       }}
     >
       {children}
@@ -134,3 +198,4 @@ export const AuthProvider = ({ children }) => {
 };
 
 export const useAuth = () => useContext(AuthContext);
+

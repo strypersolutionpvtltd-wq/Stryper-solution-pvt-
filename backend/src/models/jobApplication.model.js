@@ -39,8 +39,8 @@ const jobApplicationSchema = new mongoose.Schema(
 
     status: {
       type: String,
-      enum: ["Applied", "Reviewed", "Shortlisted", "Rejected", "Accepted", "Withdrawn"],
-      default: "Applied",
+      enum: ["PendingAdminReview", "AdminRejected", "Applied", "Reviewed", "Shortlisted", "Rejected", "Accepted", "Withdrawn"],
+      default: "PendingAdminReview",
     },
 
     appliedDate: {
@@ -59,6 +59,21 @@ const jobApplicationSchema = new mongoose.Schema(
       type: String,
       trim: true,
       default: "",
+    },
+
+    adminReviewNote: {
+      type: String,
+      trim: true,
+      default: "",
+    },
+    adminReviewedAt: {
+      type: Date,
+      default: null,
+    },
+    adminReviewedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      default: null,
     },
 
     // true = application submitted via /careers Stryper internal job

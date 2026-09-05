@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, Eye, FileText, Calendar, Building2, User, Trash2, Briefcase, MapPin, X, CheckCircle, Loader2 } from 'lucide-react';
+import { Search, Eye, FileText, Calendar, Building2, User, Trash2, Briefcase, MapPin, X, CheckCircle, Loader2, Send, Check, XCircle } from 'lucide-react';
 import { admin, jobApplications } from '@/utils/api';
 import toast from 'react-hot-toast';
 
@@ -12,15 +12,17 @@ const fadeInUp = {
 const STATUS_FLOW = ['Applied', 'Screening', 'Interview', 'Offer', 'Hired', 'Rejected'];
 
 const STATUS_STYLE = {
-  Applied:     'bg-blue-500/10 text-blue-500',
-  Screening:   'bg-amber-500/10 text-amber-500',
-  Interview:   'bg-purple-500/10 text-purple-400',
-  Offer:       'bg-pink-500/10 text-pink-400',
-  Hired:       'bg-teal-500/10 text-teal-400',
-  Rejected:    'bg-red-500/10 text-red-500',
+  PendingAdminReview: 'bg-amber-500/10 text-amber-400 border border-amber-500/20',
+  AdminRejected:      'bg-red-500/10 text-red-400 border border-red-500/20',
+  Applied:            'bg-blue-500/10 text-blue-500',
+  Screening:          'bg-amber-500/10 text-amber-500',
+  Interview:          'bg-purple-500/10 text-purple-400',
+  Offer:              'bg-pink-500/10 text-pink-400',
+  Hired:              'bg-teal-500/10 text-teal-400',
+  Rejected:           'bg-red-500/10 text-red-500',
 };
 
-const AppViewModal = ({ isOpen, onClose, app, onStatusUpdate, activeTab }) => {
+const AppViewModal = ({ isOpen, onClose, app, onStatusUpdate, onForward, onReject, activeTab }) => {
   if (!isOpen || !app) return null;
 
   return (
@@ -29,7 +31,7 @@ const AppViewModal = ({ isOpen, onClose, app, onStatusUpdate, activeTab }) => {
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose} className="absolute inset-0 bg-black/80 backdrop-blur-sm" />
         <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} className="relative bg-[#0f0f0f] border border-white/10 rounded-[2rem] w-full max-w-lg shadow-2xl overflow-hidden text-white flex flex-col max-h-[90vh]">
           <div className="p-6 border-b border-white/5 flex items-center justify-between">
-            <h3 className="font-bold text-lg">Application Details</h3>
+            <h3 className="font-bold text-lg text-white">Application Details</h3>
             <button onClick={onClose} className="p-2 hover:bg-white/5 rounded-full text-neutral-400 hover:text-white transition-colors"><X size={20}/></button>
           </div>
           
@@ -40,12 +42,39 @@ const AppViewModal = ({ isOpen, onClose, app, onStatusUpdate, activeTab }) => {
                 {app.candidate.charAt(0)}
               </div>
               <div>
-                <h4 className="text-lg font-bold">{app.candidate}</h4>
+                <h4 className="text-lg font-bold text-white">{app.candidate}</h4>
                 <p className="text-sm text-neutral-400">{app.job}</p>
-                {app.email && <p className="text-xs text-neutral-500 mt-0.5">✉ {app.email}</p>}
-                {app.phone && <p className="text-xs text-neutral-500">📞 {app.phone}</p>}
+                {app.email && <p className="text-xs text-neutral-400 mt-0.5">✉ {app.email}</p>}
+                {app.phone && <p className="text-xs text-neutral-400">📞 {app.phone}</p>}
               </div>
             </div>
+
+            {/* Admin Review Gate Banner for PendingAdminReview */}
+            {app.status === 'PendingAdminReview' && (
+              <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/20 space-y-3">
+                <div className="flex items-center gap-2 text-amber-400 font-bold text-xs uppercase tracking-wide">
+                  <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
+                  Pending Admin Review
+                </div>
+                <p className="text-xs text-neutral-300">
+                  This candidate has not yet been forwarded to the company. Review their profile and resume below, then choose to forward or reject.
+                </p>
+                <div className="flex gap-2 pt-1">
+                  <button
+                    onClick={() => { onForward(app.id); onClose(); }}
+                    className="flex-1 py-2 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-lg shadow-emerald-600/20 transition-all"
+                  >
+                    <Send size={13} /> Forward to Company
+                  </button>
+                  <button
+                    onClick={() => { onReject(app); onClose(); }}
+                    className="py-2 px-4 rounded-xl bg-red-600/20 hover:bg-red-600/30 text-red-400 border border-red-500/20 font-bold text-xs flex items-center justify-center gap-1.5 transition-all"
+                  >
+                    <XCircle size={13} /> Reject
+                  </button>
+                </div>
+              </div>
+            )}
 
             {/* Details Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -145,26 +174,28 @@ const AppViewModal = ({ isOpen, onClose, app, onStatusUpdate, activeTab }) => {
               )}
             </div>
 
-            {/* Status Management */}
-            <div className="space-y-3">
-              <h5 className="text-xs font-bold text-neutral-500 uppercase tracking-widest">Status Flow</h5>
-              <div className="flex flex-wrap gap-2">
-                {STATUS_FLOW.map(s => (
-                  <button
-                    key={s}
-                    onClick={() => {
-                      onStatusUpdate(app.id, s);
-                    }}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all ${
-                      app.status === s ? 'bg-brand-purple-600 text-white' : 'bg-white/5 text-neutral-400 hover:bg-white/10 hover:text-white'
-                    }`}
-                  >
-                    {app.status === s && <CheckCircle size={12} />}
-                    {s}
-                  </button>
-                ))}
+            {/* Status Management (if already forwarded/active) */}
+            {app.status !== 'PendingAdminReview' && (
+              <div className="space-y-3">
+                <h5 className="text-xs font-bold text-neutral-500 uppercase tracking-widest">Status Flow</h5>
+                <div className="flex flex-wrap gap-2">
+                  {STATUS_FLOW.map(s => (
+                    <button
+                      key={s}
+                      onClick={() => {
+                        onStatusUpdate(app.id, s);
+                      }}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all ${
+                        app.status === s ? 'bg-brand-purple-600 text-white' : 'bg-white/5 text-neutral-400 hover:bg-white/10 hover:text-white'
+                      }`}
+                    >
+                      {app.status === s && <CheckCircle size={12} />}
+                      {s}
+                    </button>
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
           </div>
         </motion.div>
       </div>
@@ -173,12 +204,15 @@ const AppViewModal = ({ isOpen, onClose, app, onStatusUpdate, activeTab }) => {
 };
 
 const AdminApplications = () => {
-  const [activeTab, setActiveTab]   = useState('company');
+  const [activeTab, setActiveTab] = useState('pending');
   const [applications, setApplications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchText] = useState('');
   
   const [viewAppId, setViewAppId] = useState(null);
+  const [rejectingApp, setRejectingApp] = useState(null);
+  const [rejectNote, setRejectNote] = useState('');
+  const [actionLoading, setActionLoading] = useState(false);
 
   const fetchApplications = async () => {
     setLoading(true);
@@ -202,7 +236,7 @@ const AdminApplications = () => {
             job: a.jobId?.title || 'N/A',
             company: a.companyId?.companyName || 'Stryper Solution',
             date: a.appliedDate ? new Date(a.appliedDate).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) : 'N/A',
-            status: a.status || 'Applied',
+            status: a.status || 'PendingAdminReview',
             experience: (a.candidateId?.totalExperience || '').trim() || 'Not specified',
             location: (a.candidateId?.location || '').trim() || (guestInfo.guestPhone ? `Ph: ${guestInfo.guestPhone}` : 'Not specified'),
             expectedSalary: a.salaryExpectation ? `₹${a.salaryExpectation}` : 'Not specified',
@@ -210,7 +244,7 @@ const AdminApplications = () => {
             skills: a.candidateId?.skills || [],
             coverLetter: a.coverLetter || '',
             resumeUrl: a.resume || a.resumeUrl || a.candidateId?.resume || '',
-            email: guestInfo.guestEmail || '',
+            email: guestInfo.guestEmail || a.candidateId?.userId?.email || '',
             phone: guestInfo.guestPhone || a.candidateId?.phone || '',
             isStryper: a.isStryperApplication === true || !a.companyId,
           };
@@ -229,19 +263,6 @@ const AdminApplications = () => {
     fetchApplications();
   }, []);
 
-  const apps = useMemo(() => {
-    return applications.filter(a => activeTab === 'stryper' ? a.isStryper : !a.isStryper);
-  }, [applications, activeTab]);
-
-  const filtered = useMemo(() => {
-    const q = searchTerm.toLowerCase();
-    return apps.filter(a =>
-      (a.candidate?.toLowerCase() || '').includes(q) ||
-      (a.job?.toLowerCase()       || '').includes(q) ||
-      (a.company?.toLowerCase()   || '').includes(q)
-    );
-  }, [apps, searchTerm]);
-
   const handleStatusUpdate = async (id, newStatus) => {
     try {
       const res = await jobApplications.updateStatus(id, { status: newStatus });
@@ -257,6 +278,62 @@ const AdminApplications = () => {
     }
   };
 
+  const handleForwardApplication = async (id) => {
+    setActionLoading(true);
+    try {
+      const res = await admin.reviewApplication(id, { action: 'forward' });
+      if (res.data?.success) {
+        toast.success('Application forwarded to company!');
+        setApplications(prev => prev.map(a => a.id === id ? { ...a, status: 'Applied' } : a));
+      }
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to forward application');
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleRejectApplication = async () => {
+    if (!rejectingApp) return;
+    setActionLoading(true);
+    try {
+      const res = await admin.reviewApplication(rejectingApp.id, {
+        action: 'reject',
+        note: rejectNote.trim(),
+      });
+      if (res.data?.success) {
+        toast.success('Application rejected.');
+        setApplications(prev => prev.map(a => a.id === rejectingApp.id ? { ...a, status: 'AdminRejected' } : a));
+        setRejectingApp(null);
+        setRejectNote('');
+      }
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to reject application');
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const pendingCount = useMemo(() => applications.filter(a => a.status === 'PendingAdminReview').length, [applications]);
+  const companyCount = useMemo(() => applications.filter(a => !a.isStryper).length, [applications]);
+  const stryperCount = useMemo(() => applications.filter(a => a.isStryper).length, [applications]);
+
+  const apps = useMemo(() => {
+    if (activeTab === 'pending') return applications.filter(a => a.status === 'PendingAdminReview');
+    if (activeTab === 'company') return applications.filter(a => !a.isStryper);
+    if (activeTab === 'stryper') return applications.filter(a => a.isStryper);
+    return applications;
+  }, [applications, activeTab]);
+
+  const filtered = useMemo(() => {
+    const q = searchTerm.toLowerCase();
+    return apps.filter(a =>
+      (a.candidate?.toLowerCase() || '').includes(q) ||
+      (a.job?.toLowerCase()       || '').includes(q) ||
+      (a.company?.toLowerCase()   || '').includes(q)
+    );
+  }, [apps, searchTerm]);
+
   const selectedApp = useMemo(() => applications.find(a => a.id === viewAppId), [applications, viewAppId]);
 
   return (
@@ -271,15 +348,51 @@ const AdminApplications = () => {
         onClose={() => setViewAppId(null)} 
         app={selectedApp} 
         onStatusUpdate={handleStatusUpdate}
+        onForward={handleForwardApplication}
+        onReject={(app) => setRejectingApp(app)}
         activeTab={activeTab}
       />
+
+      {/* Reject Modal */}
+      <AnimatePresence>
+        {rejectingApp && (
+          <div className="fixed inset-0 z-[120] flex items-center justify-center p-4">
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setRejectingApp(null)} className="absolute inset-0 bg-black/80 backdrop-blur-sm" />
+            <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} className="relative bg-[#0f0f0f] border border-white/10 rounded-2xl w-full max-w-md p-6 shadow-2xl text-white">
+              <h3 className="text-lg font-bold mb-1 flex items-center gap-2 text-red-400">
+                <XCircle size={20} /> Reject Application
+              </h3>
+              <p className="text-xs text-neutral-400 mb-4">
+                Provide a reason or note for rejecting <strong className="text-white">{rejectingApp.candidate}</strong>'s application for <strong className="text-white">"{rejectingApp.job}"</strong> (optional, will be notified to candidate).
+              </p>
+              <textarea
+                rows={3}
+                value={rejectNote}
+                onChange={e => setRejectNote(e.target.value)}
+                placeholder="e.g. Experience requirement not met..."
+                className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-sm text-white focus:outline-none focus:ring-1 focus:ring-red-500/50 resize-none mb-4 placeholder:text-neutral-600"
+              />
+              <div className="flex gap-2 justify-end">
+                <button onClick={() => setRejectingApp(null)} className="px-4 py-2 rounded-xl text-xs font-semibold text-neutral-400 hover:text-white hover:bg-white/5 transition-colors">Cancel</button>
+                <button
+                  onClick={handleRejectApplication}
+                  disabled={actionLoading}
+                  className="px-4 py-2 rounded-xl text-xs font-bold text-white bg-red-600 hover:bg-red-700 transition-all disabled:opacity-50 flex items-center gap-1.5 shadow-lg shadow-red-600/20"
+                >
+                  {actionLoading ? <Loader2 size={13} className="animate-spin" /> : <XCircle size={13} />} Confirm Reject
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
 
       {/* ── Header ── */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h2 className="text-2xl font-bold text-white tracking-tight">Application Tracking</h2>
           <p className="text-neutral-500 text-sm mt-1">
-            Monitor {apps.length} candidates through the hiring pipeline.
+            Review, forward, and monitor {applications.length} candidates through the hiring pipeline.
           </p>
         </div>
         <div className="relative flex items-center">
@@ -295,27 +408,52 @@ const AdminApplications = () => {
       </div>
 
       {/* ── Tabs ── */}
-      <div className="flex items-center gap-1 bg-white/5 p-1 rounded-2xl w-fit border border-white/5">
+      <div className="flex items-center gap-1 bg-white/5 p-1 rounded-2xl w-fit border border-white/5 overflow-x-auto">
+        <button
+          onClick={() => { setActiveTab('pending'); setSearchText(''); }}
+          className={`flex items-center gap-1.5 px-5 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${
+            activeTab === 'pending'
+              ? 'bg-amber-500 text-neutral-950 shadow-lg font-extrabold'
+              : 'text-amber-400 hover:text-white hover:bg-white/5'
+          }`}
+        >
+          Pending Review
+          {pendingCount > 0 && (
+            <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-bold ${activeTab==='pending' ? 'bg-black text-amber-400' : 'bg-amber-500/20 text-amber-400'}`}>
+              {pendingCount}
+            </span>
+          )}
+        </button>
         <button
           onClick={() => { setActiveTab('company'); setSearchText(''); }}
-          className={`px-5 py-2 rounded-xl text-xs font-bold transition-all ${
+          className={`px-5 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${
             activeTab === 'company'
               ? 'bg-[#8B3A8F] text-white shadow-lg'
               : 'text-neutral-500 hover:text-white hover:bg-white/5'
           }`}
         >
-          Company Applications
+          Company Applications ({companyCount})
         </button>
         <button
           onClick={() => { setActiveTab('stryper'); setSearchText(''); }}
-          className={`px-5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
+          className={`px-5 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all flex items-center gap-1.5 ${
             activeTab === 'stryper'
               ? 'bg-[#8B3A8F] text-white shadow-lg'
               : 'text-neutral-500 hover:text-white hover:bg-white/5'
           }`}
         >
           <Briefcase size={12} />
-          Stryper Applications
+          Stryper Applications ({stryperCount})
+        </button>
+        <button
+          onClick={() => { setActiveTab('all'); setSearchText(''); }}
+          className={`px-5 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${
+            activeTab === 'all'
+              ? 'bg-[#8B3A8F] text-white shadow-lg'
+              : 'text-neutral-500 hover:text-white hover:bg-white/5'
+          }`}
+        >
+          All Applications ({applications.length})
         </button>
       </div>
 
@@ -324,25 +462,14 @@ const AdminApplications = () => {
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead className="bg-white/5">
-              {activeTab === 'company' ? (
-                <tr>
-                  <th className="px-6 py-4 text-xs font-bold text-neutral-400 uppercase tracking-widest">Candidate</th>
-                  <th className="px-6 py-4 text-xs font-bold text-neutral-400 uppercase tracking-widest">Job Position</th>
-                  <th className="px-6 py-4 text-xs font-bold text-neutral-400 uppercase tracking-widest">Company</th>
-                  <th className="px-6 py-4 text-xs font-bold text-neutral-400 uppercase tracking-widest">Applied Date</th>
-                  <th className="px-6 py-4 text-xs font-bold text-neutral-400 uppercase tracking-widest">Status</th>
-                  <th className="px-6 py-4 text-xs font-bold text-neutral-400 uppercase tracking-widest text-right">View</th>
-                </tr>
-              ) : (
-                <tr>
-                  <th className="px-6 py-4 text-xs font-bold text-neutral-400 uppercase tracking-widest">Candidate</th>
-                  <th className="px-6 py-4 text-xs font-bold text-neutral-400 uppercase tracking-widest">Applied Role</th>
-                  <th className="px-6 py-4 text-xs font-bold text-neutral-400 uppercase tracking-widest">Experience</th>
-                  <th className="px-6 py-4 text-xs font-bold text-neutral-400 uppercase tracking-widest">Applied Date</th>
-                  <th className="px-6 py-4 text-xs font-bold text-neutral-400 uppercase tracking-widest">Status</th>
-                  <th className="px-6 py-4 text-xs font-bold text-neutral-400 uppercase tracking-widest text-right">View</th>
-                </tr>
-              )}
+              <tr>
+                <th className="px-6 py-4 text-xs font-bold text-neutral-400 uppercase tracking-widest">Candidate</th>
+                <th className="px-6 py-4 text-xs font-bold text-neutral-400 uppercase tracking-widest">Job Position</th>
+                <th className="px-6 py-4 text-xs font-bold text-neutral-400 uppercase tracking-widest">Company</th>
+                <th className="px-6 py-4 text-xs font-bold text-neutral-400 uppercase tracking-widest">Applied Date</th>
+                <th className="px-6 py-4 text-xs font-bold text-neutral-400 uppercase tracking-widest">Status</th>
+                <th className="px-6 py-4 text-xs font-bold text-neutral-400 uppercase tracking-widest text-right">Actions</th>
+              </tr>
             </thead>
             <tbody className="divide-y divide-white/5">
               <AnimatePresence>
@@ -358,7 +485,7 @@ const AdminApplications = () => {
                 ) : filtered.length === 0 ? (
                   <tr>
                     <td colSpan={6} className="px-6 py-20 text-center text-neutral-500 text-sm">
-                      No applications found.
+                      {searchTerm ? `No applications matching "${searchTerm}"` : activeTab === 'pending' ? '🎉 No pending applications to review!' : 'No applications found.'}
                     </td>
                   </tr>
                 ) : filtered.map(app => (
@@ -377,7 +504,7 @@ const AdminApplications = () => {
                         <User size={14} className="text-neutral-500 shrink-0" />
                         <div>
                           <p>{app.candidate}</p>
-                          {activeTab === 'stryper' && app.location && (
+                          {app.location && (
                             <p className="text-[11px] text-neutral-500 font-normal flex items-center gap-1 mt-0.5">
                               <MapPin size={10} /> {app.location}
                             </p>
@@ -394,18 +521,12 @@ const AdminApplications = () => {
                       </div>
                     </td>
 
-                    {/* Company (company tab) / Experience (stryper tab) */}
+                    {/* Company */}
                     <td className="px-6 py-4">
-                      {activeTab === 'company' ? (
-                        <div className="flex items-center gap-2 text-neutral-400 text-sm">
-                          <Building2 size={14} className="text-brand-gold-500 shrink-0" />
-                          {app.company}
-                        </div>
-                      ) : (
-                        <span className="text-xs font-medium text-neutral-400 bg-white/5 px-2 py-1 rounded-md">
-                          {app.experience}
-                        </span>
-                      )}
+                      <div className="flex items-center gap-2 text-neutral-400 text-sm">
+                        <Building2 size={14} className="text-brand-gold-500 shrink-0" />
+                        {app.company}
+                      </div>
                     </td>
 
                     {/* Applied Date */}
@@ -418,19 +539,39 @@ const AdminApplications = () => {
 
                     {/* Status */}
                     <td className="px-6 py-4">
-                      <span className={`text-[10px] font-bold px-2 py-1 rounded-full ${STATUS_STYLE[app.status] || 'bg-neutral-500/10 text-neutral-400'}`}>
-                        {app.status}
+                      <span className={`text-[10px] font-bold px-2 py-1 rounded-full border ${STATUS_STYLE[app.status] || 'bg-neutral-500/10 text-neutral-400'}`}>
+                        {app.status === 'PendingAdminReview' ? 'Pending Review' : app.status === 'AdminRejected' ? 'Rejected' : app.status}
                       </span>
                     </td>
 
-                    {/* Actions -> View */}
+                    {/* Actions */}
                     <td className="px-6 py-4 text-right">
-                      <button
-                        onClick={e => { e.stopPropagation(); setViewAppId(app.id); }}
-                        className="p-2 rounded-lg bg-white/5 hover:bg-brand-purple-600/20 text-neutral-400 hover:text-brand-purple-400 transition-colors inline-flex items-center justify-center"
-                      >
-                        <Eye size={16} />
-                      </button>
+                      <div className="flex items-center justify-end gap-1">
+                        {app.status === 'PendingAdminReview' && (
+                          <>
+                            <button
+                              onClick={e => { e.stopPropagation(); handleForwardApplication(app.id); }}
+                              title="Forward to Company"
+                              className="p-2 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/20 transition-colors"
+                            >
+                              <Send size={15} />
+                            </button>
+                            <button
+                              onClick={e => { e.stopPropagation(); setRejectingApp(app); }}
+                              title="Reject Application"
+                              className="p-2 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 transition-colors"
+                            >
+                              <X size={15} />
+                            </button>
+                          </>
+                        )}
+                        <button
+                          onClick={e => { e.stopPropagation(); setViewAppId(app.id); }}
+                          className="p-2 rounded-lg bg-white/5 hover:bg-brand-purple-600/20 text-neutral-400 hover:text-brand-purple-400 transition-colors inline-flex items-center justify-center"
+                        >
+                          <Eye size={16} />
+                        </button>
+                      </div>
                     </td>
                   </motion.tr>
                 ))}

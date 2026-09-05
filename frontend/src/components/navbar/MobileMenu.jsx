@@ -55,7 +55,7 @@ const MobileMenu = ({ id, onClose, onSignIn, onSignUp }) => {
       >
         {/* Header */}
         <div className="flex items-center justify-between px-5 h-[72px] border-b border-neutral-100 shrink-0">
-          <Logo scrolled />
+          <Logo variant="light" />
           <button
             onClick={onClose}
             className="w-9 h-9 rounded-xl flex items-center justify-center text-neutral-500

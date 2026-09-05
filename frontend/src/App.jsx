@@ -53,10 +53,18 @@ import AdminCompanies from '@/pages/admin/AdminCompanies';
 import AdminJobs      from '@/pages/admin/AdminJobs';
 import AdminStryperPartners from '@/pages/admin/AdminStryperPartners';
 import AdminApplications from '@/pages/admin/AdminApplications';
+import AdminInterviews   from '@/pages/admin/AdminInterviews';
 import AdminAnalytics from '@/pages/admin/AdminAnalytics';
 import AdminNotifications from '@/pages/admin/AdminNotifications';
 import AdminSettings from '@/pages/admin/AdminSettings';
 import RestrictedAccess from '@/pages/RestrictedAccess';
+
+// Auth verification flow pages
+import EmailVerification from '@/pages/auth/EmailVerification';
+import PhoneVerification from '@/pages/auth/PhoneVerification';
+import ForgotPassword from '@/pages/auth/ForgotPassword';
+import VerifyResetOtp from '@/pages/auth/VerifyResetOtp';
+import ResetPassword from '@/pages/auth/ResetPassword';
 
 /**
  * Guard for /admin/* — strict restriction.
@@ -138,6 +146,11 @@ function App() {
         <Route path="/careers"    element={<Careers />} />
         <Route path="/jobs"       element={<Jobs />} />
         <Route path="/contact"    element={<Contact />} />
+        <Route path="/verify-email"      element={<EmailVerification />} />
+        <Route path="/verify-phone"      element={<PhoneVerification />} />
+        <Route path="/forgot-password"   element={<ForgotPassword />} />
+        <Route path="/verify-reset-otp"  element={<VerifyResetOtp />} />
+        <Route path="/reset-password"    element={<ResetPassword />} />
         <Route path="*"           element={<NotFound />} />
 
         {/* Career Hub — nested inside MainLayout, guarded by role */}
@@ -180,6 +193,7 @@ function App() {
         <Route path="consultants"  element={<AdminStryperPartners />} />
         <Route path="jobs"         element={<AdminJobs />} />
         <Route path="applications" element={<AdminApplications />} />
+        <Route path="interviews"   element={<AdminInterviews />} />
         <Route path="analytics"    element={<AdminAnalytics />} />
         <Route path="notifications" element={<AdminNotifications />} />
         <Route path="settings"     element={<AdminSettings />} />

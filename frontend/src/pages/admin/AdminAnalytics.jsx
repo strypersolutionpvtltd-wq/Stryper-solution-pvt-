@@ -117,7 +117,11 @@ const AdminAnalytics = () => {
 
   useEffect(() => {
     fetchAnalytics();
+    // Auto-refresh har 30 second mein — realtime data ke liye
+    const interval = setInterval(fetchAnalytics, 30000);
+    return () => clearInterval(interval);
   }, []);
+
 
   const handleDownload = () => {
     toast.loading('Preparing PDF report...');

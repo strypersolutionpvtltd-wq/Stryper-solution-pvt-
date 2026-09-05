@@ -7,7 +7,7 @@ const User = require("../models/user.model");
 // @access  Private (Company)
 const createJob = async (req, res) => {
   try {
-    const { title, description, requirements, responsibilities, employmentType, salaryMin, salaryMax, location, experience, skills, salaryCurrency, status, workMode, department, deadline, openings, isStryper } = req.body;
+    const { title, description, requirements, responsibilities, employmentType, salaryMin, salaryMax, location, experience, skills, salaryCurrency, status, workMode, department, deadline, openings, isStryper, _adminCompanyId } = req.body;
     const userId = req.user?.id;
 
     if (!userId) {
@@ -36,6 +36,14 @@ const createJob = async (req, res) => {
     // If Admin and companyId is specified in req.body, use it. Otherwise, look up or create CompanyProfile.
     const userObj = await User.findById(userId);
     const isAdmin = userObj && userObj.role === "ADMIN";
+
+    // Company users: force PendingApproval (except Draft). Admin: use requested status.
+    let finalStatus;
+    if (isAdmin) {
+      finalStatus = status || "Active";
+    } else {
+      finalStatus = status === "Draft" ? "Draft" : "PendingApproval";
+    }
 
     let companyIdToUse;
     if (isAdmin && req.body.companyId) {
@@ -69,6 +77,7 @@ const createJob = async (req, res) => {
       companyIdToUse = companyProfile._id;
     }
 
+
     const newJob = await Job.create({
       companyId: companyIdToUse,
       title: title || "Untitled Job",
@@ -83,7 +92,7 @@ const createJob = async (req, res) => {
       location: location || "",
       experience: experience || "",
       skills: skills || [],
-      status: status || "Draft",
+      status: finalStatus,
       workMode: workMode || "On-site",
       deadline: deadline || null,
       openings: openings ? parseInt(openings) : 1,
@@ -124,7 +133,7 @@ const getAllJobs = async (req, res) => {
     filter.$or = [{ isStryper: false }, { isStryper: { $exists: false } }, { isStryper: null }];
 
     const jobs = await Job.find(filter)
-      .populate("companyId", "companyName companyLogo location profileVisible")
+      .populate("companyId", "profileVisible")
       .skip((page - 1) * limit)
       .limit(parseInt(limit))
       .sort({ createdAt: -1 });
@@ -160,7 +169,7 @@ const getJobById = async (req, res) => {
     const { id } = req.params;
 
     const job = await Job.findById(id)
-      .populate("companyId", "companyName companyLogo website linkedin location email phone")
+      .populate("companyId", "profileVisible")
       .populate("postedBy", "email");
 
     if (!job) {
@@ -365,7 +374,7 @@ module.exports = {
 async function getStryperJobs(req, res) {
   try {
     const jobs = await Job.find({ isStryper: true, status: "Active" })
-      .select("title department location experience employmentType workMode description skills requirements deadline createdAt")
+      .select("title department location experience employmentType workMode description skills requirements deadline createdAt salaryMin salaryMax")
       .sort({ createdAt: -1 });
 
     return res.status(200).json({ success: true, jobs });

@@ -5,17 +5,85 @@ import { useGoogleReCaptcha } from 'react-google-recaptcha-v3';
 import GoogleIcon from './GoogleIcon';
 import { useAuth } from '@/context/AuthContext';
 import { validateField, filterInput } from '@/utils/validation';
-import logoImg from "@/assets/image/logo.jpeg";
+import logoImg from "@/assets/image/logo.png";
 import toast from 'react-hot-toast';
+import OtpInput from './OtpInput';
+import CountdownTimer from './CountdownTimer';
+import { Mail, RefreshCw, ArrowLeft } from 'lucide-react';
+import { auth } from '@/utils/api';
 
-const SignInForm = ({ onSwitchToSignUp, onClose, hideHeader }) => {
+const SignInForm = ({ onSwitchToSignUp, onClose, hideHeader, setIsVerifyingEmail }) => {
   const [form, setForm] = useState({ email: '', password: '' });
   const [errors, setErrors] = useState({});
   const [showPass, setShowPass] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-  const { login } = useAuth();
+  const { login, verifyEmail } = useAuth();
   const navigate = useNavigate();
   const { executeRecaptcha } = useGoogleReCaptcha();
+
+  // OTP Verification States
+  const [showOtp, setShowOtp] = useState(false);
+  const [otpEmail, setOtpEmail] = useState('');
+  const [otp, setOtp] = useState(new Array(6).fill(''));
+  const [otpError, setOtpError] = useState(false);
+  const [otpSubmitting, setOtpSubmitting] = useState(false);
+  const [isResendDisabled, setIsResendDisabled] = useState(true);
+  const [timerKey, setTimerKey] = useState(0);
+
+  const handleOtpVerify = async (e) => {
+    e.preventDefault();
+    const code = otp.join('');
+    if (code.length < 6) {
+      toast.error('Please enter the complete 6-digit code');
+      setOtpError(true);
+      return;
+    }
+
+    setOtpSubmitting(true);
+    setOtpError(false);
+
+    try {
+      const res = await verifyEmail(otpEmail, code);
+      if (res.success) {
+        toast.success('Email verified successfully!');
+        if (onClose) onClose();
+        
+        const role = res.data?.user?.role?.toUpperCase();
+        if (role === 'ADMIN') navigate('/admin/dashboard', { replace: true });
+        else if (role === 'COMPANY') navigate('/hire-zone/dashboard', { replace: true });
+        else navigate('/career-hub/profile', { replace: true });
+      } else {
+        toast.error(res.message || 'Verification failed. Try again.');
+        setOtpError(true);
+      }
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Verification failed. Try again.');
+      setOtpError(true);
+    } finally {
+      setOtpSubmitting(false);
+    }
+  };
+
+  const handleOtpResend = async () => {
+    setIsResendDisabled(true);
+    setOtpError(false);
+    try {
+      const res = await auth.resendOtp({ email: otpEmail });
+      if (res.data?.success) {
+        setTimerKey(prev => prev + 1);
+        setOtp(new Array(6).fill(''));
+        toast.success('Verification code resent to your email');
+      }
+    } catch (err) {
+      setIsResendDisabled(false);
+      toast.error(err.response?.data?.message || 'Failed to resend code');
+    }
+  };
+
+  const handleOtpBack = () => {
+    setShowOtp(false);
+    if (setIsVerifyingEmail) setIsVerifyingEmail(false);
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -66,7 +134,23 @@ const SignInForm = ({ onSwitchToSignUp, onClose, hideHeader }) => {
         else if (role === 'COMPANY') navigate('/hire-zone/dashboard', { replace: true });
         else navigate('/career-hub/profile', { replace: true });
       } else {
-        toast.error(result.message || 'Login failed.');
+        if (result.isNotVerified) {
+          const emailToVerify = form.email.toLowerCase().trim();
+          setOtpEmail(emailToVerify);
+          setShowOtp(true);
+          if (setIsVerifyingEmail) setIsVerifyingEmail(true);
+          
+          auth.resendOtp({ email: emailToVerify })
+            .then(() => {
+              toast.success('Verification code sent to your email.');
+            })
+            .catch((err) => {
+              console.error('Failed to send verification code:', err);
+              toast.error('Failed to send verification code. Please click Resend.');
+            });
+        } else {
+          toast.error(result.message || 'Login failed.');
+        }
       }
     } catch (error) {
       console.error('Login error:', error);
@@ -76,13 +160,96 @@ const SignInForm = ({ onSwitchToSignUp, onClose, hideHeader }) => {
     }
   };
 
+  if (showOtp) {
+    return (
+      <div className={hideHeader ? '' : 'p-8'}>
+        <div className="flex flex-col items-center text-center mb-8">
+          <div className="w-16 h-16 bg-brand-purple-50 rounded-2xl flex items-center justify-center text-brand-purple-600 mb-4 border border-brand-purple-100 shadow-sm shadow-brand-purple-100/50">
+            <Mail size={32} />
+          </div>
+          <h2 className="text-2xl font-bold text-neutral-800 tracking-tight">Verify Your Email</h2>
+          <p className="mt-2 text-sm text-neutral-500 max-w-sm">
+            We sent a 6-digit verification code to
+          </p>
+          <div className="flex items-center gap-2 mt-1.5 bg-neutral-50 border border-neutral-100 px-3 py-1 rounded-full">
+            <span className="text-xs font-bold text-neutral-700">{otpEmail}</span>
+          </div>
+        </div>
+
+        <form onSubmit={handleOtpVerify} className="space-y-6">
+          <div className="space-y-3">
+            <label className="block text-xs font-bold text-neutral-500 uppercase tracking-widest text-center">
+              Enter Verification Code
+            </label>
+            <OtpInput 
+              value={otp} 
+              onChange={(val) => {
+                setOtp(val);
+                if (otpError) setOtpError(false);
+              }} 
+              error={otpError} 
+            />
+          </div>
+
+          <motion.button
+            whileHover={{ scale: 1.01 }}
+            whileTap={{ scale: otpSubmitting ? 1 : 0.98 }}
+            type="submit"
+            disabled={otpSubmitting}
+            className="w-full py-3 rounded-xl text-white text-sm font-semibold transition-colors mt-2 disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            style={{ background: '#8B3A8F' }}
+          >
+            {otpSubmitting ? (
+              <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+            ) : 'Verify Email'}
+          </motion.button>
+        </form>
+
+        <div className="mt-6 flex flex-col items-center justify-center gap-3 text-sm">
+          <div className="text-neutral-500">
+            {isResendDisabled ? (
+              <div className="flex items-center gap-1.5">
+                <span>Resend code in</span>
+                <CountdownTimer 
+                  duration={60} 
+                  onComplete={() => setIsResendDisabled(false)} 
+                  resetKey={timerKey} 
+                />
+              </div>
+            ) : (
+              <button
+                onClick={handleOtpResend}
+                className="flex items-center gap-1.5 text-brand-purple-600 hover:text-brand-purple-700 font-bold transition-colors"
+                style={{ color: '#8B3A8F' }}
+              >
+                <RefreshCw size={14} />
+                Resend Code
+              </button>
+            )}
+          </div>
+
+          <button 
+            onClick={handleOtpBack}
+            className="flex items-center gap-1 text-neutral-400 hover:text-neutral-600 transition-colors mt-2"
+          >
+            <ArrowLeft size={14} />
+            <span>Back</span>
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+
   return (
     <div className={hideHeader ? '' : 'p-8'}>
-      {/* Header */}
       {!hideHeader && (
         <div className="text-center mb-8">
-          <div className="inline-block rounded-xl overflow-hidden bg-black px-4 py-2 mb-5">
-            <img src={logoImg} alt="Stryper Solution" className="h-10 w-auto object-contain" />
+          <div className="flex flex-col items-center gap-2 mb-5">
+            <img src={logoImg} alt="Stryper Solution" className="h-12 w-12 rounded-full object-cover border border-neutral-100" />
+            <span className="font-display font-bold text-base text-neutral-800 tracking-tight uppercase">
+              stryper solution
+            </span>
           </div>
           <h2 className="text-2xl font-bold text-neutral-800">Welcome Back</h2>
           <p className="text-neutral-500 text-sm mt-1">Sign in to your Stryper account</p>
@@ -148,7 +315,15 @@ const SignInForm = ({ onSwitchToSignUp, onClose, hideHeader }) => {
             <label className="block text-xs font-semibold text-neutral-600" htmlFor="signin-password">
               Password
             </label>
-            <button type="button" className="text-xs font-medium hover:underline" style={{ color: '#8B3A8F' }}>
+            <button 
+              type="button" 
+              onClick={() => {
+                if (onClose) onClose();
+                navigate('/forgot-password');
+              }}
+              className="text-xs font-medium hover:underline" 
+              style={{ color: '#8B3A8F' }}
+            >
               Forgot password?
             </button>
           </div>

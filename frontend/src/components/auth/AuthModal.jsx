@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import SignInForm from './SignInForm';
 import SignUpForm from './SignUpForm';
-import logoImg from "@/assets/image/logo.jpeg";
+import logoImg from "@/assets/image/logo.png";
 
 /**
  * AuthModal — handles Sign In / Sign Up flow
@@ -10,9 +10,11 @@ import logoImg from "@/assets/image/logo.jpeg";
 const AuthModal = ({ isOpen, onClose, defaultView = 'signin' }) => {
   const [view, setView] = useState('signin');
   const [signUpType, setSignUpType] = useState('hire-workforce'); // 'find-job' or 'hire-workforce'
+  const [isVerifyingEmail, setIsVerifyingEmail] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
+      setIsVerifyingEmail(false);
       if (defaultView === 'signin') {
         setView('signin');
       } else {
@@ -26,6 +28,11 @@ const AuthModal = ({ isOpen, onClose, defaultView = 'signin' }) => {
     document.body.style.overflow = isOpen ? 'hidden' : '';
     return () => { document.body.style.overflow = ''; };
   }, [isOpen]);
+
+  const handleSwitchView = (newView) => {
+    setView(newView);
+    setIsVerifyingEmail(false);
+  };
 
   return (
     <AnimatePresence>
@@ -67,30 +74,34 @@ const AuthModal = ({ isOpen, onClose, defaultView = 'signin' }) => {
               </button>
 
               <div className="p-8 pb-0 flex flex-col items-center">
-                {/* Logo on black background — matches brand */}
-                <div className="rounded-xl overflow-hidden mb-6 bg-black px-4 py-2">
-                  <img src={logoImg} alt="Stryper Solution" className="h-10 w-auto object-contain" />
+                <div className="flex flex-col items-center gap-2 mb-6">
+                  <img src={logoImg} alt="Stryper Solution" className="h-12 w-12 rounded-full object-cover border border-neutral-100" />
+                  <span className="font-display font-bold text-base text-neutral-800 tracking-tight uppercase">
+                    stryper solution
+                  </span>
                 </div>
                 
                 {/* Tabs */}
-                <div className="flex w-full border-b border-neutral-100 mb-6">
-                  <button
-                    onClick={() => setView('signin')}
-                    className={`flex-1 pb-3 text-sm font-semibold transition-all border-b-2 ${
-                      view === 'signin' ? 'border-brand-purple-600 text-brand-purple-600' : 'border-transparent text-neutral-400'
-                    }`}
-                  >
-                    Sign In
-                  </button>
-                  <button
-                    onClick={() => setView('signup')}
-                    className={`flex-1 pb-3 text-sm font-semibold transition-all border-b-2 ${
-                      view === 'signup' ? 'border-brand-purple-600 text-brand-purple-600' : 'border-transparent text-neutral-400'
-                    }`}
-                  >
-                    Sign Up
-                  </button>
-                </div>
+                {!isVerifyingEmail && (
+                  <div className="flex w-full border-b border-neutral-100 mb-6">
+                    <button
+                      onClick={() => handleSwitchView('signin')}
+                      className={`flex-1 pb-3 text-sm font-semibold transition-all border-b-2 ${
+                        view === 'signin' ? 'border-brand-purple-600 text-brand-purple-600' : 'border-transparent text-neutral-400'
+                      }`}
+                    >
+                      Sign In
+                    </button>
+                    <button
+                      onClick={() => handleSwitchView('signup')}
+                      className={`flex-1 pb-3 text-sm font-semibold transition-all border-b-2 ${
+                        view === 'signup' ? 'border-brand-purple-600 text-brand-purple-600' : 'border-transparent text-neutral-400'
+                      }`}
+                    >
+                      Sign Up
+                    </button>
+                  </div>
+                )}
               </div>
 
               <AnimatePresence mode="wait">
@@ -98,9 +109,10 @@ const AuthModal = ({ isOpen, onClose, defaultView = 'signin' }) => {
                   <SlideView key="signin">
                     <div className="px-8 pb-8">
                       <SignInForm
-                        onSwitchToSignUp={() => setView('signup')}
+                        onSwitchToSignUp={() => handleSwitchView('signup')}
                         onClose={onClose}
                         hideHeader
+                        setIsVerifyingEmail={setIsVerifyingEmail}
                       />
                     </div>
                   </SlideView>
@@ -108,26 +120,29 @@ const AuthModal = ({ isOpen, onClose, defaultView = 'signin' }) => {
                   <SlideView key={signUpType}>
                     <div className="px-8 pb-8">
                       {/* Role selector */}
-                      <div className="flex bg-neutral-100 p-1 rounded-xl mb-5">
-                        <button
-                          onClick={() => setSignUpType('hire-workforce')}
-                          className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${signUpType === 'hire-workforce' ? 'bg-white shadow text-brand-purple-600' : 'text-neutral-500'}`}
-                        >
-                          Employer
-                        </button>
-                        <button
-                          onClick={() => setSignUpType('find-job')}
-                          className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${signUpType === 'find-job' ? 'bg-white shadow text-brand-purple-600' : 'text-neutral-500'}`}
-                        >
-                          Candidate
-                        </button>
-                      </div>
+                      {!isVerifyingEmail && (
+                        <div className="flex bg-neutral-100 p-1 rounded-xl mb-5">
+                          <button
+                            onClick={() => setSignUpType('hire-workforce')}
+                            className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${signUpType === 'hire-workforce' ? 'bg-white shadow text-brand-purple-600' : 'text-neutral-500'}`}
+                          >
+                            Employer
+                          </button>
+                          <button
+                            onClick={() => setSignUpType('find-job')}
+                            className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${signUpType === 'find-job' ? 'bg-white shadow text-brand-purple-600' : 'text-neutral-500'}`}
+                          >
+                            Candidate
+                          </button>
+                        </div>
+                      )}
                       <SignUpForm
                         type={signUpType}
-                        onBack={() => setView('signin')}
-                        onSwitchToSignIn={() => setView('signin')}
+                        onBack={() => handleSwitchView('signin')}
+                        onSwitchToSignIn={() => handleSwitchView('signin')}
                         onClose={onClose}
                         hideHeader
+                        setIsVerifyingEmail={setIsVerifyingEmail}
                       />
                     </div>
                   </SlideView>

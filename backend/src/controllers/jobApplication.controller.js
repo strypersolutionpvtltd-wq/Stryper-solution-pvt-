@@ -17,7 +17,10 @@ const getCompanyApplicants = async (req, res) => {
       return res.status(404).json({ success: false, message: "Company profile not found" });
     }
 
-    const applications = await JobApplication.find({ companyId: companyProfile._id })
+    const applications = await JobApplication.find({ 
+      companyId: companyProfile._id,
+      status: { $nin: ["PendingAdminReview", "AdminRejected"] },
+    })
       .populate("candidateId", "firstName lastName headline location skills resume phone totalExperience expectedSalary noticePeriod profilePicture")
       .populate("userId", "email")
       .populate("jobId", "title")
@@ -122,24 +125,12 @@ const applyForJob = async (req, res) => {
       coverLetter: coverLetter || "",
       salaryExpectation: salaryExpectation || null,
       noticePeriod: noticePeriod || "",
+      isStryperApplication: job.isStryper || false,
+      status: "PendingAdminReview",
     });
 
     // Update job application count
     await Job.findByIdAndUpdate(jobId, { $inc: { applicationCount: 1 } });
-
-    // Create notification for company
-    const company = await CompanyProfile.findById(job.companyId);
-    if (company && company.newApplicationNotif !== false) {
-      await Notification.create({
-        userId: company.userId,
-        title: "New Application",
-        message: `${candidateProfile.firstName} ${candidateProfile.lastName} applied for ${job.title}`,
-        type: "Application",
-        relatedId: application._id,
-        relatedModel: "JobApplication",
-        actionUrl: `/hire-zone/applicants`,
-      });
-    }
 
     // Create notification for Stryper Admin team
     try {
@@ -147,11 +138,12 @@ const applyForJob = async (req, res) => {
       const adminUser = await User.findOne({ role: "ADMIN" });
       if (adminUser) {
         const isInternal = job.isStryper;
-        const compName = company?.companyName || "External Company";
+        const jobCompany = await CompanyProfile.findById(job.companyId).select("companyName userId");
+        const compName = jobCompany?.companyName || "External Company";
         await Notification.create({
           userId: adminUser._id,
-          title: isInternal ? "New Application (Internal)" : "New Application (External)",
-          message: `${candidateProfile.firstName} ${candidateProfile.lastName} applied for ${job.title} ${isInternal ? "at Stryper" : `at ${compName}`}`,
+          title: isInternal ? "New Application Pending Review (Internal)" : "New Application Pending Review (External)",
+          message: `${candidateProfile.firstName} ${candidateProfile.lastName} applied for "${job.title}" — awaiting admin review`,
           type: "Application",
           relatedId: application._id,
           relatedModel: "JobApplication",

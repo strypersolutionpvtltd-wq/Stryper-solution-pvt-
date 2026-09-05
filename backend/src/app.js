@@ -4,7 +4,21 @@ const multer = require("multer");
 const cloudinary = require("cloudinary").v2;
 const { CloudinaryStorage } = require("multer-storage-cloudinary");
 
+// ── IST Timestamps (Indian Standard Time = UTC+5:30) ──────────────────────
+// Yeh global plugin saare Mongoose models ke timestamps IST mein store karega
+const mongoose = require("mongoose");
+const getIST = () => new Date(Date.now() + 5.5 * 60 * 60 * 1000);
+mongoose.plugin((schema) => {
+  if (schema.options.timestamps) {
+    schema.options.timestamps = { currentTime: getIST };
+  }
+});
+
+
 const app = express();
+
+// Trust proxy — required on EC2/Nginx so req.ip returns real visitor IP
+app.set("trust proxy", true);
 
 // ── Cloudinary Configuration ───────────────────────────────────────────────
 cloudinary.config({
@@ -61,8 +75,12 @@ app.use(
   cors({
     origin: [
       "http://localhost:5173",
-      "http://localhost:5174"
-    ],
+      "http://localhost:5174",
+      process.env.CLIENT_ORIGIN,
+      // Dynamic www and non-www support
+      process.env.CLIENT_ORIGIN ? process.env.CLIENT_ORIGIN.replace("https://", "https://www.") : null,
+      process.env.CLIENT_ORIGIN ? process.env.CLIENT_ORIGIN.replace("https://www.", "https://") : null,
+    ].filter(Boolean),
     credentials: true,
   })
 );
