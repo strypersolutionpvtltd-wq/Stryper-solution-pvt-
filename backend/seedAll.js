@@ -293,7 +293,7 @@ const seed = async () => {
     if (!settings) {
       await SystemSettings.create({
         phone: "+91 9565310410",
-        email: "gc@stryperinteriorandinfra.com",
+        email: "recruiter@strypersolution.com",
         address: "Pan India Projects",
         whatsapp: "918448590303",
         est: "2010",

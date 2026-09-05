@@ -17,7 +17,7 @@ const systemSettingsSchema = new mongoose.Schema(
     },
     email: {
       type: String,
-      default: "gc@stryperinteriorandinfra.com",
+      default: "recruiter@strypersolution.com",
     },
     address: {
       type: String,

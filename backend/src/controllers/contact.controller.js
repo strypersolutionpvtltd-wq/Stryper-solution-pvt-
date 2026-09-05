@@ -83,7 +83,7 @@ const sendContactMessage = async (req, res) => {
     // 6. Send email to admin
     await transporter.sendMail({
       from: process.env.SMTP_USER,
-      to: process.env.CONTACT_EMAIL,
+      to: process.env.CONTACT_EMAIL || 'recruiter@strypersolution.com',
       subject: `New Contact Form: ${service} - ${name}`,
       html: adminEmailContent,
       replyTo: email,

@@ -247,7 +247,7 @@ const seed = async () => {
         industry: "Human Resources & Recruiting",
         companySize: "50-200",
         companyDescription: "Stryper Solution is a premium hiring and recruitment partner specializing in placement, staffing, and internal executive searches.",
-        email: "hr@strypersolution.com",
+        email: "recruiter@strypersolution.com",
         phone: "+91-9876543210",
         location: "Noida, Uttar Pradesh",
         isVerifiedCompany: true,
