@@ -2,11 +2,14 @@ const nodemailer = require("nodemailer");
 require("dotenv").config();
 
 const user = process.env.SMTP_USER || "rishabh.saini@strypersolution.com";
-const pass = process.env.SMTP_PASS || "StryperSolution@098";
+const pass = process.env.SMTP_PASS || "Jaipurboss2026@@";
 
 const configs = [
   { host: "smtpout.secureserver.net", port: 465, secure: true, name: "GoDaddy smtpout Port 465 SSL/TLS" },
   { host: "smtpout.secureserver.net", port: 587, secure: false, name: "GoDaddy smtpout Port 587 STARTTLS" },
+  { host: "smtp.office365.com", port: 587, secure: false, name: "Microsoft 365 / GoDaddy Port 587 STARTTLS" },
+  { host: "mail.strypersolution.com", port: 465, secure: true, name: "cPanel / Custom Mail Port 465 SSL" },
+  { host: "mail.strypersolution.com", port: 587, secure: false, name: "cPanel / Custom Mail Port 587 TLS" },
   { host: "smtp.secureserver.net", port: 465, secure: true, name: "GoDaddy smtp Port 465 SSL/TLS" },
   { host: "smtp.secureserver.net", port: 587, secure: false, name: "GoDaddy smtp Port 587 STARTTLS" }
 ];

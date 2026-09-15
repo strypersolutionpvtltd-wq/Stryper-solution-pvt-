@@ -879,6 +879,92 @@ const reviewApplication = async (req, res) => {
   }
 };
 
+// @desc    Fast add company (Admin) - no OTP required
+// @route   POST /api/v1/admin/companies
+// @access  Private (Admin)
+const createCompany = async (req, res) => {
+  try {
+    const { companyName, email, password } = req.body;
+
+    if (!companyName || !companyName.trim()) {
+      return res.status(400).json({ success: false, message: "Company Name is required" });
+    }
+    if (!email || !email.trim()) {
+      return res.status(400).json({ success: false, message: "Email is required" });
+    }
+    if (!password || password.length < 6) {
+      return res.status(400).json({ success: false, message: "Password must be at least 6 characters" });
+    }
+
+    const cleanEmail = email.toLowerCase().trim();
+    const cleanName = companyName.trim();
+
+    // Check if user already exists
+    const existingUser = await User.findOne({ email: cleanEmail });
+    if (existingUser) {
+      return res.status(409).json({ success: false, message: "An account with this email already exists" });
+    }
+
+    // Hash password
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // Create User with COMPANY role, pre-verified (no OTP)
+    const newUser = await User.create({
+      email: cleanEmail,
+      password: hashedPassword,
+      role: "COMPANY",
+      fullName: cleanName,
+      isVerified: true,
+      accountStatus: "Active",
+      passwordChangedAt: new Date(),
+    });
+
+    // Create CompanyProfile
+    const profile = await CompanyProfile.create({
+      userId: newUser._id,
+      companyName: cleanName,
+      email: cleanEmail,
+      industry: "General",
+      companySize: "1-10",
+      companyDescription: `${cleanName} profile`,
+      isVerifiedCompany: true,
+    });
+
+    return res.status(201).json({
+      success: true,
+      message: "Company added successfully",
+      company: {
+        id: newUser._id,
+        name: profile.companyName,
+        email: cleanEmail,
+        industry: profile.industry,
+        employees: profile.companySize,
+        location: profile.location || "N/A",
+        jobs: 0,
+        status: "Verified",
+      },
+    });
+  } catch (error) {
+    console.error("createCompany error:", error);
+    return res.status(500).json({ success: false, message: "Failed to create company", error: error.message });
+  }
+};
+
+// @desc    Get all companies (for admin dropdowns)
+// @route   GET /api/v1/admin/company-list
+// @access  Private (Admin)
+async function getCompanyList(req, res) {
+  try {
+    const companies = await CompanyProfile.find({})
+      .select("_id companyName industry")
+      .sort({ companyName: 1 })
+      .lean();
+    return res.status(200).json({ success: true, companies });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: "Failed to fetch companies", error: error.message });
+  }
+}
+
 module.exports = {
   getPlatformStats,
   getAllUsers,
@@ -899,21 +985,7 @@ module.exports = {
   getAdminSettings,
   updateAdminSettings,
   getCompanyList,
+  createCompany,
   approveJob,
   reviewApplication,
 };
-
-// @desc    Get all companies (for admin dropdowns)
-// @route   GET /api/v1/admin/company-list
-// @access  Private (Admin)
-async function getCompanyList(req, res) {
-  try {
-    const companies = await CompanyProfile.find({})
-      .select("_id companyName industry")
-      .sort({ companyName: 1 })
-      .lean();
-    return res.status(200).json({ success: true, companies });
-  } catch (error) {
-    return res.status(500).json({ success: false, message: "Failed to fetch companies", error: error.message });
-  }
-}

@@ -19,6 +19,7 @@ const {
   getAdminSettings,
   updateAdminSettings,
   getCompanyList,
+  createCompany,
   approveJob,
   reviewApplication,
 } = require("../controllers/admin.controller");
@@ -57,6 +58,9 @@ router.put("/settings", authMiddleware, authorizeRoles("ADMIN"), updateAdminSett
 
 // Company list for dropdowns
 router.get("/company-list", authMiddleware, authorizeRoles("ADMIN"), getCompanyList);
+
+// Company fast add (Admin)
+router.post("/companies", authMiddleware, authorizeRoles("ADMIN"), createCompany);
 
 // Job approval & application review routes
 router.patch("/jobs/:id/approve", authMiddleware, authorizeRoles("ADMIN"), approveJob);

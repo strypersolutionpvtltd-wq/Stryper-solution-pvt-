@@ -165,6 +165,8 @@ export const admin = {
   removePartner: (id) => api.delete(`/admin/partners/${id}`),
   // Company list for dropdowns
   getCompanyList: () => api.get('/admin/company-list'),
+  // Create company (Fast add - no OTP)
+  createCompany: (data) => api.post('/admin/companies', data),
   // Job approval
   approveJob: (id, data) => api.patch(`/admin/jobs/${id}/approve`, data),
   // Application review (forward to company or reject)

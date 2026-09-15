@@ -1,13 +1,163 @@
 import { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, Filter, MoreVertical, Building2, MapPin, Briefcase, ShieldCheck, Trash2, Edit2, ExternalLink, Eye, Loader2 } from 'lucide-react';
+import { Search, Filter, MoreVertical, Building2, MapPin, Briefcase, ShieldCheck, Trash2, Edit2, ExternalLink, Eye, EyeOff, Loader2, Plus, X, Check } from 'lucide-react';
 import { admin } from '@/utils/api';
 import toast from 'react-hot-toast';
 
 const fadeInUp = {
   hidden: { opacity: 0, y: 20 },
   visible: { opacity: 1, y: 0 }
+};
+
+const AddCompanyModal = ({ isOpen, onClose, onSuccess }) => {
+  const [form, setForm] = useState({ companyName: '', email: '', password: '' });
+  const [showPass, setShowPass] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+
+  useEffect(() => {
+    if (!isOpen) {
+      setForm({ companyName: '', email: '', password: '' });
+      setShowPass(false);
+    }
+  }, [isOpen]);
+
+  if (!isOpen) return null;
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!form.companyName.trim()) return toast.error('Company Name is required');
+    if (!form.email.trim()) return toast.error('Work Email is required');
+    if (!form.password || form.password.length < 6) return toast.error('Password must be at least 6 characters');
+
+    setSubmitting(true);
+    try {
+      const res = await admin.createCompany({
+        companyName: form.companyName.trim(),
+        email: form.email.toLowerCase().trim(),
+        password: form.password,
+      });
+
+      if (res.data?.success) {
+        toast.success(`"${form.companyName.trim()}" added successfully!`);
+        onSuccess();
+        onClose();
+      } else {
+        toast.error(res.data?.message || 'Failed to add company');
+      }
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to create company');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <AnimatePresence>
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95, y: 20 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          exit={{ opacity: 0, scale: 0.95, y: 20 }}
+          className="bg-[#121212] border border-white/10 rounded-2xl w-full max-w-md overflow-hidden shadow-2xl text-white"
+          onClick={(e) => e.stopPropagation()}
+        >
+          {/* Header */}
+          <div className="flex items-center justify-between px-6 py-5 border-b border-white/5 bg-white/[0.02]">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-brand-purple-500/10 border border-brand-purple-500/20 flex items-center justify-center text-brand-purple-400">
+                <Building2 size={20} />
+              </div>
+              <div>
+                <h3 className="text-lg font-bold text-white">Add New Company</h3>
+                <p className="text-xs text-neutral-400">Directly onboard company without OTP</p>
+              </div>
+            </div>
+            <button
+              onClick={onClose}
+              className="w-8 h-8 rounded-lg hover:bg-white/5 flex items-center justify-center text-neutral-400 hover:text-white transition-colors"
+            >
+              <X size={18} />
+            </button>
+          </div>
+
+          {/* Form */}
+          <form onSubmit={handleSubmit} className="p-6 space-y-4">
+            <div>
+              <label className="block text-xs font-bold text-neutral-400 uppercase tracking-wide mb-1.5">
+                Company Name <span className="text-red-400">*</span>
+              </label>
+              <input
+                type="text"
+                placeholder="e.g. Acme Innovations Pvt. Ltd."
+                value={form.companyName}
+                onChange={(e) => setForm(p => ({ ...p, companyName: e.target.value }))}
+                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:ring-1 focus:ring-brand-purple-600/50 placeholder:text-neutral-600"
+                required
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold text-neutral-400 uppercase tracking-wide mb-1.5">
+                Work Email <span className="text-red-400">*</span>
+              </label>
+              <input
+                type="email"
+                placeholder="hr@company.com"
+                value={form.email}
+                onChange={(e) => setForm(p => ({ ...p, email: e.target.value }))}
+                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:ring-1 focus:ring-brand-purple-600/50 placeholder:text-neutral-600"
+                required
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold text-neutral-400 uppercase tracking-wide mb-1.5">
+                Password <span className="text-red-400">*</span>
+              </label>
+              <div className="relative">
+                <input
+                  type={showPass ? 'text' : 'password'}
+                  placeholder="Set company login password"
+                  value={form.password}
+                  onChange={(e) => setForm(p => ({ ...p, password: e.target.value }))}
+                  className="w-full bg-white/5 border border-white/10 rounded-xl pl-4 pr-11 py-2.5 text-sm text-white focus:outline-none focus:ring-1 focus:ring-brand-purple-600/50 placeholder:text-neutral-600"
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPass(p => !p)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-white transition-colors"
+                >
+                  {showPass ? <EyeOff size={16} /> : <Eye size={16} />}
+                </button>
+              </div>
+              <p className="text-[11px] text-neutral-500 mt-1">Minimum 6 characters. Company can change it later.</p>
+            </div>
+
+            <div className="pt-2 flex items-center justify-end gap-3">
+              <button
+                type="button"
+                onClick={onClose}
+                disabled={submitting}
+                className="px-4 py-2.5 rounded-xl text-sm font-semibold text-neutral-400 hover:text-white hover:bg-white/5 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={submitting}
+                className="px-5 py-2.5 rounded-xl text-sm font-semibold bg-brand-purple-600 hover:bg-brand-purple-700 text-white transition-all flex items-center gap-2 disabled:opacity-60"
+              >
+                {submitting ? <Loader2 size={16} className="animate-spin" /> : <Plus size={16} />}
+                Add Company
+              </button>
+            </div>
+          </form>
+        </motion.div>
+      </div>
+    </AnimatePresence>
+  );
 };
 
 const AdminCompanies = () => {
@@ -17,6 +167,7 @@ const AdminCompanies = () => {
   const [searchTerm, setSearchText] = useState('');
   const [activeMenu, setActiveMenu] = useState(null);
   const [filterPending, setFilterPending] = useState(false);
+  const [showAddModal, setShowAddModal] = useState(false);
 
   const fetchCompanies = async () => {
     try {
@@ -123,9 +274,15 @@ const AdminCompanies = () => {
           </div>
           <button 
             onClick={() => setFilterPending(!filterPending)}
-            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-white text-sm font-semibold transition-all whitespace-nowrap ${filterPending ? 'bg-orange-600 hover:bg-orange-700' : 'bg-brand-purple-600 hover:bg-brand-purple-700'}`}
+            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-white text-sm font-semibold transition-all whitespace-nowrap ${filterPending ? 'bg-orange-600 hover:bg-orange-700' : 'bg-white/10 hover:bg-white/15 text-neutral-200'}`}
           >
-            {filterPending ? 'Show All' : 'Verify New Request'}
+            {filterPending ? 'Show All' : 'Pending Only'}
+          </button>
+          <button 
+            onClick={() => setShowAddModal(true)}
+            className="flex items-center gap-2 px-4 py-2 rounded-xl text-white text-sm font-semibold transition-all whitespace-nowrap bg-brand-purple-600 hover:bg-brand-purple-700 shadow-lg shadow-brand-purple-600/20"
+          >
+            <Plus size={16} /> Add Company
           </button>
         </div>
       </div>
@@ -267,6 +424,13 @@ const AdminCompanies = () => {
           </table>
         </div>
       </motion.div>
+
+      {/* Add Company Modal */}
+      <AddCompanyModal 
+        isOpen={showAddModal} 
+        onClose={() => setShowAddModal(false)} 
+        onSuccess={fetchCompanies} 
+      />
     </motion.div>
   );
 };
