@@ -25,6 +25,30 @@ const STEPS = [
   { s: 4, t: 'Deployment', d: 'Get placed with full legal and salary support.' },
 ];
 
+const formatSalaryRange = (min, max) => {
+  if (!min && !max) return 'Not disclosed';
+  const fmt = (num) => {
+    if (!num || isNaN(num)) return '';
+    const n = Number(num);
+    if (n >= 100000) {
+      const lpa = n / 100000;
+      return `${Number.isInteger(lpa) ? lpa : lpa.toFixed(1)} LPA`;
+    }
+    if (n >= 1000) {
+      const k = n / 1000;
+      return `${Number.isInteger(k) ? k : k.toFixed(1)}k`;
+    }
+    return `${n}`;
+  };
+
+  if (min && max) {
+    if (min === max) return `₹${fmt(min)}`;
+    return `₹${fmt(min)} – ₹${fmt(max)}`;
+  }
+  if (min) return `₹${fmt(min)}+`;
+  return `Up to ₹${fmt(max)}`;
+};
+
 /* ── Apply Modal ── */
 const ApplyModal = ({ job, onClose, onApplied }) => {
   const [form, setForm] = useState({ resume: null, expectedSalary: '' });
@@ -194,11 +218,7 @@ const RoleDetailPanel = ({ job, onClose, onApply, applied }) => {
   );
 
   const postedDays = Math.max(1, Math.floor((Date.now() - new Date(job.createdAt)) / 86400000));
-  const salaryStr = job.salaryMin && job.salaryMax
-    ? `₹${Math.round(job.salaryMin/100000)}–${Math.round(job.salaryMax/100000)} LPA`
-    : job.salaryMin
-      ? `₹${Math.round(job.salaryMin/100000)} LPA+`
-      : 'Not disclosed';
+  const salaryStr = formatSalaryRange(job.salaryMin, job.salaryMax);
 
   return (
     <AnimatePresence>
@@ -321,11 +341,7 @@ const RoleDetailPanel = ({ job, onClose, onApply, applied }) => {
 /* ── Stryper Job Card ── */
 const StryperJobCard = ({ job, onApply, onView, applied }) => {
   const postedDays = Math.max(1, Math.floor((Date.now() - new Date(job.createdAt)) / 86400000));
-  const salaryStr = job.salaryMin && job.salaryMax
-    ? `₹${Math.round(job.salaryMin/100000)}–${Math.round(job.salaryMax/100000)} LPA`
-    : job.salaryMin
-      ? `₹${Math.round(job.salaryMin/100000)} LPA+`
-      : 'Not disclosed';
+  const salaryStr = formatSalaryRange(job.salaryMin, job.salaryMax);
 
   return (
     <motion.div

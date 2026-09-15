@@ -9,6 +9,30 @@ const inputCls = 'w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.
 const selectCls = 'w-full bg-[#161616] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:ring-1 focus:ring-brand-purple-600/50';
 const labelCls = 'text-xs font-bold text-neutral-500 uppercase tracking-wide mb-1 block';
 
+const formatSalaryRange = (min, max, fallback = 'Not disclosed') => {
+  if (!min && !max) return fallback;
+  const fmt = (num) => {
+    if (!num || isNaN(num)) return '';
+    const n = Number(num);
+    if (n >= 100000) {
+      const lpa = n / 100000;
+      return `${Number.isInteger(lpa) ? lpa : lpa.toFixed(1)}L`;
+    }
+    if (n >= 1000) {
+      const k = n / 1000;
+      return `${Number.isInteger(k) ? k : k.toFixed(1)}k`;
+    }
+    return `${n}`;
+  };
+
+  if (min && max) {
+    if (min === max) return `₹${fmt(min)}`;
+    return `₹${fmt(min)} - ₹${fmt(max)}`;
+  }
+  if (min) return `₹${fmt(min)}+`;
+  return `Up to ₹${fmt(max)}`;
+};
+
 const DEPARTMENTS = ['Engineering','Design','Product','Marketing','Sales','Human Resources','Finance','Operations','Analytics','Customer Support','Other'];
 const LOCATION_SUGG = ['Remote','Hybrid','Work From Home','Gurugram, Haryana','Noida, Uttar Pradesh','Bengaluru, Karnataka','Mumbai, Maharashtra','Hyderabad, Telangana','Pune, Maharashtra','Chennai, Tamil Nadu','Kolkata, West Bengal','Jaipur, Rajasthan','Ahmedabad, Gujarat','Delhi, Delhi'];
 const SKILL_SUGG = ['React.js','Next.js','Vue.js','Angular','JavaScript','TypeScript','HTML','CSS','Tailwind CSS','Redux','Node.js','Express.js','NestJS','Django','Flask','FastAPI','Spring Boot','Laravel','PHP','Go','Python','Java','C','C++','C#','Ruby','Swift','Dart','Kotlin','React Native','Flutter','Android Development','iOS Development','MongoDB','PostgreSQL','MySQL','Redis','Firebase','Supabase','Elasticsearch','AWS','Azure','GCP','Docker','Kubernetes','Terraform','CI/CD','Linux','DevOps','Microservices','Machine Learning','Deep Learning','NLP','TensorFlow','PyTorch','Data Analysis','Data Science','SQL','Power BI','Tableau','REST APIs','GraphQL','System Design','Full Stack Development','Jest','Cypress','Selenium','Unit Testing','QA Testing','Automation Testing','Figma','Adobe XD','UI/UX Design','Wireframing','Prototyping','Git','GitHub','Jira','Postman','Agile','Scrum','Project Management','SEO','SEM','Google Ads','Content Marketing','Digital Marketing','Salesforce','CRM','Financial Analysis','Accounting','SAP','Tally','MS Excel','Budgeting','GST','Recruitment','HR Management','Payroll','Talent Acquisition','Leadership','Communication','Problem Solving','Time Management','Customer Service'];
@@ -143,7 +167,7 @@ const JobFormModal = ({ isOpen, onClose, onSave, isInternal, editJob, companies 
   };
 
   if (!isOpen) return null;
-  const title = editJob ? `Edit â€” ${editJob.title}` : isInternal ? 'Add Internal Job' : 'Add External Job';
+  const title = editJob ? `Edit — ${editJob.title}` : isInternal ? 'Add Internal Job' : 'Add External Job';
 
   return (
     <AnimatePresence>
@@ -279,19 +303,19 @@ const JobFormModal = ({ isOpen, onClose, onSave, isInternal, editJob, companies 
               </div>
             </div>
 
-            {/* Section 2 â€” Compensation */}
+            {/* Section 2 — Compensation */}
             <div className="space-y-4">
               <p className="text-[10px] font-bold text-neutral-500 uppercase tracking-widest flex items-center gap-2">
                 <span className="w-5 h-5 rounded-full bg-brand-gold-500/20 text-brand-gold-500 flex items-center justify-center text-[9px] font-bold">2</span>
                 Compensation <span className="text-neutral-600 normal-case font-normal">(optional)</span>
               </p>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div><label className={labelCls}>Min Salary (â‚¹/month)</label><input type="number" value={form.salaryMin} onChange={e => set('salaryMin', e.target.value)} placeholder="e.g. 50000" className={inputCls}/></div>
-                <div><label className={labelCls}>Max Salary (â‚¹/month)</label><input type="number" value={form.salaryMax} onChange={e => set('salaryMax', e.target.value)} placeholder="e.g. 120000" className={inputCls}/></div>
+                <div><label className={labelCls}>Min Salary (₹/month)</label><input type="number" value={form.salaryMin} onChange={e => set('salaryMin', e.target.value)} placeholder="e.g. 50000" className={inputCls}/></div>
+                <div><label className={labelCls}>Max Salary (₹/month)</label><input type="number" value={form.salaryMax} onChange={e => set('salaryMax', e.target.value)} placeholder="e.g. 120000" className={inputCls}/></div>
               </div>
             </div>
 
-            {/* Section 3 â€” Skills */}
+            {/* Section 3 — Skills */}
             <div className="space-y-4" ref={skillRef}>
               <p className="text-[10px] font-bold text-neutral-500 uppercase tracking-widest flex items-center gap-2">
                 <span className="w-5 h-5 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-[9px] font-bold">3</span>
@@ -329,7 +353,7 @@ const JobFormModal = ({ isOpen, onClose, onSave, isInternal, editJob, companies 
               </div>
             </div>
 
-            {/* Section 4 â€” Description */}
+            {/* Section 4 — Description */}
             <div className="space-y-4">
               <p className="text-[10px] font-bold text-neutral-500 uppercase tracking-widest flex items-center gap-2">
                 <span className="w-5 h-5 rounded-full bg-blue-500/20 text-blue-400 flex items-center justify-center text-[9px] font-bold">4</span>
@@ -359,14 +383,14 @@ const JobFormModal = ({ isOpen, onClose, onSave, isInternal, editJob, companies 
   );
 };
 
-// â”€â”€ View Job Modal â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── View Job Modal ──────────────────────────────────────────────────
 const ViewJobModal = ({ isOpen, onClose, job, onStatusChange }) => {
   const [updating, setUpdating] = useState(false);
   if (!isOpen || !job) return null;
   const raw = job.raw || {};
   const postedDate = raw.createdAt ? new Date(raw.createdAt).toLocaleDateString('en-US', { year:'numeric', month:'short', day:'numeric' }) : 'N/A';
   const deadline = raw.deadline ? new Date(raw.deadline).toLocaleDateString('en-US', { year:'numeric', month:'short', day:'numeric' }) : 'Not set';
-  const salary = raw.salaryMin && raw.salaryMax ? `â‚¹${(raw.salaryMin/100000).toFixed(1)}L â€“ â‚¹${(raw.salaryMax/100000).toFixed(1)}L` : 'Not disclosed';
+  const salary = formatSalaryRange(raw.salaryMin, raw.salaryMax, 'Not disclosed');
   const statusColors = { Active:'bg-emerald-500/10 text-emerald-500 border-emerald-500/20', Draft:'bg-neutral-500/10 text-neutral-400 border-neutral-500/20', Closed:'bg-red-500/10 text-red-400 border-red-500/20', Archived:'bg-amber-500/10 text-amber-400 border-amber-500/20' };
   const initials = (job.company||'SC').split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
   return (
@@ -435,7 +459,7 @@ const ViewJobModal = ({ isOpen, onClose, job, onStatusChange }) => {
                 <button key={s} onClick={async()=>{setUpdating(true);await onStatusChange(job.id,s);setUpdating(false);}}
                   disabled={job.status===s||updating}
                   className={`px-4 py-2 rounded-xl text-xs font-bold border transition-all disabled:opacity-40 disabled:cursor-not-allowed ${job.status===s?(statusColors[s]||'bg-white/10 text-white border-white/20')+' cursor-default':'bg-white/5 text-neutral-400 border-white/10 hover:bg-white/10 hover:text-white'}`}>
-                  {job.status===s?`â— ${s}`:s}
+                  {job.status===s?`● ${s}`:s}
                 </button>
               ))}
               <button onClick={onClose} className="ml-auto px-5 py-2 rounded-xl text-xs font-bold text-neutral-500 hover:text-white hover:bg-white/5 transition-colors border border-white/5">Close</button>
@@ -447,7 +471,7 @@ const ViewJobModal = ({ isOpen, onClose, job, onStatusChange }) => {
   );
 };
 
-// â”€â”€ Main Component â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Main Component ──────────────────────────────────────────────────
 const AdminJobs = () => {
   const [jobs, setJobs] = useState([]);
   const [companies, setCompanies] = useState([]);
@@ -471,7 +495,7 @@ const AdminJobs = () => {
           company: j.companyId?.companyName || 'Stryper Solution',
           location: j.location || 'Remote',
           applicants: j.applicationCount || 0,
-          salary: j.salaryMin && j.salaryMax ? `₹${(j.salaryMin/100000).toFixed(0)}L - ₹${(j.salaryMax/100000).toFixed(0)}L` : 'N/A',
+          salary: formatSalaryRange(j.salaryMin, j.salaryMax, 'N/A'),
           status: j.status || 'Active',
           isStryper: j.isStryper === true,
           raw: j,
@@ -728,7 +752,7 @@ const AdminJobs = () => {
                     </td>
                     <td className="px-6 py-4"><div className="flex items-center gap-1.5 text-neutral-400 text-xs"><MapPin size={12}/>{job.location}</div></td>
                     <td className="px-6 py-4"><div className="flex items-center gap-1.5 text-neutral-400 text-xs"><Users size={12}/>{job.applicants} Applied</div></td>
-                    <td className="px-6 py-4"><div className="flex items-center gap-1 text-emerald-500 text-xs font-bold"><IndianRupee size={12}/>{job.salary}</div></td>
+                    <td className="px-6 py-4"><span className="text-emerald-500 text-xs font-bold">{job.salary}</span></td>
                     <td className="px-6 py-4"><span className={`text-[10px] font-bold px-2 py-1 rounded-full border ${statusColors[job.status]||'bg-neutral-500/10 text-neutral-400'}`}>{job.status === 'PendingApproval' ? 'Pending Approval' : job.status}</span></td>
                     <td className="px-6 py-4 text-right">
                       <div className="flex items-center justify-end gap-1">

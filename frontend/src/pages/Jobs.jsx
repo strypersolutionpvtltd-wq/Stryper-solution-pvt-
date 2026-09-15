@@ -9,6 +9,31 @@ import toast from 'react-hot-toast';
 // ─── Mock Data ───────────────────────────────────────────────────────────────
 // TOP_COMPANIES loaded from API in Jobs component
 
+// ─── Format Salary Helper ──────────────────────────────────────────────────
+const formatSalaryRange = (min, max) => {
+  if (!min && !max) return 'Not disclosed';
+  const fmt = (num) => {
+    if (!num || isNaN(num)) return '';
+    const n = Number(num);
+    if (n >= 100000) {
+      const lpa = n / 100000;
+      return `${Number.isInteger(lpa) ? lpa : lpa.toFixed(1)} LPA`;
+    }
+    if (n >= 1000) {
+      const k = n / 1000;
+      return `${Number.isInteger(k) ? k : k.toFixed(1)}k`;
+    }
+    return `${n}`;
+  };
+
+  if (min && max) {
+    if (min === max) return `₹${fmt(min)}`;
+    return `₹${fmt(min)} – ₹${fmt(max)}`;
+  }
+  if (min) return `₹${fmt(min)}+`;
+  return `Up to ₹${fmt(max)}`;
+};
+
 // ─── Map backend job → UI job shape ──────────────────────────────────────────
 const mapJob = (j) => ({
   id:          j._id,
@@ -17,11 +42,7 @@ const mapJob = (j) => ({
   desc:        j.description,
   location:    j.location,
   experience:  j.experience || 'Any',
-  salary:      j.salaryMin && j.salaryMax
-                 ? `₹${Math.round(j.salaryMin/100000)}–${Math.round(j.salaryMax/100000)} LPA`
-                 : j.salaryMin
-                   ? `₹${Math.round(j.salaryMin/100000)} LPA+`
-                   : 'Not disclosed',
+  salary:      formatSalaryRange(j.salaryMin, j.salaryMax),
   locationType: j.workMode || 'Onsite',
   type:        j.employmentType || 'Full-time',
   skills:      j.skills || [],
