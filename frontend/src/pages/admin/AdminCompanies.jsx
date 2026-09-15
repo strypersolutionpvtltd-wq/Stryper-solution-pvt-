@@ -289,9 +289,9 @@ const AdminCompanies = () => {
 
       <motion.div 
         variants={fadeInUp}
-        className="bg-[#0f0f0f] border border-white/5 rounded-2xl"
+        className="bg-[#0f0f0f] border border-white/5 rounded-2xl min-h-[300px] pb-12"
       >
-        <div className="overflow-x-auto text-white min-h-[300px] pb-16">
+        <div className="overflow-visible text-white">
           <table className="w-full text-left border-collapse">
             <thead className="bg-white/5">
               <tr>
@@ -372,7 +372,10 @@ const AdminCompanies = () => {
                               </button>
                               
                               {activeMenu === company.id && (
-                                <div className="absolute right-0 top-full mt-2 w-48 bg-[#1a1a1a] border border-white/10 rounded-xl shadow-2xl z-50 py-1 overflow-hidden text-left">
+                                <div 
+                                  onClick={(e) => e.stopPropagation()}
+                                  className="absolute right-0 top-full mt-2 w-48 bg-[#1a1a1a] border border-white/10 rounded-xl shadow-2xl z-50 py-1 overflow-hidden text-left"
+                                >
                                   <button 
                                     onClick={() => navigate(`/admin/users/${company.id}`)}
                                     className="w-full flex items-center gap-2 px-4 py-2.5 text-xs font-medium text-brand-purple-400 hover:bg-white/5 transition-colors"
