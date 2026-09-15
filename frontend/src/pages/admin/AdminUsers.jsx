@@ -145,9 +145,9 @@ const AdminUsers = () => {
 
       <motion.div 
         variants={fadeInUp}
-        className="bg-[#0f0f0f] border border-white/5 rounded-2xl overflow-hidden"
+        className="bg-[#0f0f0f] border border-white/5 rounded-2xl"
       >
-        <div className="overflow-x-auto text-white">
+        <div className="overflow-x-auto text-white min-h-[300px] pb-16">
           <table className="w-full text-left border-collapse">
             <thead className="bg-white/5">
               <tr>
