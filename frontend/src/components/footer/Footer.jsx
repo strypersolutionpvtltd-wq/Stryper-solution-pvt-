@@ -200,6 +200,8 @@ const Footer = () => {
               ))}
             </div>
           </div>
+        </div>
+
         {/* SEO Locations & Keywords Bar */}
         <div className="mt-10 pt-6 border-t border-neutral-800/40 text-center">
           <p className="text-xs text-neutral-500 leading-relaxed max-w-4xl mx-auto">
