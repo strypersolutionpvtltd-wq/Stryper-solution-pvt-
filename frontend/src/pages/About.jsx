@@ -35,8 +35,8 @@ const About = () => (
     />
     <PageHero
       title="About Stryper Solution"
-      subtitle="Where Talent Meets Opportunity and Businesses Grow."
-      breadcrumb="About"
+      subtitle="Jaipur's trusted recruitment agency, staffing partner, and HR consultancy driving organizational growth across Rajasthan, Delhi NCR, and India."
+      breadcrumb="About Us"
       image={img1}
     />
 

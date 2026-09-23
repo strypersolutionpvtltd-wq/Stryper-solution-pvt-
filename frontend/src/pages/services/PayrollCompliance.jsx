@@ -17,8 +17,8 @@ const PayrollCompliance = () => {
         canonicalUrl="https://strypersolution.com/services/payroll-compliance"
       />
       <PageHero 
-        title="Payroll & Compliance" 
-        subtitle="Managing payroll and labor law requirements with precision." 
+        title="Payroll Outsourcing & Compliance in Jaipur" 
+        subtitle="End-to-end HR advisory, PF, ESIC, labor law adherence, and precision monthly payroll management across India." 
         breadcrumb="Services / Payroll & Compliance"
         image={img2}
       />

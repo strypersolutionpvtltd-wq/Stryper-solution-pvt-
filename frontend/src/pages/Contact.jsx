@@ -158,9 +158,9 @@ const Contact = () => (
       canonicalUrl="https://strypersolution.com/contact"
     />
     <PageHero
-      title="LET’S TALK ABOUT YOUR WORKFORCE NEEDS"
-      subtitle="Stryper Solution Pvt. Ltd. Contact us for staffing solutions, workforce support, operational services and business enquiries."
-      breadcrumb="Contact"
+      title="Let's Talk About Your Workforce Needs"
+      subtitle="Contact Stryper Solution Pvt Ltd in Jaipur for corporate recruitment, staffing solutions, manpower deployment, and HR consulting services across India."
+      breadcrumb="Contact Us"
       image="https://images.unsplash.com/photo-1497366754035-f200968a6e72?q=80&w=1920&auto=format&fit=crop"
     />
     <ContactInfoGrid />

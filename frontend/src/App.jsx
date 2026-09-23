@@ -13,6 +13,16 @@ import IndustrialManpower from '@/pages/services/IndustrialManpower';
 import LogisticsWarehouse from '@/pages/services/LogisticsWarehouse';
 import FacilityManagement from '@/pages/services/FacilityManagement';
 import PayrollCompliance from '@/pages/services/PayrollCompliance';
+import RecruitmentServicesPage from '@/pages/services/RecruitmentServicesPage';
+import StaffingServicesPage from '@/pages/services/StaffingServicesPage';
+import ManpowerServicesPage from '@/pages/services/ManpowerServicesPage';
+import ITRecruitmentPage from '@/pages/services/ITRecruitmentPage';
+import NonITRecruitmentPage from '@/pages/services/NonITRecruitmentPage';
+import HospitalityRecruitmentPage from '@/pages/services/HospitalityRecruitmentPage';
+import CorporateHiringPage from '@/pages/services/CorporateHiringPage';
+import HRConsultancyPage from '@/pages/services/HRConsultancyPage';
+import BlogList from '@/pages/blog/BlogList';
+import BlogPost from '@/pages/blog/BlogPost';
 import Industries  from '@/pages/Industries';
 import Careers     from '@/pages/Careers';
 import Jobs        from '@/pages/Jobs';
@@ -138,10 +148,20 @@ function App() {
         <Route path="/"           element={<Home />} />
         <Route path="/about"      element={<About />} />
         <Route path="/services"   element={<Services />} />
+        <Route path="/recruitment-services"           element={<RecruitmentServicesPage />} />
+        <Route path="/staffing"                       element={<StaffingServicesPage />} />
+        <Route path="/manpower"                       element={<ManpowerServicesPage />} />
+        <Route path="/it-recruitment"                 element={<ITRecruitmentPage />} />
+        <Route path="/non-it-recruitment"             element={<NonITRecruitmentPage />} />
+        <Route path="/hospitality-recruitment"        element={<HospitalityRecruitmentPage />} />
+        <Route path="/corporate-hiring"               element={<CorporateHiringPage />} />
+        <Route path="/hr-consultancy"                 element={<HRConsultancyPage />} />
         <Route path="/services/industrial-manpower"   element={<IndustrialManpower />} />
         <Route path="/services/logistics-warehouse"   element={<LogisticsWarehouse />} />
         <Route path="/services/facility-management"   element={<FacilityManagement />} />
         <Route path="/services/payroll-compliance"    element={<PayrollCompliance />} />
+        <Route path="/blog"       element={<BlogList />} />
+        <Route path="/blog/:slug" element={<BlogPost />} />
         <Route path="/industries" element={<Industries />} />
         <Route path="/careers"    element={<Careers />} />
         <Route path="/jobs"       element={<Jobs />} />

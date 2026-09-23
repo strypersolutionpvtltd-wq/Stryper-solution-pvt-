@@ -399,9 +399,9 @@ const Industries = () => (
       canonicalUrl="https://strypersolution.com/industries"
     />
     <PageHero
-      title="We help businesses in many different industries with their staffing needs."
-      subtitle="Stryper Solution Pvt. Ltd. provides flexible teams and support services, specifically designed for industrial, logistics, retail, and corporate companies."
-      breadcrumb="Industries"
+      title="Industry-Specific Recruitment & Staffing Solutions"
+      subtitle="Delivering specialized workforce, contract staffing, and executive talent across IT, manufacturing, hospitality, logistics, healthcare, and corporate sectors in Jaipur and across India."
+      breadcrumb="Industries We Empower"
       image={img3}
     />
     <IndustriesOverview />

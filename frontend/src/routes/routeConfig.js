@@ -22,22 +22,24 @@ export const NAVBAR_ROUTES = [
 
 export const FOOTER_ROUTES = {
   company: [
-    { label: 'Careers',     path: '/careers'     },
-    { label: 'About Us',    path: '/about'      },
-    { label: 'Our Team',    path: '/about#team'  },
-    { label: 'Contact',     path: '/contact'     },
-    { label: 'Admin Panel', path: '/admin/dashboard' },
+    { label: 'About Us',         path: '/about'       },
+    { label: 'Careers & Hiring', path: '/careers'     },
+    { label: 'Knowledge Hub',    path: '/blog'        },
+    { label: 'Contact Us',       path: '/contact'     },
+    { label: 'Admin Access',     path: '/admin/dashboard' },
   ],
   services: [
-    { label: 'Permanent Staffing',  path: '/services#permanent'  },
-    { label: 'Contract Staffing',   path: '/services#contract'   },
-    { label: 'Executive Search',    path: '/services#executive'  },
-    { label: 'HR Consulting',       path: '/services#consulting' },
+    { label: 'Recruitment Services', path: '/recruitment-services' },
+    { label: 'Staffing Solutions',   path: '/staffing'             },
+    { label: 'Manpower Supply',      path: '/manpower'             },
+    { label: 'IT Recruitment',       path: '/it-recruitment'       },
+    { label: 'HR Consultancy',       path: '/hr-consultancy'       },
+    { label: 'Corporate Hiring',     path: '/corporate-hiring'     },
   ],
   industries: [
-    { label: 'Information Technology', path: '/industries#it'         },
-    { label: 'Banking & Finance',      path: '/industries#finance'    },
-    { label: 'Healthcare',             path: '/industries#healthcare' },
-    { label: 'Manufacturing',          path: '/industries#manufacturing' },
+    { label: 'Information Technology', path: '/it-recruitment'           },
+    { label: 'Hospitality & Tourism',  path: '/hospitality-recruitment'  },
+    { label: 'Manufacturing & Warehousing', path: '/services/industrial-manpower' },
+    { label: 'Logistics & Supply Chain', path: '/services/logistics-warehouse' },
   ],
 };

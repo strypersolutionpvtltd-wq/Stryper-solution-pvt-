@@ -17,8 +17,8 @@ const IndustrialManpower = () => {
         canonicalUrl="https://strypersolution.com/services/industrial-manpower"
       />
       <PageHero 
-        title="Industrial Manpower" 
-        subtitle="Reliable skilled and semi-skilled workforce for your industrial operations." 
+        title="Industrial Manpower Supply in Jaipur" 
+        subtitle="Reliable skilled, semi-skilled, and technical workforce recruitment for factories, assembly lines, and industrial plants across Rajasthan & India." 
         breadcrumb="Services / Industrial Manpower"
         image={img5}
       />

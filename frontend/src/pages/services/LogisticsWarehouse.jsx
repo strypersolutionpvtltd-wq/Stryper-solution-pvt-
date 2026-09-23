@@ -17,8 +17,8 @@ const LogisticsWarehouse = () => {
         canonicalUrl="https://strypersolution.com/services/logistics-warehouse"
       />
       <PageHero 
-        title="Logistics & Warehouse Staffing" 
-        subtitle="Optimizing your supply chain with trained warehouse personnel." 
+        title="Logistics & Warehouse Staffing in Jaipur" 
+        subtitle="Optimizing supply chain, fulfillment center, and warehouse operations with vetted, trained logistics manpower across India." 
         breadcrumb="Services / Logistics & Warehouse"
         image={img6}
       />

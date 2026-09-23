@@ -546,9 +546,9 @@ function Careers() {
         canonicalUrl="https://strypersolution.com/careers"
       />
       <PageHero 
-        title="Your Career Partner" 
-        subtitle="Stryper Solution connects talent with India's top industries. Whether you're looking for a job or want to join our core team, we've got you covered." 
-        breadcrumb="Careers" 
+        title="Join Our Team & Explore Career Opportunities" 
+        subtitle="Connecting top talent with leading enterprises across India. Build your career with Stryper Solution or get placed with premier client companies." 
+        breadcrumb="Careers & Hiring" 
         image={img4}
       />
 

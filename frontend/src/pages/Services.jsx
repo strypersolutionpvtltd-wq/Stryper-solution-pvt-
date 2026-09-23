@@ -276,7 +276,12 @@ const Services = () => (
       keywords="recruitment services in Jaipur, employee recruitment services, corporate recruitment agency, professional recruitment services, permanent staffing services, temporary staffing services, contract staffing agency, manpower recruitment agency, skilled manpower recruitment, workforce solutions, talent acquisition services, recruitment outsourcing services, HR recruitment services, executive recruitment agency, bulk hiring services, bulk recruitment services in Jaipur"
       canonicalUrl="https://strypersolution.com/services"
     />
-    <PageHero title="Complete Help for Your Staff and Operations." subtitle="We provide flexible staffing, help manage your team, take care of logistics, and handle other operational tasks. We customize these services for today's businesses and industries." breadcrumb="Services" image={img2} />
+    <PageHero 
+      title="Comprehensive Recruitment, Staffing & HR Services" 
+      subtitle="End-to-end permanent staffing, contract workforce deployment, industrial manpower, IT hiring, and payroll compliance tailored for enterprises across Jaipur, Rajasthan, and India." 
+      breadcrumb="Our Services" 
+      image={img2} 
+    />
     <ServicesOverview />
     <DetailedServices />
     <ProcessHighlights />

@@ -867,10 +867,10 @@ const Jobs = () => {
               {filtered.length} Jobs Available
             </span>
             <h1 className="font-display font-bold text-white mb-3" style={{ fontSize: 'clamp(2rem, 4vw, 3rem)' }}>
-              Find Your Dream Job
+              Find Verified Job Openings in Jaipur & Across India
             </h1>
-            <p className="text-white/70 text-lg mb-10 max-w-xl mx-auto">
-              Explore top opportunities from trusted companies across India.
+            <p className="text-white/70 text-lg mb-10 max-w-2xl mx-auto leading-relaxed">
+              Explore active vacancies across IT, engineering, corporate sales, hospitality, warehousing, and management with top verified employers.
             </p>
           </motion.div>
 
