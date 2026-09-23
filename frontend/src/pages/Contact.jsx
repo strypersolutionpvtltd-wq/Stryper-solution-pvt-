@@ -2,6 +2,7 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import PageHero from "@/components/shared/PageHero";
+import SEO from "@/components/shared/SEO";
 import { COMPANY_INFO } from "@/data/companyInfo";
 import FAQSection from "@/components/shared/FAQSection";
 import { contact as contactApi } from "@/utils/api";
@@ -150,6 +151,12 @@ const SERVICE_OPTIONS = [
 /* ── Main page ── */
 const Contact = () => (
   <>
+    <SEO
+      title="Contact Stryper Solution | Recruitment & Placement Company in Jaipur"
+      description="Get in touch with Stryper Solution Pvt Ltd in Jaipur, Rajasthan. Call +91 8448590303 or email for staffing, recruitment, and manpower hiring inquiries."
+      keywords="recruitment company in Jaipur, recruitment agency in Jaipur, recruitment consultants Jaipur, recruitment partner for businesses, hiring agency in Jaipur, placement consultancy in Jaipur"
+      canonicalUrl="https://strypersolution.com/contact"
+    />
     <PageHero
       title="LET’S TALK ABOUT YOUR WORKFORCE NEEDS"
       subtitle="Stryper Solution Pvt. Ltd. Contact us for staffing solutions, workforce support, operational services and business enquiries."

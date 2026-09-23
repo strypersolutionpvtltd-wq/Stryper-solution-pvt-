@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import PageHero from '@/components/shared/PageHero';
+import SEO from '@/components/shared/SEO';
 import img4 from '@/assets/image/4.jpeg';
 import { fadeInUp, staggerContainer, viewportOnce } from '@/utils/animations';
 import api, { jobs as jobsApi, upload } from '@/utils/api';
@@ -538,6 +539,12 @@ function Careers() {
 
   return (
     <>
+      <SEO
+        title="Careers & Job Opportunities in Jaipur | Stryper Solution"
+        description="Join leading client companies or become part of Stryper Solution's core recruitment & HR consulting team in Jaipur, Rajasthan. Submit your resume today."
+        keywords="fresher recruitment agency in Jaipur, experienced employee recruitment Jaipur, recruitment agency for startups in Jaipur, placement agency Jaipur, hiring agency in Jaipur, HR recruitment services Jaipur"
+        canonicalUrl="https://strypersolution.com/careers"
+      />
       <PageHero 
         title="Your Career Partner" 
         subtitle="Stryper Solution connects talent with India's top industries. Whether you're looking for a job or want to join our core team, we've got you covered." 

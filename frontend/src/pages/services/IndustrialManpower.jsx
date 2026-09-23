@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import PageHero from '@/components/shared/PageHero';
+import SEO from '@/components/shared/SEO';
 import { fadeInUp, staggerContainer, viewportOnce } from '@/utils/animations';
 import img5 from '@/assets/image/5.jpeg';
 
@@ -9,6 +10,12 @@ const PURPLE = "#8B3A8F";
 const IndustrialManpower = () => {
   return (
     <div className="bg-white">
+      <SEO
+        title="Industrial Manpower Supply & Consultancy in Jaipur | Stryper Solution"
+        description="Skilled, semi-skilled, and technical industrial manpower recruitment services in Jaipur, Rajasthan & Delhi NCR for manufacturing, engineering, and factory operations."
+        keywords="manpower consultancy in Jaipur, manpower recruitment agency, skilled manpower recruitment, manufacturing recruitment agency, construction manpower recruitment, manpower agency Jaipur, manpower recruitment services for companies, engineering recruitment agency Jaipur"
+        canonicalUrl="https://strypersolution.com/services/industrial-manpower"
+      />
       <PageHero 
         title="Industrial Manpower" 
         subtitle="Reliable skilled and semi-skilled workforce for your industrial operations." 

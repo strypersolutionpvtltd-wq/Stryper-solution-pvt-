@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import PageHero from '@/components/shared/PageHero';
+import SEO from '@/components/shared/SEO';
 import { fadeInUp, staggerContainer, viewportOnce } from '@/utils/animations';
 import img2 from '@/assets/image/2.jpeg';
 
@@ -9,6 +10,12 @@ const GOLD = "#F5A623";
 const PayrollCompliance = () => {
   return (
     <div className="bg-white">
+      <SEO
+        title="HR Consultancy & Payroll Compliance Services Jaipur | Stryper Solution"
+        description="End-to-end HR consultancy, statutory compliance (PF, ESIC, PT, TDS), payroll outsourcing, and labor law management for businesses in Jaipur, Rajasthan & India."
+        keywords="HR consultancy in Jaipur, HR recruitment services Jaipur, HR consultancy for small businesses Jaipur, payroll compliance services, outsourced HR services Jaipur, staffing agency in Jaipur"
+        canonicalUrl="https://strypersolution.com/services/payroll-compliance"
+      />
       <PageHero 
         title="Payroll & Compliance" 
         subtitle="Managing payroll and labor law requirements with precision." 

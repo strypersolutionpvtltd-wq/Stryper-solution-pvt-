@@ -1,6 +1,7 @@
-﻿import { motion } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import PageHero from '@/components/shared/PageHero';
+import SEO from '@/components/shared/SEO';
 import img1 from '@/assets/image/1.jpeg';
 import chairmanImg from '@/assets/image/chariman.jpg';
 import { fadeInUp, fadeInLeft, fadeInRight, staggerContainer, viewportOnce } from '@/utils/animations';
@@ -26,6 +27,12 @@ const MISSION_POINTS = [
 
 const About = () => (
   <>
+    <SEO
+      title="About Us | Top Recruitment & HR Consultancy in Jaipur | Stryper Solution"
+      description="Learn about Stryper Solution Pvt Ltd — Jaipur's trusted recruitment agency, manpower consultancy, and staffing partner helping enterprises across Rajasthan, Delhi NCR, and India hire top talent."
+      keywords="Stryper Solution, recruitment company in Jaipur, placement consultancy in Jaipur, trusted staffing agency in Jaipur, HR consultancy Rajasthan, manpower agency Jaipur, recruitment consultants Jaipur, recruitment partner for businesses, affordable recruitment consultancy in Jaipur"
+      canonicalUrl="https://strypersolution.com/about"
+    />
     <PageHero
       title="About Stryper Solution"
       subtitle="Where Talent Meets Opportunity and Businesses Grow."

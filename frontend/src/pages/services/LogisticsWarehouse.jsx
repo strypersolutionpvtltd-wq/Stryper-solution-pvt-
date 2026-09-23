@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import PageHero from '@/components/shared/PageHero';
+import SEO from '@/components/shared/SEO';
 import { fadeInUp, staggerContainer, viewportOnce } from '@/utils/animations';
 import img6 from '@/assets/image/6.jpeg';
 
@@ -9,6 +10,12 @@ const GOLD = "#F5A623";
 const LogisticsWarehouse = () => {
   return (
     <div className="bg-white">
+      <SEO
+        title="Logistics & Warehouse Staffing Services | Stryper Solution Pvt Ltd"
+        description="Specialized warehouse staffing, logistics manpower, supply chain workforce solutions, and fulfillment hiring across Jaipur, Rajasthan, Delhi NCR, and India."
+        keywords="warehouse staffing, logistics recruitment agency Jaipur, workforce solutions, bulk hiring services, staffing agency in Jaipur, contract staffing agency, supply chain manpower"
+        canonicalUrl="https://strypersolution.com/services/logistics-warehouse"
+      />
       <PageHero 
         title="Logistics & Warehouse Staffing" 
         subtitle="Optimizing your supply chain with trained warehouse personnel." 

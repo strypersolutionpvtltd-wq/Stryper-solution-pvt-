@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import AuthModal from '@/components/auth/AuthModal';
+import SEO from '@/components/shared/SEO';
 import api from '@/utils/api';
 import toast from 'react-hot-toast';
 
@@ -843,6 +844,12 @@ const Jobs = () => {
 
   return (
     <>
+    <SEO
+      title="Job Openings & Placement in Jaipur | Stryper Solution Career Portal"
+      description="Find top jobs in Jaipur, Rajasthan, Delhi NCR, and across India. Explore openings in IT, sales, engineering, hospitality, warehouse, and corporate sectors with Stryper Solution."
+      keywords="fresher recruitment agency in Jaipur, experienced employee recruitment Jaipur, placement agency Jaipur, hiring agency in Jaipur, job openings in Jaipur, corporate hiring solutions Jaipur, talent acquisition company Jaipur"
+      canonicalUrl="https://strypersolution.com/jobs"
+    />
     <div className="min-h-screen bg-neutral-50">
 
       {/* ── HERO ── */}

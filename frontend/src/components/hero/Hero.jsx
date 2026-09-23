@@ -106,7 +106,7 @@ const Hero = () => {
                 transition={{ duration: 0.5, delay: 0.1 }}
                 className="text-white/80 text-xs md:text-sm font-bold tracking-[0.2em] uppercase mb-4"
               >
-                Stryper Solution Pvt. Ltd.
+                Stryper Solution Pvt. Ltd. • Jaipur • Rajasthan • Delhi NCR
               </motion.p>
               <h1
                 className="font-display font-bold text-white leading-[1.1] mb-6"
@@ -115,12 +115,10 @@ const Hero = () => {
                   textShadow: "0 2px 16px rgba(0,0,0,0.5)",
                 }}
               >
-                Your Ambition. Our People. <br className="hidden sm:block" /> Zero Friction.
+                Recruitment & Staffing Solutions <br className="hidden sm:block" /> for Growing Businesses
               </h1>
-              <p className="text-white/85 text-base md:text-lg leading-relaxed mb-10 max-w-2xl mx-auto">
-                The strategic workforce partner for industrial and warehouse leaders.
-                We deliver vetted talent and manage complete compliance, ensuring
-                your operations run at peak efficiency.
+              <p className="text-white/85 text-base md:text-lg leading-relaxed mb-8 max-w-2xl mx-auto">
+                Premier recruitment agency and HR consultancy in Jaipur, providing permanent & contract staffing, industrial manpower, IT/Non-IT hiring, and corporate talent acquisition across India.
               </p>
               <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-6 mt-4">
                 <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>

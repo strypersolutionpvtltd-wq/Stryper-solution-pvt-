@@ -1,6 +1,7 @@
-﻿import { motion } from "framer-motion";
+import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import PageHero from "@/components/shared/PageHero";
+import SEO from "@/components/shared/SEO";
 import img2 from "@/assets/image/2.jpeg";
 import img5 from "@/assets/image/5.jpeg";
 import img6 from "@/assets/image/6.jpeg";
@@ -269,6 +270,12 @@ const ServicesCTA = () => (
 
 const Services = () => (
   <>
+    <SEO
+      title="Recruitment & Staffing Services in Jaipur | Stryper Solution Pvt Ltd"
+      description="Comprehensive recruitment services in Jaipur — permanent staffing, temporary & contract staffing, industrial manpower, executive recruitment, and bulk hiring solutions across Rajasthan and India."
+      keywords="recruitment services in Jaipur, employee recruitment services, corporate recruitment agency, professional recruitment services, permanent staffing services, temporary staffing services, contract staffing agency, manpower recruitment agency, skilled manpower recruitment, workforce solutions, talent acquisition services, recruitment outsourcing services, HR recruitment services, executive recruitment agency, bulk hiring services, bulk recruitment services in Jaipur"
+      canonicalUrl="https://strypersolution.com/services"
+    />
     <PageHero title="Complete Help for Your Staff and Operations." subtitle="We provide flexible staffing, help manage your team, take care of logistics, and handle other operational tasks. We customize these services for today's businesses and industries." breadcrumb="Services" image={img2} />
     <ServicesOverview />
     <DetailedServices />

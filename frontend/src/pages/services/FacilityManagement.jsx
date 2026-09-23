@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import PageHero from '@/components/shared/PageHero';
+import SEO from '@/components/shared/SEO';
 import { fadeInUp, staggerContainer, viewportOnce } from '@/utils/animations';
 import img5 from '@/assets/image/5.jpeg';
 
@@ -9,6 +10,12 @@ const PURPLE = "#8B3A8F";
 const FacilityManagement = () => {
   return (
     <div className="bg-white">
+      <SEO
+        title="Facility Management & Corporate Support Staffing | Stryper Solution"
+        description="Professional corporate facility management, office support staff, and commercial housekeeping manpower services in Jaipur and Rajasthan."
+        keywords="corporate recruitment agency, professional recruitment services, corporate hiring solutions Jaipur, staffing agency in Jaipur, facility management manpower Jaipur"
+        canonicalUrl="https://strypersolution.com/services/facility-management"
+      />
       <PageHero 
         title="Facility Management" 
         subtitle="Comprehensive support for cleaning, maintenance, and security." 

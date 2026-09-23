@@ -1,6 +1,7 @@
-﻿import { motion } from "framer-motion";
+import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import PageHero from "@/components/shared/PageHero";
+import SEO from "@/components/shared/SEO";
 import img3 from "@/assets/image/1.jpeg";
 import img5 from "@/assets/image/5.jpeg";
 import img6 from "@/assets/image/6.jpeg";
@@ -391,6 +392,12 @@ const IndustriesCTA = () => (
 
 const Industries = () => (
   <>
+    <SEO
+      title="Industry-Specific Recruitment Agency in Jaipur | IT, Manufacturing & Hospitality"
+      description="Expert recruitment solutions across IT, Non-IT, Furniture, Manufacturing, Hospitality, Hotels, Construction, Interior, Accounts, BPO & Engineering industries in Jaipur & India."
+      keywords="IT recruitment agency Jaipur, non IT recruitment agency Jaipur, furniture industry recruitment, manufacturing recruitment agency, sales recruitment agency Jaipur, hospitality recruitment agency Jaipur, hotel staff recruitment agency, construction manpower recruitment, interior industry recruitment, accounts recruitment agency, HR recruitment services Jaipur, BPO recruitment agency Jaipur, engineering recruitment agency Jaipur"
+      canonicalUrl="https://strypersolution.com/industries"
+    />
     <PageHero
       title="We help businesses in many different industries with their staffing needs."
       subtitle="Stryper Solution Pvt. Ltd. provides flexible teams and support services, specifically designed for industrial, logistics, retail, and corporate companies."

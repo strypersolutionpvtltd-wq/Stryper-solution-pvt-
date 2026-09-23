@@ -1,0 +1,9 @@
+User-agent: *
+Allow: /
+Disallow: /admin/
+Disallow: /hire-zone/
+Disallow: /career-hub/
+Disallow: /restricted-area
+Disallow: /api/
+
+Sitemap: https://strypersolution.com/sitemap.xml
